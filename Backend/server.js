@@ -1,13 +1,27 @@
+import mongoose from "mongoose";
 import dotenv from "dotenv";
-import app from "./utils/app.js";
-import connectDB from "./config/db.js";
+import app from "./app.js";
+import seedAdmin from "./seed/seedAdmin.js";
 
 dotenv.config();
 
-await connectDB();
+const PORT = process.env.PORT || 7000;
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/saylani-lms";
 
-const PORT = process.env.PORT;
+mongoose
+  .connect(MONGO_URI)
+  .then(async () => {
+    console.log("Connected to MongoDB successfully");
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+    // Create Default Admin (Only First Time)
+    await seedAdmin();
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
+  });
