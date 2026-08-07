@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import SignUpPage from './pages/SignUpPage'
@@ -14,6 +15,17 @@ const App = () => {
         <Route path='/login-out' element={<LoginOutPage/>}/>
       </Routes>
     </div>
+=======
+import './App.css'
+
+function App() {
+  
+
+  return (
+    <>
+      
+    </>
+>>>>>>> origin/Frontend/mustafa-kamal
   )
 }
 
