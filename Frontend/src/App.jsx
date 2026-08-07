@@ -1,20 +1,15 @@
-import React from 'react'
-import { Route, Routes } from 'react-router-dom'
-import SignUpPage from './pages/SignUpPage'
-import LoginPage from './pages/LoginPage'
-import LoginOutPage from './pages/LoginOutPage'
+import { Routes, Route, Navigate } from "react-router-dom";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
 
-const App = () => {
+function App() {
   return (
-    <div>
-
-      <Routes>
-        <Route path='/sign-up' element={<SignUpPage/>}/>
-        <Route path='/login' element={<LoginPage/>}/>
-        <Route path='/login-out' element={<LoginOutPage/>}/>
-      </Routes>
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<Navigate to="/signup" replace />} />
+      <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
