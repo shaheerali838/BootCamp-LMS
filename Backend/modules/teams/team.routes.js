@@ -42,6 +42,27 @@ router.put(
   teamController.updateTeam
 );
 
+// Add Member
+router.post(
+  "/:id/members",
+  checkTeamExists,
+  teamController.addMember
+);
+
+// Remove Member
+router.delete(
+  "/:id/members",
+  checkTeamExists,
+  teamController.removeMember
+);
+
+// Set Team Leader
+router.put(
+  "/:id/leader",
+  checkTeamExists,
+  teamController.setTeamLeader
+);
+
 // Delete Team
 router.delete("/:id", checkTeamExists, teamController.deleteTeam);
 

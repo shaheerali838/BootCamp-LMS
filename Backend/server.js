@@ -1,17 +1,19 @@
+// Load Environment Variables
 require("./config/env");
+
+// Models
+require("./models/User");
+require("./modules/teams/team.model");
 
 const express = require("express");
 const connectDB = require("./config/db");
 
-// Models load
-require("./models/User");
-require("./modules/teams/team.model");
-
 const teamRoutes = require("./modules/teams/team.routes");
+const userRoutes = require("./modules/users/user.routes");
 
 const app = express();
 
-// Database Connection
+// Connect Database
 connectDB();
 
 // Middleware
@@ -19,6 +21,8 @@ app.use(express.json());
 
 // Routes
 app.use("/api/teams", teamRoutes);
+
+app.use("/api/users", userRoutes);
 
 // Home Route
 app.get("/", (req, res) => {

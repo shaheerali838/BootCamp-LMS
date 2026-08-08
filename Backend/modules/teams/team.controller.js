@@ -109,6 +109,27 @@ const deleteTeam = async (req, res) => {
   }
 };
 
+// Add Member
+const addMember = async (req, res) => {
+  try {
+    const team = await teamService.addMember(
+      req.params.id,
+      req.body.userId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Member added successfully",
+      data: team,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // Search Team
 const searchTeam = async (req, res) => {
   try {
@@ -129,11 +150,56 @@ const searchTeam = async (req, res) => {
   }
 };
 
+// Remove Member
+const removeMember = async (req, res) => {
+  try {
+    const team = await teamService.removeMember(
+      req.params.id,
+      req.body.userId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Member removed successfully",
+      data: team,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Set Team Leader
+const setTeamLeader = async (req, res) => {
+  try {
+    const team = await teamService.setTeamLeader(
+      req.params.id,
+      req.body.userId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Team leader set successfully",
+      data: team,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createTeam,
   getAllTeams,
   getTeamById,
   updateTeam,
   deleteTeam,
+  addMember,
+  removeMember,
+  setTeamLeader,
   searchTeam,
 };
