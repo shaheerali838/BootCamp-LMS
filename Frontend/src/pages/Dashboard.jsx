@@ -1,12 +1,13 @@
-import React from 'react'
+import WelcomeHeader from "../components/Dashborad/WelcomeHeader";
+import StatsGrid from "../components/Dashborad/StatsGrid";
 
 function Dashboard() {
   return (
-    <div>
-      <h1 className='text-3xl text-amber-300'>Dashboard</h1>
-
+    <div className="p-6">
+      <WelcomeHeader />
+      <StatsGrid />
     </div>
-  )
+  );
 }
 
-export default Dashboard
+export default Dashboard;
