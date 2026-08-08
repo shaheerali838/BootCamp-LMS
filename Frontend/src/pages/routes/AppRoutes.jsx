@@ -5,6 +5,9 @@ import StudentManagement from "../../pages/Student_Managment";
 import AttendanceManagement from "../../pages/Attedence_Managment";
 import Reports from "../../pages/Reports";
 import Resources from "../../pages/Resources";
+import SignUpPage from "../../pages/SignUpPage";
+import LoginPage from "../../pages/LoginPage";
+import LoginOutPage from "../../pages/LoginOutPage";
 
 const AppRoutes = () => {
   return (
@@ -15,6 +18,9 @@ const AppRoutes = () => {
       <Route path="/attendance" element={<AttendanceManagement />} />
       <Route path="/Reports" element={<Reports/>}/>
       <Route path="/Resources" element={<Resources/>}/>
+      <Route path="/sign-up" element={<SignUpPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login-out" element={<LoginOutPage />} />
     </Routes>
   );
 };

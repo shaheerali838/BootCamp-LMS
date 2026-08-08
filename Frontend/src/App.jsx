@@ -1,19 +1,34 @@
-import React from "react";
-import { Route, Routes } from "react-router-dom";
-import SignUpPage from "./pages/SignUpPage";
-import LoginPage from "./pages/LoginPage";
-import LoginOutPage from "./pages/LoginOutPage";
+import "./App.css";
+import { SidebarProvider, useSidebar } from "./context/SidebarContext";
+import Sidebar from "./components/Layouts/Sidebar";
+import Navbar from "./components/Layouts/Navbar";
+import AppRoutes from "./pages/routes/AppRoutes";
 
-const App = () => {
+function AppLayout() {
+  const { isOpen } = useSidebar();
+
   return (
-    <div>
-      <Routes>
-        <Route path="/sign-up" element={<SignUpPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/login-out" element={<LoginOutPage />} />
-      </Routes>
-    </div>
+    <>
+      <Sidebar />
+      <Navbar />
+
+      <div
+        className={`flex-1 min-h-screen bg-gray-50 pt-16 transition-all duration-300 ${
+          isOpen ? "ml-[280px]" : "ml-[90px]"
+        }`}
+      >
+        <AppRoutes />
+      </div>
+    </>
   );
-};
+}
+
+function App() {
+  return (
+    <SidebarProvider>
+      <AppLayout />
+    </SidebarProvider>
+  );
+}
 
 export default App;
