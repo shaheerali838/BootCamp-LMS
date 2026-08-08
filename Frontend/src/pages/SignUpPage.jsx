@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react'
 import AuthPages from './AuthPages'
 
-function LoginPages() {
+function SignUpPages() {
   const [formData, setFormData] = useState({
     username :'',
     email: '',
@@ -43,12 +43,14 @@ function LoginPages() {
     if (Object.keys(newErrors).length > 0) {
       return;
     }
-
+  
     console.log(formData);
 
     setFormData({
-      email: "",
-      password: "",
+      username :'',
+      email: '',
+      password: '',
+      create_date : ''
     });
 
     setError({});
@@ -60,25 +62,26 @@ function LoginPages() {
         <form action="" className='' onSubmit={submitForm} className='bg-white px-5 py-4 ml-4 border border-gray-300 rounded-2xl shadow-lg w-100 max-h-2h max-lg:w-90 max-sm:w-70'>
           <h1 className='font-bold text-2xl text-black/70 py-1'>Login</h1>
           <p className='text-black/50'>
-            Kindly provide the Username,Email,Data and password used during SMIT course registration.
+            Kindly provide the Username,Email,Data and password used during SMIT registration.
           </p>
           <div>
             <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Username</label>
             <input type="text" name='username' value={formData.username} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' />
-            {error.username && <p className='text-black/60'>{error.username}</p>}
+            {error.username && (<p className='text-black/60'>{error.username}</p>)}
           </div>
           <div>
             <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Email</label>
             <input type="email" name='email' value={formData.email} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' />
-            {error.email && <p className='text-black/60'>{error.email}</p>}
+            {error.email && (<p className='text-black/60'>{error.email}</p>)}
           </div>
          <div> <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Create Data </label> 
-         <input type="date" name='create_data' value={formData.create_data} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' /> 
-         {error.create_data && <p className='text-black'>{error.create_data}</p>} </div>
+         <input type="date" name='create_date' value={formData.create_data} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' /> 
+         {error.create_date && (<p className='text-black'>{error.create_date}</p>)} 
+         </div>
           <div>
             <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Password</label>
             <input type="password" name='password' value={formData.password} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 shadow-sm rounded mt-1' />
-            {error.password && <p className='text-black/60'>{error.password}</p>}
+            {error.password && (<p className='text-black/60'>{error.password}</p>)}
           </div>
 
           <button type='submit' className='bg-blue-500 text-white py-2 px-4 rounded mt-4 w-full font-bold hover:bg-blue-600'>Submit</button>
@@ -91,4 +94,4 @@ function LoginPages() {
   )
 }
 
-export default LoginPages
+export default SignUpPages

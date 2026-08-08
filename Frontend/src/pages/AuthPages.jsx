@@ -21,7 +21,7 @@ function AuthPages() {
         className={({ isActive }) =>
           `flex-1 rounded-lg py-2 text-center text-sm font-medium transition ${
             isActive
-              ? "bg-white text-black shadow"
+              ? "bg-white text-black shadow-sm"
               : "bg-transparent text-gray-600"
           }`
         }
