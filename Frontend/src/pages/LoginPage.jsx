@@ -53,7 +53,7 @@ function LoginPages() {
 
           <h1 className='font-bold text-2xl text-black/70 py-1'>Login</h1>
           <p className='text-black/50'>
-            Kindly provide the Email and password used during SMIT course registration.
+            Kindly provide the Email and password used during SMIT registration.
           </p>
 
           <div>
