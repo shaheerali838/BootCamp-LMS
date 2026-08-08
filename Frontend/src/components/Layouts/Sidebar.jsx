@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -28,8 +27,16 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: "Dashboard", icon: <FiGrid size={22} />, path: "/dashboard" },
-    { name: "Student Management", icon: <FiUsers size={22} />, path: "/students" },
-    { name: "Attendance Management", icon: <FiCalendar size={22} />, path: "/attendance" },
+    {
+      name: "Student Management",
+      icon: <FiUsers size={22} />,
+      path: "/students",
+    },
+    {
+      name: "Attendance Management",
+      icon: <FiCalendar size={22} />,
+      path: "/attendance",
+    },
     { name: "Reports", icon: <FiBarChart2 size={22} />, path: "/reports" },
     { name: "Resources", icon: <FiBookOpen size={22} />, path: "/resources" },
   ];
@@ -39,7 +46,7 @@ const Sidebar = () => {
       className={`
         fixed top-0 left-0 h-screen bg-white border-r border-gray-200 z-30
         flex flex-col py-6 justify-between transition-all duration-300
-        ${isOpen ? "w-[280px]" : "w-[90px]"}
+        ${isOpen ? "w-70" : "w-22.5"}
       `}
     >
       {/* TOP AREA */}
@@ -65,7 +72,11 @@ const Sidebar = () => {
             onClick={handleToggle}
             className="bg-white text-gray-500 p-1.5 rounded-md shadow border border-gray-200 flex items-center justify-center"
           >
-            {isOpen ? <FiChevronLeft size={18} /> : <FiChevronRight size={18} />}
+            {isOpen ? (
+              <FiChevronLeft size={18} />
+            ) : (
+              <FiChevronRight size={18} />
+            )}
           </button>
         </div>
 
@@ -79,12 +90,16 @@ const Sidebar = () => {
                 to={item.path}
                 className={`
                   flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all
-                  ${active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-600 hover:bg-gray-100"}
+                  ${
+                    active
+                      ? "bg-blue-50 text-blue-700 font-semibold"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }
                 `}
               >
-                <span className="flex items-center justify-center">{item.icon}</span>
+                <span className="flex items-center justify-center">
+                  {item.icon}
+                </span>
                 {isOpen && <span className="text-[17px]">{item.name}</span>}
               </Link>
             );

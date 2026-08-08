@@ -14,7 +14,7 @@ function AppLayout() {
 
       <div
         className={`flex-1 min-h-screen bg-gray-50 pt-16 transition-all duration-300 ${
-          isOpen ? "ml-[280px]" : "ml-[90px]"
+          isOpen ? "ml-70" : "ml-22.5"
         }`}
       >
         <AppRoutes />
