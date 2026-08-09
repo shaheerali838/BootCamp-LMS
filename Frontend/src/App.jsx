@@ -3,23 +3,22 @@ import { SidebarProvider, useSidebar } from "./context/SidebarContext";
 import Sidebar from "./components/Layouts/Sidebar";
 import Navbar from "./components/Layouts/Navbar";
 import AppRoutes from "./pages/routes/AppRoutes";
+import { Routes, Route, Navigate } from "react-router-dom";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import AuthLayout from "./components/AuthLayout";
 
 function AppLayout() {
   const { isOpen } = useSidebar();
 
   return (
-    <>
-      <Sidebar />
-      <Navbar />
-
-      <div
-        className={`flex-1 min-h-screen bg-gray-50 pt-16 transition-all duration-300 ${
-          isOpen ? "ml-70" : "ml-22.5"
-        }`}
-      >
-        <AppRoutes />
-      </div>
-    </>
+    <Routes>
+      <Route element={<AuthLayout />}>
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={<LoginPage />} />
+      </Route>
+      <Route path="/" element={<Navigate to="/signup" replace />} />
+    </Routes>
   );
 }
 
