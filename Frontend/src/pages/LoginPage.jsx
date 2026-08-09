@@ -46,7 +46,7 @@ function LoginPages() {
   setError({});
 };
   return (
-    <div className='bg-white flex items-center justify-center min-h-screen min-w-screen'>
+    <div className='bg-white flex items-center justify-center'>
       <div className='pr-4 py-7  items-center justify-center flex flex-col '>
         <AuthPages />
         <form action="" className='' onSubmit={submitForm} className='bg-white px-5 py-4 ml-4 border border-gray-300 rounded-2xl shadow-lg w-100 max-h-2h max-lg:w-90 max-sm:w-70'>

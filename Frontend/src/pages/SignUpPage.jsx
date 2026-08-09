@@ -56,7 +56,8 @@ function SignUpPages() {
     setError({});
   };
   return (
-    <div className='bg-white flex items-center justify-center min-h-screen min-w-screen'>
+    <div className='bg-white flex items-center justify-center'>
+      
       <div className='pr-4 py-7  items-center justify-center flex flex-col '>
         <AuthPages />
         <form action="" className='' onSubmit={submitForm} className='bg-white px-5 py-4 ml-4 border border-gray-300 rounded-2xl shadow-lg w-100 max-h-2h max-lg:w-90 max-sm:w-70'>
@@ -74,9 +75,10 @@ function SignUpPages() {
             <input type="email" name='email' value={formData.email} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' />
             {error.email && (<p className='text-black/60'>{error.email}</p>)}
           </div>
-         <div> <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Create Data </label> 
-         <input type="date" name='create_date' value={formData.create_data} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' /> 
-         {error.create_date && (<p className='text-black'>{error.create_date}</p>)} 
+         <div>
+           <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Create Date</label>
+           <input type="date" name='create_date' value={formData.create_date} onChange={handleChange} className='border  border-gray-300  w-full p-1.5 rounded mt-1' />
+           {error.create_date && (<p className='text-black'>{error.create_date}</p>)}
          </div>
           <div>
             <label htmlFor="" className='block text-gray-700 text-md font-bold mt-3'>Password</label>
