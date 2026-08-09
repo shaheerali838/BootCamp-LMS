@@ -58,24 +58,18 @@ const AuthLayout = () => {
             <h3 className="text-2xl font-bold">10K+</h3>
             <p className="text-blue-200 text-lg">Students</p>
           </div>
-
           <div className="w-40 p-2 rounded-2xl border border-blue-500 bg-black/30 flex flex-col items-center">
             <h3 className="text-2xl font-bold">500+</h3>
             <p className="text-blue-200 text-lg">Courses</p>
           </div>
-
           <div className="w-40 p-2 rounded-2xl border border-blue-500 bg-black/30 flex flex-col items-center">
             <h3 className="text-2xl font-bold">100+</h3>
             <p className="text-blue-200 text-lg">Instructors</p>
           </div>
-
         </div>
           </div>
         </div>
-        
-
       </div>
-
       <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-50 p-6">
 
         <Outlet />
