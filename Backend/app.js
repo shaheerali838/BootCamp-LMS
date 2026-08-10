@@ -13,7 +13,7 @@ app.use("/api", mainRouter);
 
 // Root route
 app.get("/", (req, res) => {
-    res.json({ message: "Welcome to Saylani Bootcamp LMS API" });
+  res.json({ message: "Welcome to Saylani Bootcamp LMS API" });
 });
 
 export default app;

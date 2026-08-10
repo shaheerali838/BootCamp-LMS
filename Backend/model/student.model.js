@@ -33,12 +33,12 @@ const studentSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    batch: {
+    batchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Batch",
       required: true,
     },
-    mentor: {
+    mentorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
       required: true,
