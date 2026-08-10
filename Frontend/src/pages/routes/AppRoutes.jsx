@@ -12,6 +12,7 @@ import LoginOutPage from "../../pages/LoginOutPage";
 const AppRoutes = () => {
   return (
     <Routes>
+
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/students" element={<StudentManagement />} />

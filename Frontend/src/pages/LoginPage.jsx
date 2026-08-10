@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import AuthPages from './AuthPages'
+import { useNavigate } from 'react-router-dom'
 
 function LoginPages() {
+  const navigte = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -16,41 +18,54 @@ function LoginPages() {
   }
 
   const submitForm = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  let newErrors = {};
+    let newErrors = {};
+    if (
+      formData.email === "admin@example.com" &&
+      formData.password === "123456"
+    ) {
+      localStorage.setItem("isLoggedIn", "true");
+      navigte("/dashboard");
+    } else {
+      setError({
+        general: "Invalid email or password",
+      });
+    }
 
-  if (!formData.email) {
-    newErrors.email = "Email is required";
-  }
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    }
 
-  if (!formData.password) {
-    newErrors.password = "Password is required";
-  } else if (formData.password.length < 6) {
-    newErrors.password = "Password must be at least 6 characters long";
-  }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
 
-  setError(newErrors);
+    setError(newErrors);
 
-  if (Object.keys(newErrors).length > 0) {
-    return;
-  }
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
-  console.log(formData);
+    console.log(formData);
 
-  setFormData({
-    email: "",
-    password: "",
-  });
+    setFormData({
+      email: "",
+      password: "",
+    });
 
-  setError({});
-};
+    setError({});
+  };
   return (
     <div className='bg-white flex items-center justify-center'>
       <div className='pr-4 py-7  items-center justify-center flex flex-col '>
         <AuthPages />
         <form action="" className='' onSubmit={submitForm} className='bg-white px-5 py-4 ml-4 border border-gray-300 rounded-2xl shadow-lg w-100 max-h-2h max-lg:w-90 max-sm:w-70'>
-
+          {error.general && (
+            <p className="text-red-500">{error.general}</p>
+          )}
           <h1 className='font-bold text-2xl text-black/70 py-1'>Login</h1>
           <p className='text-black/50'>
             Kindly provide the Email and password used during SMIT registration.

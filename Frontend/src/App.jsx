@@ -17,7 +17,8 @@ function AppLayout() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
       </Route>
-      <Route path="/" element={<Navigate to="/signup" replace />} />
+      <Route path="/" element={<Navigate to ='/login' replace/>}/>
+      {/* <Route path="/" element={<} /> */}
     </Routes>
   );
 }
