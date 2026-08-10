@@ -1,9 +1,7 @@
+import "dotenv/config";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import app from "./app.js";
 import seedAdmin from "./seed/seedAdmin.js";
-
-dotenv.config();
 
 const PORT = process.env.PORT || 7000;
 const MONGO_URI =

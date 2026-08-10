@@ -5,7 +5,6 @@ export const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // Check Authorization Header
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
@@ -13,30 +12,33 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Extract Token
     const token = authHeader.split(" ")[1];
 
-    // Verify Token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Find Admin
-    const Admin = await Admin.findById(decoded.id).select("-password");
+    const admin = await Admin.findById(decoded.id).select("-password");
 
-    if (!Admin) {
+    if (!admin) {
       return res.status(404).json({
         success: false,
         message: "Admin not found.",
       });
     }
 
-    // Attach Admin
-    req.Admin = Admin;
+    if (admin.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin account is inactive.",
+      });
+    }
+
+    req.user = admin;
 
     next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or Expired Token.",
+      message: "Invalid or expired token.",
     });
   }
 };
