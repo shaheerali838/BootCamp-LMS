@@ -1,76 +1,79 @@
-import bcrypt from "bcryptjs";
-import Admin from "../../model/admin.model.js";
 import Student from "../../model/student.model.js";
 
 export const register = async (req, res) => {
   try {
     const {
+      rollNumber,
       firstName,
       lastName,
       email,
-      password,
-      phone,
-      profileImage,
-      studentCode,
+      phoneNumber,
       gender,
-      dob,
+      dateOfBirth,
       batchId,
       mentorId,
     } = req.body;
 
-    // Check Email
-    const existingAdmin = await Admin.findOne({ email });
-
-    if (existingAdmin) {
+    // Validate required fields
+    if (
+      !rollNumber ||
+      !firstName ||
+      !lastName ||
+      !email ||
+      !phoneNumber ||
+      !gender ||
+      !dateOfBirth ||
+      !batchId ||
+      !mentorId
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Email already exists",
+        message: "All required student fields must be provided.",
       });
     }
 
-    // Check Student Code
-    const existingStudent = await Student.findOne({ studentCode });
+    // Check whether email already exists
+    const existingStudent = await Student.findOne({
+      email: email.toLowerCase(),
+    });
 
     if (existingStudent) {
       return res.status(400).json({
         success: false,
-        message: "Student Code already exists",
+        message: "Student with this email already exists.",
       });
     }
 
-    // Hash Password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create Admin
-    const Admin = await Admin.create({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      phoneNumber: phone,
-      profileImage,
-      role: "student",
-      status: "active",
+    // Check whether roll number already exists
+    const existingRollNumber = await Student.findOne({
+      rollNumber,
     });
 
-    // Create Student
+    if (existingRollNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Roll number already exists.",
+      });
+    }
+
+    // Create student
     const student = await Student.create({
-      Admin: Admin._id,
-      studentCode,
+      rollNumber,
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      phoneNumber,
       gender,
-      dob,
+      dateOfBirth,
       batchId,
       mentorId,
-      status: "Active",
+      status: "active",
     });
 
     return res.status(201).json({
       success: true,
-      message: "Student Registered Successfully",
-      data: {
-        Admin,
-        student,
-      },
+      message: "Student registered successfully.",
+      data: student,
     });
   } catch (error) {
     return res.status(500).json({

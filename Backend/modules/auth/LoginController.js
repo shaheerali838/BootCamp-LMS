@@ -6,9 +6,15 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find Admin
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
     const admin = await Admin.findOne({
-      email,
+      email: email.toLowerCase(),
       role: "admin",
     });
 
@@ -19,17 +25,22 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check Password
+    if (admin.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin account is inactive",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, admin.password);
 
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid email or password",
       });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       {
         id: admin._id,
@@ -43,9 +54,9 @@ export const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Login Successfully",
+      message: "Login successfully",
       token,
-      Admin: {
+      user: {
         id: admin._id,
         firstName: admin.firstName,
         lastName: admin.lastName,
