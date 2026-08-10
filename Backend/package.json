@@ -2,22 +2,14 @@
   "name": "saylani-bootcamp-lms2",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/SMIT-Bootcamp/Saylani-Bootcamp-LMS2#readme",
-  "bugs": {
-    "url": "https://github.com/SMIT-Bootcamp/Saylani-Bootcamp-LMS2/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SMIT-Bootcamp/Saylani-Bootcamp-LMS2.git"
-  },
-  "license": "ISC",
-  "author": "",
   "type": "module",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
@@ -28,5 +20,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.1",
     "nodemailer": "^9.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

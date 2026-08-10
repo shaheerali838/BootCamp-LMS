@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ROLES from "../constants/roles.js";
 
 const studentSchema = new mongoose.Schema(
   {
@@ -15,15 +16,21 @@ const studentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
       unique: true,
     },
-    phoneNumber: {
+    password: {
       type: String,
       required: true,
+      minlength: 8,
     },
+
     gender: {
       type: String,
       enum: ["male", "female", "other"],
@@ -32,6 +39,11 @@ const studentSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date,
       required: true,
+    },
+    role: {
+      type: String,
+      enum: [ROLES.STUDENT],
+      default: ROLES.STUDENT,
     },
     batchId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -47,6 +59,15 @@ const studentSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+    },
+
+    resetPasswordTokenHash: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpiresAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

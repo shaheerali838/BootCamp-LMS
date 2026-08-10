@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import Admin from "../../model/admin.model.js";
 import Student from "../../model/student.model.js";
 
 export const createStudent = async (req, res) => {
@@ -10,46 +9,61 @@ export const createStudent = async (req, res) => {
       lastName,
       email,
       password,
-      phone,
+      phoneNumber,
       gender,
-      dob,
+      dateOfBirth,
       batchId,
+      mentorId,
     } = req.body;
 
-    const existingAdmin = await Admin.findOne({ email });
+    const existingStudent = await Student.findOne({
+      email: email.toLowerCase(),
+    });
 
-    if (existingAdmin) {
+    if (existingStudent) {
       return res.status(400).json({
+        success: false,
         message: "Email already exists",
+      });
+    }
+
+    const existingRollNumber = await Student.findOne({
+      rollNumber,
+    });
+
+    if (existingRollNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Roll number already exists",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const Admin = await Admin.create({
+    const student = await Student.create({
+      rollNumber,
       firstName,
       lastName,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
-      phone,
-      role: "student",
-    });
-
-    const student = await Student.create({
-      Admin: Admin._id,
-      rollNumber,
+      phoneNumber,
       gender,
-      dob,
+      dateOfBirth,
       batchId,
+      mentorId,
     });
 
-    res.status(201).json({
+    const studentResponse = student.toObject();
+    delete studentResponse.password;
+
+    return res.status(201).json({
       success: true,
-      message: "Student Registered Successfully",
-      data: student,
+      message: "Student registered successfully",
+      data: studentResponse,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
       message: error.message,
     });
   }

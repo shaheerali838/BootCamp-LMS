@@ -1,10 +1,12 @@
-export const adminMiddleware = (req, res, next) => {
-    if (req.user.role !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Access denied. Admin only.",
-        });
-    }
+import ROLES from "../constants/roles.js";
 
-    next();
+export const adminMiddleware = (req, res, next) => {
+  if (req.user.role !== ROLES.ADMIN && req.user.role !== ROLES.SUPER_ADMIN) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admin only.",
+    });
+  }
+
+  next();
 };

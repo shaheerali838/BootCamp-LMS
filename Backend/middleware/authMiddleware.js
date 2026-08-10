@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import Admin from "../model/admin.model.js";
+import Student from "../model/student.model.js";
+import ROLES from "../constants/roles.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
@@ -16,23 +18,34 @@ export const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const admin = await Admin.findById(decoded.id).select("-password");
+    let user;
 
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin not found.",
-      });
-    }
-
-    if (admin.status !== "active") {
+    if (decoded.role === ROLES.ADMIN || decoded.role === ROLES.SUPER_ADMIN) {
+      user = await Admin.findById(decoded.id).select("-password");
+    } else if (decoded.role === ROLES.STUDENT) {
+      user = await Student.findById(decoded.id).select("-password");
+    } else {
       return res.status(403).json({
         success: false,
-        message: "Admin account is inactive.",
+        message: "Invalid user role.",
       });
     }
 
-    req.user = admin;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "User account is inactive.",
+      });
+    }
+
+    req.user = user;
 
     next();
   } catch (error) {
