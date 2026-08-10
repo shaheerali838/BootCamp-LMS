@@ -18,12 +18,14 @@ export const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const userRole = decoded.role ? decoded.role.toUpperCase() : "";
+
     let user;
 
-    if (decoded.role === ROLES.ADMIN || decoded.role === ROLES.SUPER_ADMIN) {
-      user = await Admin.findById(decoded.id).select("-password");
-    } else if (decoded.role === ROLES.STUDENT) {
-      user = await Student.findById(decoded.id).select("-password");
+    if (userRole === ROLES.ADMIN || userRole === ROLES.SUPER_ADMIN) {
+      user = await Admin.findById(decoded.userId).select("-password");
+    } else if (userRole === ROLES.STUDENT) {
+      user = await Student.findById(decoded.userId).select("-password");
     } else {
       return res.status(403).json({
         success: false,

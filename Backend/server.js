@@ -13,6 +13,9 @@ const MONGO_URI =
 // Connect Database
 await connectDB();
 
+// Seed Admin
+await seedAdmin();
+
 // Middleware
 app.use(express.json());
 

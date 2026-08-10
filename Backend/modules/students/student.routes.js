@@ -1,5 +1,5 @@
 import express from "express";
-import { createStudent } from "./StudentController.js";
+import { createStudent } from "./student.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { requirePermission } from "../../middleware/permissionMiddleware.js";
 import PERMISSIONS from "../../constants/permission.js";

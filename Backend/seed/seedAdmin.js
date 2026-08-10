@@ -1,14 +1,16 @@
 import bcrypt from "bcryptjs";
 import Admin from "../model/admin.model.js";
+import ROLES from "../constants/roles.js";
 
 const seedAdmin = async () => {
   try {
     // Check Admin Exists
     const existingAdmin = await Admin.findOne({
-      role: "admin",
+      email: process.env.ADMIN_EMAIL,
     });
 
     if (existingAdmin) {
+      console.log("Seeded Admin Email:", process.env.ADMIN_EMAIL);
       console.log("Admin already exists");
       return;
     }
@@ -23,7 +25,7 @@ const seedAdmin = async () => {
       email: process.env.ADMIN_EMAIL,
       password: hashedPassword,
       phoneNumber: process.env.ADMIN_PHONE,
-      role: "admin",
+      role: ROLES.ADMIN,
       profileImage: "",
       status: "active",
     });

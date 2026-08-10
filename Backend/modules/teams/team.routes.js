@@ -10,9 +10,12 @@ import {
   setTeamLeaderHandler,
   searchTeamHandler,
 } from "./team.controller.js";
-import { createTeamValidation, updateTeamValidation } from "./team.validation.js";
-import validateMiddleware from "../middleware/validateMiddleware.js";
+import {
+  createTeamValidation,
+  updateTeamValidation,
+} from "./team.validation.js";
 import { checkTeamExists, checkDuplicateTeamName } from "./team.middleware.js";
+import validateMiddleware from "../../middleware/validateMiddleware.js";
 
 const router = express.Router();
 
@@ -22,7 +25,7 @@ router.post(
   createTeamValidation,
   validateMiddleware,
   checkDuplicateTeamName,
-  createTeamHandler
+  createTeamHandler,
 );
 
 // Get All Teams
@@ -40,29 +43,17 @@ router.put(
   updateTeamValidation,
   validateMiddleware,
   checkTeamExists,
-  updateTeamHandler
+  updateTeamHandler,
 );
 
 // Add Member
-router.post(
-  "/:id/members",
-  checkTeamExists,
-  addMemberHandler
-);
+router.post("/:id/members", checkTeamExists, addMemberHandler);
 
 // Remove Member
-router.delete(
-  "/:id/members",
-  checkTeamExists,
-  removeMemberHandler
-);
+router.delete("/:id/members", checkTeamExists, removeMemberHandler);
 
 // Set Team Leader
-router.put(
-  "/:id/leader",
-  checkTeamExists,
-  setTeamLeaderHandler
-);
+router.put("/:id/leader", checkTeamExists, setTeamLeaderHandler);
 
 // Delete Team
 router.delete("/:id", checkTeamExists, deleteTeamHandler);

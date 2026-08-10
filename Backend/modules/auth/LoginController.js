@@ -59,19 +59,10 @@ export const login = async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      },
-    );
+    const token = generateAccessToken(user);
 
     // Generate Refresh Token & Cookie (From Nabeel's Branch)
-    const refreshToken = generateRefreshToken({ _id: user._id });
+    const refreshToken = generateRefreshToken(user);
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -127,6 +118,7 @@ export const logout = async (req, res) => {
 export const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
+
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -136,20 +128,31 @@ export const refreshToken = async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-    // Temporarily using Admin only, will need dual-model search like Login
-    const admin = await Admin.findById(decoded.userId || decoded.id);
-    if (!admin) {
+    let user;
+
+    // Try Admin / Super Admin first
+    user = await Admin.findById(decoded.userId).select("-password");
+
+    // If not found, try Student
+    if (!user) {
+      user = await Student.findById(decoded.userId).select("-password");
+    }
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
-    const newAccessToken = jwt.sign(
-      { id: admin._id, role: admin.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    if (user.status !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: "User account is inactive",
+      });
+    }
+
+    const newAccessToken = generateAccessToken(user);
 
     return res.status(200).json({
       success: true,
