@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import User from "../Users/UserModel.js";
-import Student from "./student.Model.js";
+import Admin from "../../model/admin.model.js";
+import Student from "../../model/student.model.js";
 
 export const createStudent = async (req, res) => {
   try {
@@ -16,9 +16,9 @@ export const createStudent = async (req, res) => {
       batchId,
     } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingAdmin = await Admin.findOne({ email });
 
-    if (existingUser) {
+    if (existingAdmin) {
       return res.status(400).json({
         message: "Email already exists",
       });
@@ -26,7 +26,7 @@ export const createStudent = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const Admin = await Admin.create({
       firstName,
       lastName,
       email,
@@ -36,7 +36,7 @@ export const createStudent = async (req, res) => {
     });
 
     const student = await Student.create({
-      user: user._id,
+      Admin: Admin._id,
       rollNumber,
       gender,
       dob,

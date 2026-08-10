@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
-import User from "../modules/Users/UserModel.js";
+import Admin from "../model/admin.model.js";
 
 const seedAdmin = async () => {
   try {
     // Check Admin Exists
-    const existingAdmin = await User.findOne({
+    const existingAdmin = await Admin.findOne({
       role: "admin",
     });
 
@@ -17,20 +17,20 @@ const seedAdmin = async () => {
     const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
 
     // Create Admin
-    await User.create({
+    await Admin.create({
       firstName: process.env.ADMIN_FIRST_NAME,
       lastName: process.env.ADMIN_LAST_NAME,
       email: process.env.ADMIN_EMAIL,
       password: hashedPassword,
-      phone: process.env.ADMIN_PHONE,
+      phoneNumber: process.env.ADMIN_PHONE,
       role: "admin",
       profileImage: "",
-      status: "Active",
+      status: "active",
     });
 
     console.log("Default Admin Created Successfully");
   } catch (error) {
-    console.log("Seed Error:", error.message);
+    console.log("Seed Error:", error);
   }
 };
 
