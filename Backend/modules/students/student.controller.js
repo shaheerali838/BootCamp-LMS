@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import User from "../Users/UserModel.js";
+import User from "../users/UserModel.js";
 import Student from "./student.Model.js";
 
 export const createStudent = async (req, res) => {
