@@ -8,19 +8,24 @@ function StatCard({ icon, iconBg, iconColor, value, label, path }) {
   return (
     <div
       onClick={() => isClickable && navigate(path)}
-      className={`bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between
-        ${isClickable ? "cursor-pointer hover:shadow-md hover:border-blue-200 transition-all" : ""}`}
+      className={`bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between min-w-0 ${
+        isClickable
+          ? "cursor-pointer hover:shadow-md hover:border-blue-200 transition-all"
+          : ""
+      }`}
     >
-      <div>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <div className="text-xs font-semibold text-gray-400 tracking-wide mt-1">
+      <div className="min-w-0">
+        <p className="text-lg font-semibold text-gray-800">{value}</p>
+
+        <p className="text-[10px] font-medium text-gray-500 whitespace-nowrap">
           {label}
-        </div>
+        </p>
       </div>
+
       <div
-        className={`w-11 h-11 rounded-full flex items-center justify-center ${iconBg}`}
+        className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center ${iconBg} ${iconColor}`}
       >
-        <span className={iconColor}>{icon}</span>
+        {icon}
       </div>
     </div>
   );
