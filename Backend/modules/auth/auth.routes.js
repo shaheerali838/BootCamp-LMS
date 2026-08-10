@@ -1,6 +1,7 @@
 import express from "express";
 import {
     login,
+    logout,
     refreshToken,
     forgotPassword,
     resetPassword,
@@ -20,6 +21,8 @@ import {
 const router = express.Router();
 
 router.post("/login", loginValidator, validate, login);
+
+router.post("/logout", logout);
 
 router.post("/register", authMiddleware, adminMiddleware, register);
 
