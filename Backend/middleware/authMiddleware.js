@@ -5,38 +5,50 @@ export const authMiddleware = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
-        // Check Authorization Header
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
-                message: "Access denied. Token not provided.",
+                message: "Authentication token required",
             });
         }
 
-        // Extract Token
         const token = authHeader.split(" ")[1];
 
-        // Verify Token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
-        // Find User
-        const user = await User.findById(decoded.id).select("-password");
+        const user = await User.findById(decoded.userId);
 
         if (!user) {
-            return res.status(404).json({
+            return res.status(401).json({
                 success: false,
-                message: "User not found.",
+                message: "User no longer exists",
             });
         }
 
-        // Attach User
+        if (user.status !== "Active") {
+            return res.status(403).json({
+                success: false,
+                message: "User account is inactive",
+            });
+        }
+
+        if (user.tokenVersion !== decoded.tokenVersion) {
+            return res.status(401).json({
+                success: false,
+                message: "Token has been invalidated",
+            });
+        }
+
         req.user = user;
 
         next();
     } catch (error) {
         return res.status(401).json({
             success: false,
-            message: "Invalid or Expired Token.",
+            message: "Invalid or expired access token",
         });
     }
 };

@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../Users/UserModel.js";
-import Student from "../Student/Student.Model.js";
+import Student from "../Student/StudentModel.js";
 
 export const register = async (req, res) => {
     try {
@@ -18,9 +18,19 @@ export const register = async (req, res) => {
             mentorId,
         } = req.body;
 
-        // Check Email
-        const existingUser = await User.findOne({ email });
+        // --- Basic validation ---
+        if (!firstName || !lastName || !email || !password || !studentCode) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields: firstName, lastName, email, password, studentCode",
+            });
+        }
 
+        // Normalize email to lowercase
+        const normalizedEmail = email.toLowerCase();
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -28,9 +38,8 @@ export const register = async (req, res) => {
             });
         }
 
-        // Check Student Code
+        // Check if student code already exists
         const existingStudent = await Student.findOne({ studentCode });
-
         if (existingStudent) {
             return res.status(400).json({
                 success: false,
@@ -38,14 +47,14 @@ export const register = async (req, res) => {
             });
         }
 
-        // Hash Password
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create User
         const user = await User.create({
             firstName,
             lastName,
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             phone,
             profileImage,
@@ -53,7 +62,7 @@ export const register = async (req, res) => {
             status: "Active",
         });
 
-        // Create Student
+        // Create Student profile
         const student = await Student.create({
             user: user._id,
             studentCode,

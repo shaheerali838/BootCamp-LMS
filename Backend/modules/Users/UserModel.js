@@ -30,24 +30,47 @@ const userSchema = new mongoose.Schema(
         role: {
             type: String,
             enum: ["admin", "student"],
-            required: true,
+            default: "student",
         },
 
         phone: {
             type: String,
-            required: true,
-            trim: true,
         },
 
         profileImage: {
             type: String,
-            default: "",
         },
 
         status: {
             type: String,
             enum: ["Active", "Inactive"],
             default: "Active",
+        },
+
+        // Phase 2
+        refreshTokenHash: {
+            type: String,
+            default: null,
+        },
+
+        refreshTokenExpiresAt: {
+            type: Date,
+            default: null,
+        },
+
+        tokenVersion: {
+            type: Number,
+            default: 0,
+        },
+
+        resetPasswordTokenHash: {
+            type: String,
+            default: null,
+        },
+
+        resetPasswordExpiresAt: {
+            type: Date,
+            default: null,
         },
     },
     {

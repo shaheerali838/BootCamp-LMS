@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../Users/UserModel.js";
-import Student from "./Student.Model.js";
+import Student from "./StudentModel.js";
 
 export const createStudent = async (req, res) => {
     try {

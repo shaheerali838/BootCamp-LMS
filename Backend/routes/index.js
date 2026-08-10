@@ -7,4 +7,5 @@ const mainRouter = express.Router();
 mainRouter.use("/auth", authRoutes);
 mainRouter.use("/students", studentRoutes);
 
+
 export default mainRouter;
