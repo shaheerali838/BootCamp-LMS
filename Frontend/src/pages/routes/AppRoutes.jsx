@@ -28,6 +28,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login-out" element={<LoginOutPage />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
     </Routes>
   );
 };
