@@ -10,9 +10,8 @@ function DashboardLayout() {
 
       <main className="ml-70">
         <Navbar />
-
+     </main>
         <Outlet />
-      </main>
     </div>
   );
 }
