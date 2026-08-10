@@ -1,4 +1,4 @@
-const Team = require("./team.model");
+import Team from "./team.model.js";
 
 // Check Team Exists
 const checkTeamExists = async (req, res, next) => {
@@ -47,7 +47,8 @@ const checkDuplicateTeamName = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   checkTeamExists,
   checkDuplicateTeamName,
 };
+

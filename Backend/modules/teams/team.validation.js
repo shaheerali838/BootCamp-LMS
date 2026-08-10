@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+import { body } from "express-validator";
 
 const createTeamValidation = [
   body("teamName")
@@ -60,7 +60,7 @@ const updateTeamValidation = [
     .withMessage("Status must be Active or Inactive"),
 ];
 
-module.exports = {
+export {
   createTeamValidation,
   updateTeamValidation,
 };

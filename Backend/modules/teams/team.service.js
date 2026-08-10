@@ -1,4 +1,4 @@
-const Team = require("./team.model");
+import Team from "./team.model.js";
 
 // Create Team
 const createTeam = async (teamData) => {
@@ -166,7 +166,7 @@ const setTeamLeader = async (teamId, userId) => {
     .populate("members", "name email");
 };
 
-module.exports = {
+export {
   createTeam,
   getAllTeams,
   getTeamById,
@@ -177,3 +177,4 @@ module.exports = {
   setTeamLeader,
   searchTeam,
 };
+

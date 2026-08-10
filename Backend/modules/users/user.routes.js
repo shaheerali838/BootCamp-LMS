@@ -1,37 +1,29 @@
-const express = require("express");
+import express from "express";
+import {
+  createUserHandler,
+  getAllUsersHandler,
+  getUserByIdHandler,
+  updateUserHandler,
+  deleteUserHandler,
+} from "./user.controller.js";
+import { createUserValidation, updateUserValidation } from "./user.validation.js";
+import validateMiddleware from "../middleware/validateMiddleware.js";
+
 const router = express.Router();
 
-const userController = require("./user.controller");
-const {
-  createUserValidation,
-  updateUserValidation,
-} = require("./user.validation");
-
-const validateMiddleware = require("../middleware/validateMiddleware");
-
 // Create User
-router.post(
-  "/",
-  createUserValidation,
-  validateMiddleware,
-  userController.createUser
-);
+router.post("/", createUserValidation, validateMiddleware, createUserHandler);
 
 // Get All Users
-router.get("/", userController.getAllUsers);
+router.get("/", getAllUsersHandler);
 
 // Get User By ID
-router.get("/:id", userController.getUserById);
+router.get("/:id", getUserByIdHandler);
 
 // Update User
-router.put(
-  "/:id",
-  updateUserValidation,
-  validateMiddleware,
-  userController.updateUser
-);
+router.put("/:id", updateUserValidation, validateMiddleware, updateUserHandler);
 
 // Delete User
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", deleteUserHandler);
 
-module.exports = router;
+export default router;

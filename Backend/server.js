@@ -1,20 +1,20 @@
 // Load Environment Variables
-require("./config/env");
+await import("./config/env.js");
 
 // Models
-require("./models/User");
-require("./modules/teams/team.model");
+await import("./models/User.js");
+await import("./modules/teams/team.model.js");
 
-const express = require("express");
-const connectDB = require("./config/db");
+import express from "express";
+import connectDB from "./config/db.js";
 
-const teamRoutes = require("./modules/teams/team.routes");
-const userRoutes = require("./modules/users/user.routes");
+import teamRoutes from "./modules/teams/team.routes.js";
+import userRoutes from "./modules/users/user.routes.js";
 
 const app = express();
 
 // Connect Database
-connectDB();
+await connectDB();
 
 // Middleware
 app.use(express.json());

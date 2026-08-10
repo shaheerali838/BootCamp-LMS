@@ -1,9 +1,19 @@
-    const teamService = require("./team.service");
+import {
+  createTeam,
+  getAllTeams,
+  getTeamById,
+  updateTeam,
+  deleteTeam,
+  addMember,
+  removeMember,
+  setTeamLeader,
+  searchTeam,
+} from "./team.service.js";
 
 // Create Team
-const createTeam = async (req, res) => {
+const createTeamHandler = async (req, res) => {
   try {
-    const team = await teamService.createTeam(req.body);
+    const team = await createTeam(req.body);
 
     res.status(201).json({
       success: true,
@@ -19,9 +29,9 @@ const createTeam = async (req, res) => {
 };
 
 // Get All Teams
-const getAllTeams = async (req, res) => {
+const getAllTeamsHandler = async (req, res) => {
   try {
-    const teams = await teamService.getAllTeams();
+    const teams = await getAllTeams();
 
     res.status(200).json({
       success: true,
@@ -37,9 +47,9 @@ const getAllTeams = async (req, res) => {
 };
 
 // Get Team By ID
-const getTeamById = async (req, res) => {
+const getTeamByIdHandler = async (req, res) => {
   try {
-    const team = await teamService.getTeamById(req.params.id);
+    const team = await getTeamById(req.params.id);
 
     if (!team) {
       return res.status(404).json({
@@ -61,9 +71,9 @@ const getTeamById = async (req, res) => {
 };
 
 // Update Team
-const updateTeam = async (req, res) => {
+const updateTeamHandler = async (req, res) => {
   try {
-    const team = await teamService.updateTeam(req.params.id, req.body);
+    const team = await updateTeam(req.params.id, req.body);
 
     if (!team) {
       return res.status(404).json({
@@ -86,9 +96,9 @@ const updateTeam = async (req, res) => {
 };
 
 // Delete Team
-const deleteTeam = async (req, res) => {
+const deleteTeamHandler = async (req, res) => {
   try {
-    const team = await teamService.deleteTeam(req.params.id);
+    const team = await deleteTeam(req.params.id);
 
     if (!team) {
       return res.status(404).json({
@@ -110,9 +120,9 @@ const deleteTeam = async (req, res) => {
 };
 
 // Add Member
-const addMember = async (req, res) => {
+const addMemberHandler = async (req, res) => {
   try {
-    const team = await teamService.addMember(
+    const team = await addMember(
       req.params.id,
       req.body.userId
     );
@@ -131,11 +141,11 @@ const addMember = async (req, res) => {
 };
 
 // Search Team
-const searchTeam = async (req, res) => {
+const searchTeamHandler = async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
 
-    const teams = await teamService.searchTeam(keyword);
+    const teams = await searchTeam(keyword);
 
     res.status(200).json({
       success: true,
@@ -151,9 +161,9 @@ const searchTeam = async (req, res) => {
 };
 
 // Remove Member
-const removeMember = async (req, res) => {
+const removeMemberHandler = async (req, res) => {
   try {
-    const team = await teamService.removeMember(
+    const team = await removeMember(
       req.params.id,
       req.body.userId
     );
@@ -172,9 +182,9 @@ const removeMember = async (req, res) => {
 };
 
 // Set Team Leader
-const setTeamLeader = async (req, res) => {
+const setTeamLeaderHandler = async (req, res) => {
   try {
-    const team = await teamService.setTeamLeader(
+    const team = await setTeamLeader(
       req.params.id,
       req.body.userId
     );
@@ -192,14 +202,14 @@ const setTeamLeader = async (req, res) => {
   }
 };
 
-module.exports = {
-  createTeam,
-  getAllTeams,
-  getTeamById,
-  updateTeam,
-  deleteTeam,
-  addMember,
-  removeMember,
-  setTeamLeader,
-  searchTeam,
+export {
+  createTeamHandler,
+  getAllTeamsHandler,
+  getTeamByIdHandler,
+  updateTeamHandler,
+  deleteTeamHandler,
+  addMemberHandler,
+  removeMemberHandler,
+  setTeamLeaderHandler,
+  searchTeamHandler,
 };

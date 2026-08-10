@@ -1,19 +1,20 @@
-const express = require("express");
+import express from "express";
+import {
+  createTeamHandler,
+  getAllTeamsHandler,
+  getTeamByIdHandler,
+  updateTeamHandler,
+  deleteTeamHandler,
+  addMemberHandler,
+  removeMemberHandler,
+  setTeamLeaderHandler,
+  searchTeamHandler,
+} from "./team.controller.js";
+import { createTeamValidation, updateTeamValidation } from "./team.validation.js";
+import validateMiddleware from "../middleware/validateMiddleware.js";
+import { checkTeamExists, checkDuplicateTeamName } from "./team.middleware.js";
+
 const router = express.Router();
-
-const teamController = require("./team.controller");
-
-const {
-  createTeamValidation,
-  updateTeamValidation,
-} = require("./team.validation");
-
-const validateMiddleware = require("../middleware/validateMiddleware");
-
-const {
-  checkTeamExists,
-  checkDuplicateTeamName,
-} = require("./team.middleware");
 
 // Create Team
 router.post(
@@ -21,17 +22,17 @@ router.post(
   createTeamValidation,
   validateMiddleware,
   checkDuplicateTeamName,
-  teamController.createTeam
+  createTeamHandler
 );
 
 // Get All Teams
-router.get("/", teamController.getAllTeams);
+router.get("/", getAllTeamsHandler);
 
 // Search Team
-router.get("/search", teamController.searchTeam);
+router.get("/search", searchTeamHandler);
 
 // Get Team By ID
-router.get("/:id", checkTeamExists, teamController.getTeamById);
+router.get("/:id", checkTeamExists, getTeamByIdHandler);
 
 // Update Team
 router.put(
@@ -39,31 +40,31 @@ router.put(
   updateTeamValidation,
   validateMiddleware,
   checkTeamExists,
-  teamController.updateTeam
+  updateTeamHandler
 );
 
 // Add Member
 router.post(
   "/:id/members",
   checkTeamExists,
-  teamController.addMember
+  addMemberHandler
 );
 
 // Remove Member
 router.delete(
   "/:id/members",
   checkTeamExists,
-  teamController.removeMember
+  removeMemberHandler
 );
 
 // Set Team Leader
 router.put(
   "/:id/leader",
   checkTeamExists,
-  teamController.setTeamLeader
+  setTeamLeaderHandler
 );
 
 // Delete Team
-router.delete("/:id", checkTeamExists, teamController.deleteTeam);
+router.delete("/:id", checkTeamExists, deleteTeamHandler);
 
-module.exports = router;
+export default router;

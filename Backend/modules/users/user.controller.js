@@ -1,8 +1,15 @@
-const userController = require("./user.controller");
-const userService = require("./user.service");
-const createUser = async (req, res) => {
+import {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} from "./user.service.js";
+
+// Create User
+const createUserHandler = async (req, res) => {
   try {
-    const user = await userService.createUser(req.body);
+    const user = await createUser(req.body);
 
     res.status(201).json({
       success: true,
@@ -18,9 +25,9 @@ const createUser = async (req, res) => {
 };
 
 // Get All Users
-const getAllUsers = async (req, res) => {
+const getAllUsersHandler = async (req, res) => {
   try {
-    const users = await userService.getAllUsers();
+    const users = await getAllUsers();
 
     res.status(200).json({
       success: true,
@@ -36,9 +43,9 @@ const getAllUsers = async (req, res) => {
 };
 
 // Get User By ID
-const getUserById = async (req, res) => {
+const getUserByIdHandler = async (req, res) => {
   try {
-    const user = await userService.getUserById(req.params.id);
+    const user = await getUserById(req.params.id);
 
     if (!user) {
       return res.status(404).json({
@@ -60,9 +67,9 @@ const getUserById = async (req, res) => {
 };
 
 // Update User
-const updateUser = async (req, res) => {
+const updateUserHandler = async (req, res) => {
   try {
-    const user = await userService.updateUser(req.params.id, req.body);
+    const user = await updateUser(req.params.id, req.body);
 
     if (!user) {
       return res.status(404).json({
@@ -85,9 +92,9 @@ const updateUser = async (req, res) => {
 };
 
 // Delete User
-const deleteUser = async (req, res) => {
+const deleteUserHandler = async (req, res) => {
   try {
-    const user = await userService.deleteUser(req.params.id);
+    const user = await deleteUser(req.params.id);
 
     if (!user) {
       return res.status(404).json({
@@ -108,10 +115,10 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = {
-  createUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
+export {
+  createUserHandler,
+  getAllUsersHandler,
+  getUserByIdHandler,
+  updateUserHandler,
+  deleteUserHandler,
 };
