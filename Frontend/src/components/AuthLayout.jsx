@@ -9,7 +9,7 @@ const AuthLayout = () => {
         <div className="flex items-center justify-start px-4 pt-4">
             <img src={img} alt="smit logo" className="h-32 w-auto rounded-2xl border shadow-lg"/>
         </div>
-        <div className="mb-10 px-4">
+        <div className="mb-15 px-4">
           <h2 className="text-3xl font-bold  leading-tight">
             Learn today.
             <br />

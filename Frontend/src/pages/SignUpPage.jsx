@@ -63,7 +63,7 @@ function SignUpPages() {
       <div className='pr-4 py-7  items-center justify-center flex flex-col '>
         <AuthPages />
         <form action="" className='' onSubmit={submitForm} className='bg-white px-5 py-4 ml-4 border border-gray-300 rounded-2xl shadow-lg w-100 max-h-2h max-lg:w-90 max-sm:w-70'>
-          <h1 className='font-bold text-2xl text-black/70 py-1'>Login</h1>
+          <h1 className='font-bold text-2xl text-black/70 py-1'>Sign Up</h1>
           <p className='text-black/50'>
             Kindly provide the username, email, date, and password used during SMIT registration.
           </p>
