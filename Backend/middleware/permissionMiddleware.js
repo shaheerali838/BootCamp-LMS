@@ -9,7 +9,11 @@ export const requirePermission = (permission) => {
       });
     }
 
-    const userPermissions = ROLE_PERMISSIONS[req.user.role];
+    const userRole = req.user.role
+      ? req.user.role.toUpperCase()
+      : "";
+
+    const userPermissions = ROLE_PERMISSIONS[userRole];
 
     if (!userPermissions) {
       return res.status(403).json({
