@@ -8,27 +8,28 @@ const createTeamValidation = [
     .isLength({ min: 3, max: 50 })
     .withMessage("Team name must be between 3 and 50 characters"),
 
-  body("teamCode")
-    .trim()
+  body("batchId")
     .notEmpty()
-    .withMessage("Team code is required")
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Team code must be between 3 and 20 characters"),
+    .withMessage("Batch ID is required")
+    .isMongoId()
+    .withMessage("Invalid Batch ID"),
 
-  body("description")
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage("Description cannot exceed 500 characters"),
+  body("mentor")
+    .notEmpty()
+    .withMessage("Mentor ID is required")
+    .isMongoId()
+    .withMessage("Invalid Mentor ID"),
 
-  body("maxMembers")
-    .optional()
-    .isInt({ min: 1, max: 20 })
-    .withMessage("Max members must be between 1 and 20"),
+  body("teamLead")
+    .notEmpty()
+    .withMessage("Team Lead ID is required")
+    .isMongoId()
+    .withMessage("Invalid Team Lead ID"),
 
   body("status")
     .optional()
-    .isIn(["Active", "Inactive"])
-    .withMessage("Status must be Active or Inactive"),
+    .isIn(["active", "inactive"])
+    .withMessage("Status must be active or inactive"),
 ];
 
 const updateTeamValidation = [
@@ -38,26 +39,25 @@ const updateTeamValidation = [
     .isLength({ min: 3, max: 50 })
     .withMessage("Team name must be between 3 and 50 characters"),
 
-  body("teamCode")
+  body("batchId")
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Team code must be between 3 and 20 characters"),
+    .isMongoId()
+    .withMessage("Invalid Batch ID"),
 
-  body("description")
+  body("mentor")
     .optional()
-    .isLength({ max: 500 })
-    .withMessage("Description cannot exceed 500 characters"),
+    .isMongoId()
+    .withMessage("Invalid Mentor ID"),
 
-  body("maxMembers")
+  body("teamLead")
     .optional()
-    .isInt({ min: 1, max: 20 })
-    .withMessage("Max members must be between 1 and 20"),
+    .isMongoId()
+    .withMessage("Invalid Team Lead ID"),
 
   body("status")
     .optional()
-    .isIn(["Active", "Inactive"])
-    .withMessage("Status must be Active or Inactive"),
+    .isIn(["active", "inactive"])
+    .withMessage("Status must be active or inactive"),
 ];
 
 export {

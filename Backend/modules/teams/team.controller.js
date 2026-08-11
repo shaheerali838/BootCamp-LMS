@@ -4,9 +4,6 @@ import {
   getTeamById,
   updateTeam,
   deleteTeam,
-  addMember,
-  removeMember,
-  setTeamLeader,
   searchTeam,
 } from "./team.service.js";
 
@@ -119,27 +116,6 @@ const deleteTeamHandler = async (req, res) => {
   }
 };
 
-// Add Member
-const addMemberHandler = async (req, res) => {
-  try {
-    const team = await addMember(
-      req.params.id,
-      req.body.userId
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Member added successfully",
-      data: team,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 // Search Team
 const searchTeamHandler = async (req, res) => {
   try {
@@ -160,56 +136,11 @@ const searchTeamHandler = async (req, res) => {
   }
 };
 
-// Remove Member
-const removeMemberHandler = async (req, res) => {
-  try {
-    const team = await removeMember(
-      req.params.id,
-      req.body.userId
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Member removed successfully",
-      data: team,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// Set Team Leader
-const setTeamLeaderHandler = async (req, res) => {
-  try {
-    const team = await setTeamLeader(
-      req.params.id,
-      req.body.userId
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Team leader set successfully",
-      data: team,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 export {
   createTeamHandler,
   getAllTeamsHandler,
   getTeamByIdHandler,
   updateTeamHandler,
   deleteTeamHandler,
-  addMemberHandler,
-  removeMemberHandler,
-  setTeamLeaderHandler,
   searchTeamHandler,
 };

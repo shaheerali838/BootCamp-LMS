@@ -1,11 +1,11 @@
-import Team from "./team.model.js";
+import Team from "../../model/team.model.js";
 
 // Check Team Exists
 const checkTeamExists = async (req, res, next) => {
   try {
     const team = await Team.findById(req.params.id);
 
-    if (!team || team.isDeleted) {
+    if (!team) {
       return res.status(404).json({
         success: false,
         message: "Team not found",
@@ -28,7 +28,6 @@ const checkDuplicateTeamName = async (req, res, next) => {
   try {
     const team = await Team.findOne({
       teamName: req.body.teamName,
-      isDeleted: false,
     });
 
     if (team) {
