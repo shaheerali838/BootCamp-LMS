@@ -1,40 +1,25 @@
-// Load Environment Variables
-await import("./config/env.js");
+import "dotenv/config";
+import mongoose from "mongoose";
+import app from "./app.js";
+import seedAdmin from "./seed/seedAdmin.js";
 
-// Models
-await import("./models/User.js");
-await import("./modules/teams/team.model.js");
+const PORT = process.env.PORT || 7000;
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/saylani-lms";
 
-import express from "express";
-import connectDB from "./config/db.js";
+mongoose
+  .connect(MONGO_URI)
+  .then(async () => {
+    console.log("Connected to MongoDB successfully");
 
-import teamRoutes from "./modules/teams/team.routes.js";
-import userRoutes from "./modules/users/user.routes.js";
+    // Create Default Admin (Only First Time)
+    await seedAdmin();
 
-const app = express();
-
-// Connect Database
-await connectDB();
-
-// Middleware
-app.use(express.json());
-
-// Routes
-app.use("/api/teams", teamRoutes);
-
-app.use("/api/users", userRoutes);
-
-// Home Route
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Server Running 🚀",
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
   });
-});
-
-// Server
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server Running on Port ${PORT}`);
-});
