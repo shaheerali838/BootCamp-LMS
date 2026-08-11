@@ -10,7 +10,7 @@ import {
   getProjectsByStatusHandler,
 } from "./project.controller.js";
 import { createProjectValidation, updateProjectValidation } from "./project.validation.js";
-import validateMiddleware from "../middleware/validateMiddleware.js";
+import validateMiddleware from "../../middleware/validateMiddleware.js";
 import { checkProjectExists, checkDuplicateProjectName } from "./project.middleware.js";
 
 const router = express.Router();

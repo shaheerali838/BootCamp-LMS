@@ -5,9 +5,6 @@ import {
   getTeamByIdHandler,
   updateTeamHandler,
   deleteTeamHandler,
-  addMemberHandler,
-  removeMemberHandler,
-  setTeamLeaderHandler,
   searchTeamHandler,
 } from "./team.controller.js";
 import {
@@ -45,15 +42,6 @@ router.put(
   checkTeamExists,
   updateTeamHandler,
 );
-
-// Add Member
-router.post("/:id/members", checkTeamExists, addMemberHandler);
-
-// Remove Member
-router.delete("/:id/members", checkTeamExists, removeMemberHandler);
-
-// Set Team Leader
-router.put("/:id/leader", checkTeamExists, setTeamLeaderHandler);
 
 // Delete Team
 router.delete("/:id", checkTeamExists, deleteTeamHandler);

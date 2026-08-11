@@ -8,7 +8,7 @@ import {
   removeMemberByTeamAndStudentHandler,
 } from "./teamMember.controller.js";
 import { addMemberValidation, updateMemberValidation } from "./teamMember.validation.js";
-import validateMiddleware from "../middleware/validateMiddleware.js";
+import validateMiddleware from "../../middleware/validateMiddleware.js";
 import { checkTeamMemberExists, checkDuplicateMember } from "./teamMember.middleware.js";
 
 const router = express.Router();

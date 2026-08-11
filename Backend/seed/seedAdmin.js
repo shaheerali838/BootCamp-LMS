@@ -4,27 +4,42 @@ import ROLES from "../constants/roles.js";
 
 const seedAdmin = async () => {
   try {
+    // Check required environment variables
+    const {
+      ADMIN_EMAIL,
+      ADMIN_PASSWORD,
+      ADMIN_FIRST_NAME,
+      ADMIN_LAST_NAME,
+      ADMIN_PHONE,
+    } = process.env;
+
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      throw new Error(
+        "ADMIN_EMAIL or ADMIN_PASSWORD is missing in .env file"
+      );
+    }
+
     // Check Admin Exists
     const existingAdmin = await Admin.findOne({
-      email: process.env.ADMIN_EMAIL,
+      email: ADMIN_EMAIL,
     });
 
     if (existingAdmin) {
-      console.log("Seeded Admin Email:", process.env.ADMIN_EMAIL);
+      console.log("Seeded Admin Email:", ADMIN_EMAIL);
       console.log("Admin already exists");
       return;
     }
 
     // Hash Password
-    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
     // Create Admin
     await Admin.create({
-      firstName: process.env.ADMIN_FIRST_NAME,
-      lastName: process.env.ADMIN_LAST_NAME,
-      email: process.env.ADMIN_EMAIL,
+      firstName: ADMIN_FIRST_NAME,
+      lastName: ADMIN_LAST_NAME,
+      email: ADMIN_EMAIL,
       password: hashedPassword,
-      phoneNumber: process.env.ADMIN_PHONE,
+      phoneNumber: ADMIN_PHONE,
       role: ROLES.ADMIN,
       profileImage: "",
       status: "active",
@@ -32,7 +47,7 @@ const seedAdmin = async () => {
 
     console.log("Default Admin Created Successfully");
   } catch (error) {
-    console.log("Seed Error:", error);
+    console.log("Seed Error:", error.message);
   }
 };
 

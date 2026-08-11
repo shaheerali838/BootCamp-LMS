@@ -9,7 +9,7 @@ import {
   removeProjectByTeamAndProjectHandler,
 } from "./teamProject.controller.js";
 import { assignProjectValidation, updateTeamProjectValidation } from "./teamProject.validation.js";
-import validateMiddleware from "../middleware/validateMiddleware.js";
+import validateMiddleware from "../../middleware/validateMiddleware.js";
 import { checkTeamProjectExists, checkDuplicateAssignment } from "./teamProject.middleware.js";
 
 const router = express.Router();
