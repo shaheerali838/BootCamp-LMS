@@ -7,6 +7,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import AuthLayout from "./components/AuthLayout";
+import ForgetPassword from "./pages/Auth/ForgetPassword";
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -30,11 +31,13 @@ function AppLayout() {
   return (
     <Routes>
       <Route element={<AuthLayout />}>
-        <Route path="/signup" element={<SignUpPage />} />
+        {/* <Route path="/signup" element={<SignUpPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/*" element={<DashboardLayout />} />
+     <Route path="/forget-password" element={<ForgetPassword/>}/>
+      
       
     </Routes>
   );

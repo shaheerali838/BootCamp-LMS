@@ -1,31 +1,44 @@
 import { NavLink } from "react-router-dom";
+
 function AuthPages() {
   return (
-
-    <div className="mb-4 ml-3.5 flex w-full max-w-sm rounded-xl border border-gray-200 bg-gray-100 p-1 shadow-sm">
+    <div className="flex w-full border-b border-gray-200 mb-7">
       <NavLink
-        to="/signup"
-        className={({ isActive }) => `flex-1 rounded-lg py-2 text-center text-sm font-medium transition ${isActive 
-            ? "bg-white text-black shadow-sm"
-            : "bg-transparent text-gray-600"
-          }`
-        }
-      >
-        Sign Up
-      </NavLink>
-       <NavLink
         to="/login"
         className={({ isActive }) =>
-          `flex-1 rounded-lg py-2 text-center text-sm font-medium transition ${isActive
-            ? "bg-white text-black shadow"
-            : "bg-transparent text-gray-600"
+          `relative mr-7 pb-3 text-sm font-medium transition ${isActive
+            ? "text-[#111528]"
+            : "text-gray-500 hover:text-[#111528]"
           }`
-        }
-      >
-        Login
-      </NavLink>
-    </div>
+        }>
+        {({ isActive }) => (
+          <>
+            Login
 
+            {isActive && (
+              <span className="absolute bottom-[-1px] left-0 h-[2px] w-[40px] bg-amber-400" />
+            )}
+          </>
+        )}
+      </NavLink>
+      {/* <NavLink
+        to="/signup"
+        className={({ isActive }) =>
+          `relative pb-3 text-sm font-medium transition ${isActive
+            ? "text-[#111528]"
+            : "text-gray-500 hover:text-[#111528]"
+          }`
+        }>
+        {({ isActive }) => (
+          <>
+            Create account
+            {isActive && (
+              <span className="absolute bottom-[-1px] left-0 h-[2px] w-[100px] bg-amber-400" />
+            )}
+          </>
+        )}
+      </NavLink> */}
+    </div>
   );
 }
 

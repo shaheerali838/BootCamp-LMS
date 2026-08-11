@@ -11,6 +11,8 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { useSidebar } from "../../context/SidebarContext";
+import { icons } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -56,6 +58,14 @@ const Sidebar = () => {
       icon: <FiBookOpen size={22} />,
       path: "/resources",
     },
+    {
+      name: "Team Management",
+      icon: <RiTeamFill size={22} />,
+      path: "/teams",
+      // ERROR: malformed object syntax was here (used `icons , <RiTeamFill />` instead of `icon: <RiTeamFill />`)
+    },
+    { name: "Reports", icon: <FiBarChart2 size={22} />, path: "/reports" },
+    { name: "Resources", icon: <FiBookOpen size={22} />, path: "/resources" },
   ];
 
   return (
@@ -97,11 +107,7 @@ const Sidebar = () => {
             hover:bg-gray-50
           "
         >
-          {isOpen ? (
-            <FiChevronLeft size={18} />
-          ) : (
-            <FiChevronRight size={18} />
-          )}
+          {isOpen ? <FiChevronLeft size={18} /> : <FiChevronRight size={18} />}
         </button>
       </div>
 
@@ -130,11 +136,7 @@ const Sidebar = () => {
                 {item.icon}
               </span>
 
-              {isOpen && (
-                <span className="text-[17px]">
-                  {item.name}
-                </span>
-              )}
+              {isOpen && <span className="text-[17px]">{item.name}</span>}
             </Link>
           );
         })}
@@ -148,13 +150,9 @@ const Sidebar = () => {
 
         {isOpen && (
           <div>
-            <div className="text-sm font-bold text-gray-900">
-              Admin User
-            </div>
+            <div className="text-sm font-bold text-gray-900">Admin User</div>
 
-            <div className="text-xs text-gray-400">
-              admin@smit.edu.pk
-            </div>
+            <div className="text-xs text-gray-400">admin@smit.edu.pk</div>
           </div>
         )}
       </div>
