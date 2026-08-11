@@ -8,8 +8,8 @@ import StudentManagement from "../../pages/Student_Managment";
 import AttendanceManagement from "../../pages/Attedence_Managment";
 import Reports from "../../pages/Reports";
 import Resources from "../../pages/Resources";
-// import TeamManagement from "../../components/teamManagement/TeamManagement";
-// import TeamDetails from "../../components/teamManagement/TeamDetail";
+import TeamManagement from "../../components/teamManagement/TeamManagement";
+import TeamDetails from "../../components/teamManagement/TeamDetail";
 
 import SignUpPage from "../../pages/SignUpPage";
 import LoginPage from "../../pages/LoginPage";
@@ -24,8 +24,8 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/students" element={<StudentManagement />} />
         <Route path="/attendance" element={<AttendanceManagement />} />
-        {/* <Route path="/teams" element={<TeamManagement />} />
-        <Route path="/teams/:id" element={<TeamDetails />} /> */}
+        <Route path="/teams" element={<TeamManagement />} />
+        <Route path="/teams/:id" element={<TeamDetails />} /> 
         <Route path="/reports" element={<Reports />} />
         <Route path="/resources" element={<Resources />} />
       </Route>
