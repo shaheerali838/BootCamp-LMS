@@ -10,6 +10,8 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { useSidebar } from "../../context/SidebarContext";
+import { icons } from "lucide-react";
+import { RiTeamFill } from "react-icons/ri";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -36,6 +38,12 @@ const Sidebar = () => {
       name: "Attendance Management",
       icon: <FiCalendar size={22} />,
       path: "/attendance",
+    },
+    {
+      name: "Team Management",
+      icon: <RiTeamFill size={22} />,
+      path: "/teams",
+      // ERROR: malformed object syntax was here (used `icons , <RiTeamFill />` instead of `icon: <RiTeamFill />`)
     },
     { name: "Reports", icon: <FiBarChart2 size={22} />, path: "/reports" },
     { name: "Resources", icon: <FiBookOpen size={22} />, path: "/resources" },
