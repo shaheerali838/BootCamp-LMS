@@ -9,15 +9,26 @@ import {
   getProjectsByBatchHandler,
   getProjectsByStatusHandler,
 } from "./project.controller.js";
-import { createProjectValidation, updateProjectValidation } from "./project.validation.js";
+import {
+  createProjectValidation,
+  updateProjectValidation,
+} from "./project.validation.js";
 import validateMiddleware from "../../middleware/validateMiddleware.js";
-import { checkProjectExists, checkDuplicateProjectName } from "./project.middleware.js";
+import {
+  checkProjectExists,
+  checkDuplicateProjectName,
+} from "./project.middleware.js";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
+import { requirePermission } from "../../middleware/permissionMiddleware.js";
+import PERMISSIONS from "../../constants/permission.js";
 
 const router = express.Router();
 
 // Create Project
 router.post(
   "/",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   createProjectValidation,
   validateMiddleware,
   checkDuplicateProjectName,
@@ -25,30 +36,64 @@ router.post(
 );
 
 // Get All Projects
-router.get("/", getAllProjectsHandler);
+router.get(
+  "/",
+  authMiddleware,
+  requirePermission(PERMISSIONS.VIEW_PROJECTS),
+  getAllProjectsHandler,
+);
 
 // Search Project
-router.get("/search", searchProjectHandler);
+router.get(
+  "/search",
+  authMiddleware,
+  requirePermission(PERMISSIONS.VIEW_PROJECTS),
+  searchProjectHandler,
+);
 
 // Get Projects by Batch
-router.get("/batch/:batchId", getProjectsByBatchHandler);
+router.get(
+  "/batch/:batchId",
+  authMiddleware,
+  requirePermission(PERMISSIONS.VIEW_PROJECTS),
+  getProjectsByBatchHandler,
+);
 
 // Get Projects by Status
-router.get("/status/:status", getProjectsByStatusHandler);
+router.get(
+  "/status/:status",
+  authMiddleware,
+  requirePermission(PERMISSIONS.VIEW_PROJECTS),
+  getProjectsByStatusHandler,
+);
 
 // Get Project By ID
-router.get("/:id", checkProjectExists, getProjectByIdHandler);
+router.get(
+  "/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.VIEW_PROJECTS),
+  checkProjectExists,
+  getProjectByIdHandler,
+);
 
 // Update Project
 router.put(
   "/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   updateProjectValidation,
   validateMiddleware,
   checkProjectExists,
-  updateProjectHandler
+  updateProjectHandler,
 );
 
 // Delete Project
-router.delete("/:id", checkProjectExists, deleteProjectHandler);
+router.delete(
+  "/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_PROJECTS),
+  checkProjectExists,
+  deleteProjectHandler,
+);
 
 export default router;

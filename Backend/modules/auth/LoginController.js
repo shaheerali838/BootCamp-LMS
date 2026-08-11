@@ -73,15 +73,16 @@ export const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Login successfully",
-      token, // kept for backward compatibility with frontend
-      accessToken: token, // added from Nabeel's branch
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
+      message: "Login successful",
+      data: {
+        accessToken: token,
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+        },
       },
     });
   } catch (error) {
