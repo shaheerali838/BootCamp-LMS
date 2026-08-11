@@ -49,7 +49,7 @@ const Sidebar = () => {
         ${isOpen ? "w-70" : "w-22.5"}
       `}
     >
-      {/* TOP AREA */}
+    
       <div>
         <div className="flex items-center justify-between px-5 pb-5 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -57,11 +57,12 @@ const Sidebar = () => {
               S
             </div>
             {isOpen && (
-              <div>
-                <div className="font-extrabold text-blue-600 text-2xl leading-tight">
+              <div className="text-center">
+                <div className="text-2xl font-extrabold text-blue-700">
                   SMIT
                 </div>
-                <div className="text-[11px] text-gray-400 font-semibold tracking-wide">
+
+                <div className="text-xs font-bold text-gray-700 tracking-wide">
                   SAYLANI MASS IT TRAINING
                 </div>
               </div>
@@ -90,10 +91,9 @@ const Sidebar = () => {
                 to={item.path}
                 className={`
                   flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all
-                  ${
-                    active
-                      ? "bg-blue-50 text-blue-700 font-semibold"
-                      : "text-gray-600 hover:bg-gray-100"
+                  ${active
+                    ? "bg-blue-50 text-blue-700 font-semibold"
+                    : "text-gray-600 hover:bg-gray-100"
                   }
                 `}
               >

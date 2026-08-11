@@ -1,30 +1,25 @@
 import WelcomeHeader from "../components/Dashborad/WelcomeHeader";
 import StatsGrid from "../components/Dashborad/StatsGrid";
 
-import BatchProgressCard from "../components/Dashborad/BatchProgressCard";
-import ScheduleCard from "../components/Dashborad/ScheduleCard";
+import AttendancePreview from "../components/Dashborad/AttendancePreview";
+import QuickStats from "../components/Dashborad/QuickStats";
 
-import {
-  batchData,
-  scheduleData,
-} from "../components/common/dashboardData";
 
 function Dashboard() {
   return (
-    <div className="p-6">
-
+    <div className="p-5 space-y-5">
       <WelcomeHeader />
 
-       <StatsGrid />
+      <StatsGrid />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
-        
-        <BatchProgressCard data={batchData} />
-        <ScheduleCard data={scheduleData} />
+      {/* Attendance + Quick Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <AttendancePreview />
+        </div>
 
+        <QuickStats />
       </div>
-
-     
 
     </div>
   );
