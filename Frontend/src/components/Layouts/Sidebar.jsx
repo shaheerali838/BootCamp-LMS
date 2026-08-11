@@ -13,6 +13,7 @@ import {
 import { useSidebar } from "../../context/SidebarContext";
 import { icons } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
+import { IoFolderOutline } from "react-icons/io5";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -57,6 +58,11 @@ const Sidebar = () => {
       name: "Resources",
       icon: <FiBookOpen size={22} />,
       path: "/resources",
+    },
+    {
+      name : "Project Management",
+      icon : <IoFolderOutline />,
+      path : "/projects"
     },
     {
       name: "Team Management",

@@ -1,97 +1,101 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useTeamProject } from "../../contextAPI/TeamProjectContext";
+
+function getInitial(name) {
+    return name ? name.charAt(0).toUpperCase() : "?";
+}
 
 function TeamCard({ team }) {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const { getTeamProjects } = useTeamProject();
 
-    const getInitial = (name) => {
-        return name.charAt(0).toUpperCase()
-    }
+    const teamProjects = getTeamProjects(team.id);
+
+    const completed = teamProjects.filter(
+        (project) => project.status === "Completed"
+    ).length;
+
+    const progress = teamProjects.filter(
+        (project) => project.status === "In Progress"
+    ).length;
+
+    const pending = teamProjects.filter(
+        (project) => project.status === "Pending"
+    ).length;
 
     return (
-        <div className='bg-white border border-gray-200 rounded-2xl shadow-sm p-7 hover:shadow-md transition'>
-
-            <div className='flex items-start justify-between gap-3'>
-
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 className='text-2xl font-bold text-[#111528]'>
+                    <h2 className="text-xl font-bold text-gray-800">
                         {team.name}
                     </h2>
 
-                    <p className='text-gray-500 mt-1'>
-                        {team.project}
+                    <p className="text-gray-500 text-sm mt-1">
+                        {team.description}
                     </p>
+
+                    {team.lead && (
+                        <p className="text-gray-500 text-xs mt-2">
+                          Lead: <span className="font-semibold text-gray-700">{team.lead}</span>
+                        </p>
+                    )}
                 </div>
 
-                <span
-                    className={`px-4 py-1 rounded-full text-sm font-medium ${team.status === 'Active'
-                            ? 'bg-green-100 text-green-600'
-                            : team.status === 'Completed'
-                                ? 'bg-green-100 text-green-600'
-                                : 'bg-blue-100 text-blue-600'
-                        }`}
-                >
-                    {team.status}
-                </span>
-
+                <div className="w-12 h-12 rounded-xl bg-blue-100 text-[#0476b9] flex items-center justify-center font-bold text-lg">
+                    {getInitial(team.name)}
+                </div>
             </div>
 
-            <div className='flex items-center mt-5'>
-
-                {team.members.slice(0, 4).map((member, index) => (
+            <div className="flex -space-x-2 mt-5">
+                {team.members.slice(0, 4).map((member) => (
                     <div
-                        key={index}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold border-2 border-white -ml-1 ${index === 0
-                                ? 'bg-cyan-600'
-                                : index === 1
-                                    ? 'bg-blue-600'
-                                    : index === 2
-                                        ? 'bg-purple-600'
-                                        : 'bg-indigo-600'
-                            }`}
+                        key={member.id}
+                        className="w-9 h-9 rounded-full bg-[#0476b9] text-white flex items-center justify-center text-sm font-semibold border-2 border-white"
                     >
                         {getInitial(member.name)}
                     </div>
                 ))}
-
             </div>
 
-            <p className='text-gray-500 mt-3'>
-                {team.members.length} members
-            </p>
+            <div className="grid grid-cols-3 gap-2 mt-5">
+                <div className="bg-green-50 rounded-lg p-2 text-center">
+                    <p className="text-green-600 font-bold">
+                        {completed}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        Completed
+                    </p>
+                </div>
 
-            <div className='mt-5'>
-
-                <div className='flex items-center justify-between mb-2'>
-                    <span className='text-gray-500'>
+                <div className="bg-blue-50 rounded-lg p-2 text-center">
+                    <p className="text-blue-600 font-bold">
+                        {progress}
+                    </p>
+                    <p className="text-xs text-gray-500">
                         Progress
-                    </span>
-
-                    <span className='font-semibold text-[#111528]'>
-                        {team.progress}%
-                    </span>
+                    </p>
                 </div>
 
-                <div className='w-full h-2 bg-gray-100 rounded-full overflow-hidden'>
-
-                    <div
-                        className='h-full bg-blue-600 rounded-full'
-                        style={{ width: `${team.progress}%` }}
-                    ></div>
-
+                <div className="bg-yellow-50 rounded-lg p-2 text-center">
+                    <p className="text-yellow-600 font-bold">
+                        {pending}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        Pending
+                    </p>
                 </div>
-
             </div>
 
             <button
                 onClick={() => navigate(`/teams/${team.id}`)}
-                className='mt-6 w-full border border-gray-200 rounded-xl py-3 text-lg font-medium text-gray-700 hover:bg-gray-50 transition cursor-pointer'
+                className="w-full mt-5 border border-[#0476b9] text-[#0476b9] py-2 rounded-lg hover:bg-[#0476b9] hover:text-white transition"
             >
                 View Details
             </button>
-
         </div>
-    )
+    );
 }
 
-export default TeamCard
+export default TeamCard;

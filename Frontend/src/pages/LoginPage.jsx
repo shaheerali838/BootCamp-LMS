@@ -190,7 +190,7 @@ function LoginPages() {
             Log in
           </button>
 
-          <p className="text-center text-sm text-gray-500 mt-5">
+          {/* <p className="text-center text-sm text-gray-500 mt-5">
             Don't have an account?{" "}
             <NavLink
               to="/signup"
@@ -198,7 +198,7 @@ function LoginPages() {
             >
               Sign Up
             </NavLink>
-          </p>
+          </p> */}
         </form>
       </div>
     </div>

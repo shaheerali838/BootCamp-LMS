@@ -1,95 +1,73 @@
-import React, { useState } from 'react'
-import TeamCard from './TeamCard'
-import CreateTeam from './CreateTeam'
-import { teamsData } from '../../data/team' // fixed path: actual file is src/data/team.js
+import React, { useState } from "react";
+import CreateTeam from "./CreateTeam";
+import TeamCard from "./TeamCard";
+import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 
 function TeamManagement() {
+  const { teams } = useTeamProject();
 
-    const [teams, setTeams] = useState(() => {
+  const [showModal, setShowModal] = useState(false);
 
-        const savedTeams = localStorage.getItem('teams')
+  const closeModal = () => {
+    setShowModal(false);
+  };
 
-        if (savedTeams) {
-            return JSON.parse(savedTeams)
-        }
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Team Management
+          </h1>
 
-        localStorage.setItem(
-            'teams',
-            JSON.stringify(teamsData)
-        )
-
-        return teamsData
-    })
-
-    const [showModal, setShowModal] = useState(false)
-
-    const addTeam = (newTeam) => {
-
-        const updatedTeams = [
-            ...teams,
-            newTeam
-        ]
-
-        setTeams(updatedTeams)
-
-        localStorage.setItem(
-            'teams',
-            JSON.stringify(updatedTeams)
-        )
-    }
-
-    return (
-        <div className='min-h-screen bg-gray-50 p-6 md:p-8'>
-
-            <div className='flex items-center justify-between mb-8'>
-
-                <div>
-                    <h1 className='text-3xl font-bold text-[#111528]'>
-                        Team Management
-                    </h1>
-
-                    <p className='text-gray-500 mt-1'>
-                        {teams.length} teams total
-                    </p>
-                </div>
-
-                <button
-                    onClick={() => setShowModal(true)}
-                    className='bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition cursor-pointer flex items-center gap-2'
-                >
-                    <span className='text-2xl leading-none'>
-                        +
-                    </span>
-
-                    Create Team
-                </button>
-
-            </div>
-
-            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
-
-                {teams.map((team) => (
-
-                    <TeamCard
-                        key={team.id}
-                        team={team}
-                    />
-
-                ))}
-
-            </div>
-
-            {showModal && (
-
-                <CreateTeam
-                    closeModal={() => setShowModal(false)}
-                    addTeam={addTeam}
-                />
-
-            )}
-
+          <p className="text-gray-500 mt-1">
+            Create and manage your teams.
+          </p>
         </div>
-    )
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-[#0476b9] text-white px-5 py-2.5 rounded-lg hover:bg-[#03669f]"
+        >
+          + Create Team
+        </button>
+      </div>
+
+      {teams.length === 0 ? (
+        <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center">
+          <h2 className="text-xl font-semibold text-gray-700">
+            No Teams Yet
+          </h2>
+
+          <p className="text-gray-500 mt-2">
+            Create your first team to get started.
+          </p>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-5 bg-[#0476b9] text-white px-5 py-2 rounded-lg"
+          >
+            Create Team
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {teams.map((team) => (
+            <TeamCard
+              key={team.id}
+              team={team}
+            />
+          ))}
+        </div>
+      )}
+
+      {showModal && (
+        <CreateTeam
+          closeModal={closeModal}
+        />
+      )}
+    </div>
+  );
 }
 
-export default TeamManagement
+export default TeamManagement;
