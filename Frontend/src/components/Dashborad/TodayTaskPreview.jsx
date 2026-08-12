@@ -17,6 +17,9 @@ function TodayTaskPreview() {
       case "Needs Attention":
         return "bg-red-100 text-red-600";
 
+      case "Pending":
+        return "bg-gray-100 text-gray-600";
+
       default:
         return "bg-gray-100 text-gray-600";
     }
@@ -24,6 +27,7 @@ function TodayTaskPreview() {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">
@@ -31,69 +35,68 @@ function TodayTaskPreview() {
           </h2>
 
           <p className="text-sm text-gray-500 mt-1">
-            Group task status
+            Tasks assigned by instructors
           </p>
         </div>
 
         <Link
-          to="/projects"
+          to="/tasks"
           className="text-sm font-medium text-blue-600 hover:text-blue-700"
         >
           View All
         </Link>
       </div>
 
+      {/* Tasks */}
       <div className="space-y-3 mt-5">
-        {taskData.map((group) => {
-          const progress = Math.round(
-            (group.completed / group.total) * 100
-          );
+        {taskData.slice(0, 4).map((task) => (
+          <div
+            key={task.id}
+            className="border border-gray-200 rounded-lg p-4"
+          >
+            {/* Task Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800">
+                  {task.title}
+                </h3>
 
-          return (
-            <div
-              key={group.id}
-              className="border border-gray-200 rounded-lg p-3"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-800">
-                    {group.group}
-                  </h3>
-
-                  <p className="text-xs text-gray-500 mt-1">
-                    {group.task}
-                  </p>
-                </div>
-
-                <span
-                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium ${getStatusStyle(
-                    group.status
-                  )}`}
-                >
-                  {group.status}
-                </span>
+                <p className="text-xs text-gray-500 mt-1">
+                  Assigned by {task.assignedBy}
+                </p>
               </div>
 
-              <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-600 rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-[11px] text-gray-500">
-                  {group.completed}/{group.total} tasks
-                </span>
-
-                <span className="text-[11px] text-gray-500">
-                  {progress}%
-                </span>
-              </div>
+              <span
+                className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-medium ${getStatusStyle(
+                  task.status
+                )}`}
+              >
+                {task.status}
+              </span>
             </div>
-          );
-        })}
+
+            {/* Task Details */}
+            <div className="flex items-center justify-between mt-4">
+              <span className="text-xs text-gray-500">
+                Due: {task.dueDate}
+              </span>
+
+              <span className="text-xs font-medium text-gray-600">
+                {task.priority}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* No Tasks */}
+      {taskData.length === 0 && (
+        <div className="py-10 text-center">
+          <p className="text-sm text-gray-500">
+            No tasks available.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
