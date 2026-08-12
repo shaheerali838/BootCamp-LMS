@@ -5,6 +5,7 @@ import teamRoutes from "../modules/teams/team.routes.js";
 import teamMemberRoutes from "../modules/teamMembers/teamMember.routes.js";
 import teamProjectRoutes from "../modules/teamProjects/teamProject.routes.js";
 import projectRoutes from "../modules/projects/project.routes.js";
+import batchRoutes from "../modules/batches/batch.routes.js";
 
 const mainRouter = express.Router();
 
@@ -14,5 +15,8 @@ mainRouter.use("/teams", teamRoutes);
 mainRouter.use("/team-members", teamMemberRoutes);
 mainRouter.use("/team-projects", teamProjectRoutes);
 mainRouter.use("/projects", projectRoutes);
+
+//batch
+mainRouter.use("/batches", batchRoutes);
 
 export default mainRouter;
