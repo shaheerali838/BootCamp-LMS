@@ -5,13 +5,13 @@ import Navbar from "./Navbar";
 
 function DashboardLayout() {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
 
       <main className="ml-70">
         <Navbar />
-     </main>
-        <Outlet />
+      </main>
+       <Outlet />
     </div>
   );
 }

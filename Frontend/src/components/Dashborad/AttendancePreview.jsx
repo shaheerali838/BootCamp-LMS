@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
-import { attendanceData } from "../common/attendanceData";
+
+import { useAttendance } from "../../context/AttendanceContext";
 
 function AttendancePreview() {
+  const { attendance } = useAttendance();
+
   const today = "2026-08-11";
 
   const [search, setSearch] = useState("");
 
-  const data = attendanceData
+  const data = attendance
     .map((student) => {
       const todayAttendance = student.attendance.find(
         (item) => item.date === today
@@ -33,10 +36,14 @@ function AttendancePreview() {
       const priority = {
         Late: 1,
         Present: 2,
-        Absent: 3,
+        Leave: 3,
+        Absent: 4,
       };
 
-      return priority[a.status] - priority[b.status];
+      return (
+        (priority[a.status] || 99) -
+        (priority[b.status] || 99)
+      );
     });
 
   const getStatusStyle = (status) => {
@@ -46,6 +53,9 @@ function AttendancePreview() {
 
       case "Late":
         return "bg-orange-100 text-orange-600";
+
+      case "Leave":
+        return "bg-blue-100 text-blue-600";
 
       case "Absent":
         return "bg-red-100 text-red-500";
@@ -57,13 +67,16 @@ function AttendancePreview() {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-   
+
+      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+
         <h2 className="text-lg font-semibold text-gray-800">
           Today's Attendance
         </h2>
 
         <div className="flex items-center gap-3">
+
           {/* Search */}
           <div className="relative">
             <FiSearch
@@ -80,13 +93,14 @@ function AttendancePreview() {
             />
           </div>
 
-         
+          {/* View All */}
           <Link
             to="/attendance"
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             View All
           </Link>
+
         </div>
       </div>
 
@@ -96,17 +110,21 @@ function AttendancePreview() {
         <span>Team</span>
         <span>Roll No.</span>
         <span>Time</span>
-        <span className="text-right">Status</span>
+        <span className="text-right">
+          Status
+        </span>
       </div>
 
-      {/* Attendance Data */}
+      {/* Attendance */}
       {data.slice(0, 9).map((student) => (
         <div
           key={student.id}
           className="grid grid-cols-5 items-center px-5 py-3 border-t border-gray-100"
         >
+
           {/* Student */}
           <div className="flex items-center gap-3">
+
             <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-semibold">
               {student.initials}
             </div>
@@ -114,6 +132,7 @@ function AttendancePreview() {
             <span className="text-sm font-medium text-gray-800">
               {student.name}
             </span>
+
           </div>
 
           {/* Team */}
@@ -141,15 +160,17 @@ function AttendancePreview() {
               {student.status}
             </span>
           </div>
+
         </div>
       ))}
 
-      
+      {/* No Result */}
       {data.length === 0 && (
         <div className="px-5 py-8 text-center text-sm text-gray-500">
           No student found.
         </div>
       )}
+
     </div>
   );
 }

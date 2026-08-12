@@ -1,17 +1,19 @@
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import smitLogo from "../../assets/smitLogo.png";
+
 import {
   FiGrid,
   FiUsers,
   FiCalendar,
   FiBarChart2,
   FiBookOpen,
+  FiClipboard,
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+
 import { useSidebar } from "../../context/SidebarContext";
-import { icons } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
 import { IoFolderOutline } from "react-icons/io5";
 
@@ -19,7 +21,9 @@ const Sidebar = () => {
   const { pathname } = useLocation();
   const { isOpen, setIsOpen } = useSidebar();
 
-  const handleToggle = () => setIsOpen(!isOpen);
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,7 +34,9 @@ const Sidebar = () => {
 
     window.addEventListener("resize", handleResize);
 
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [setIsOpen]);
 
   const menuItems = [
@@ -49,7 +55,21 @@ const Sidebar = () => {
       icon: <FiCalendar size={22} />,
       path: "/attendance",
     },
-
+    {
+      name: "Team Management",
+      icon: <RiTeamFill size={22} />,
+      path: "/teams",
+    },
+    {
+      name: "Tasks",
+      icon: <FiClipboard size={22} />,
+      path: "/tasks",
+    },
+    {
+      name: "Reports",
+      icon: <FiBarChart2 size={22} />,
+      path: "/reports",
+    },
     {
       name: "Resources",
       icon: <FiBookOpen size={22} />,
@@ -57,13 +77,8 @@ const Sidebar = () => {
     },
     {
       name: "Project Management",
-      icon: <IoFolderOutline />,
+      icon: <IoFolderOutline size={22} />,
       path: "/projects",
-    },
-    {
-      name: "Team Management",
-      icon: <RiTeamFill size={22} />,
-      path: "/teams",
     },
   ];
 
@@ -118,19 +133,18 @@ const Sidebar = () => {
           <Link
             key={item.path}
             to={item.path}
-            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${active
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${
+              active
                 ? "bg-blue-50 text-blue-700 font-semibold"
                 : "text-gray-600 hover:bg-gray-100"
-              }`}
+            }`}
           >
-            <span className="flex items-center justify-center">
+            <span className="flex items-center justify-center flex-shrink-0">
               {item.icon}
             </span>
 
             {isOpen && (
-              <span className="text-[17px]">
-                {item.name}
-              </span>
+              <span className="text-[15px] whitespace-nowrap">{item.name}</span>
             )}
           </Link>
         );
