@@ -7,7 +7,10 @@ function TeamManagement() {
   const { teams } = useTeamProject();
 
   const [showModal, setShowModal] = useState(false);
-
+  const totalMembers = teams.reduce(
+    (total, team) => total + team.members.length,
+    0
+  );
   const closeModal = () => {
     setShowModal(false);
   };
@@ -32,7 +35,29 @@ function TeamManagement() {
           + Create Team
         </button>
       </div>
+      <div className="flex gap-4 mb-6">
+        {/* Total Teams */}
+        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Total Teams
+          </p>
 
+          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
+            {teams.length}
+          </h2>
+        </div>
+
+        {/* Total Members */}
+        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
+          <p className="text-sm text-gray-500">
+            Total Members
+          </p>
+
+          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
+            {totalMembers}
+          </h2>
+        </div>
+      </div>
       {teams.length === 0 ? (
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center">
           <h2 className="text-xl font-semibold text-gray-700">
@@ -51,7 +76,7 @@ function TeamManagement() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
           {teams.map((team) => (
             <TeamCard
               key={team.id}

@@ -25,30 +25,35 @@ function TeamCard({ team }) {
     ).length;
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition w-full]">
+            <div className="flex items-center  justify-between">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800">
                         {team.name}
                     </h2>
+                    <p className="text-black/40 mt-2 text-sm">Description</p>
+                    <div className="w-50 max-w-[250px] h-20 border border-gray-300 rounded-md p-2">
 
-                    <p className="text-gray-500 text-sm mt-1">
-                        {team.description}
-                    </p>
-
+                        <p className="h-full text-gray-500 text-sm overflow-y-auto break-all">
+                            {team?.description}
+                        </p>
+                    </div>
                     {team.lead && (
                         <p className="text-gray-500 text-xs mt-2">
-                          Lead: <span className="font-semibold text-gray-700">{team.lead}</span>
+                            Lead: <span className="font-semibold text-gray-700">{team.lead}</span>
                         </p>
                     )}
                 </div>
 
-                <div className="w-12 h-12 rounded-xl bg-blue-100 text-[#0476b9] flex items-center justify-center font-bold text-lg">
-                    {getInitial(team.name)}
+                <div className="w-12 h-12 rounded-xl bg-blue-100 text-[#0476b9] relative bottom-13  right-[-2px] flex items-center justify-center font-bold text-lg">
+                    {getInitial(team.name.charAt(5).toUpperCase())}
                 </div>
             </div>
+            <p className="text-gray-500 text-sm py-2">
+                Members: {team.members.length}
+            </p>
 
-            <div className="flex -space-x-2 mt-5">
+            <div className="flex -space-x-2">
                 {team.members.slice(0, 4).map((member) => (
                     <div
                         key={member.id}
