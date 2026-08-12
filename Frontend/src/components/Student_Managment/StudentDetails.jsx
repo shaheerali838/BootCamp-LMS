@@ -8,12 +8,13 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 
-import { studentData } from "../common/studentData";
+import { useStudent } from "../../context/StudentContext";
 
 function StudentDetails() {
   const { id } = useParams();
+  const { students } = useStudent();
 
-  const student = studentData.find(
+  const student = students.find(
     (item) => item.id === Number(id)
   );
 

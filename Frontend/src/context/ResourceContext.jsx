@@ -1,4 +1,10 @@
-export const resourceData = [
+import React, { createContext, useContext, useState, useEffect } from "react";
+
+const ResourceContext = createContext();
+
+const STORAGE_KEY = "lms_resources";
+
+const initialResourceData = [
   {
     id: 1,
     name: "React Advanced Patterns.pdf",
@@ -64,3 +70,40 @@ export const resourceData = [
     type: "PPT",
   },
 ];
+
+export const ResourceProvider = ({ children }) => {
+  const [resources, setResources] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : initialResourceData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
+  }, [resources]);
+
+  const addResource = (newResource) => {
+    setResources((prev) => [...prev, { ...newResource, id: Date.now() }]);
+  };
+
+  return (
+    <ResourceContext.Provider
+      value={{
+        resources,
+        setResources,
+        addResource,
+      }}
+    >
+      {children}
+    </ResourceContext.Provider>
+  );
+};
+
+export const useResources = () => {
+  const context = useContext(ResourceContext);
+  if (!context) {
+    throw new Error("useResources must be used inside ResourceProvider");
+  }
+  return context;
+};
+
+export const useResource = useResources;

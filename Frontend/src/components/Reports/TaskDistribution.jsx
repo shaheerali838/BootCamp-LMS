@@ -1,7 +1,8 @@
 import React from "react";
-import { taskDistributionData } from "../common/reportData";
+import { useReports } from "../../context/ReportContext";
 
 function TaskDistribution() {
+  const { taskDistributionData } = useReports();
   const completed =
     taskDistributionData[0]?.value || 0;
 

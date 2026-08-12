@@ -1,4 +1,10 @@
-export const studentData = [
+import React, { createContext, useContext, useState, useEffect } from "react";
+
+const StudentContext = createContext();
+
+const STORAGE_KEY = "lms_students";
+
+const initialStudentData = [
   {
     id: 1,
     rollNo: "SMIT-001",
@@ -88,3 +94,54 @@ export const studentData = [
     status: "At Risk",
   },
 ];
+
+export const StudentProvider = ({ children }) => {
+  const [students, setStudents] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : initialStudentData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+  }, [students]);
+
+  const addStudent = (newStudent) => {
+    setStudents((prev) => [...prev, { ...newStudent, id: Date.now() }]);
+  };
+
+  const updateStudent = (id, updatedData) => {
+    setStudents((prev) =>
+      prev.map((student) =>
+        student.id === id ? { ...student, ...updatedData } : student
+      )
+    );
+  };
+
+  const deleteStudent = (id) => {
+    setStudents((prev) => prev.filter((student) => student.id !== id));
+  };
+
+  return (
+    <StudentContext.Provider
+      value={{
+        students,
+        setStudents,
+        addStudent,
+        updateStudent,
+        deleteStudent,
+      }}
+    >
+      {children}
+    </StudentContext.Provider>
+  );
+};
+
+export const useStudent = () => {
+  const context = useContext(StudentContext);
+  if (!context) {
+    throw new Error("useStudent must be used inside StudentProvider");
+  }
+  return context;
+};
+
+export const useStudents = useStudent;

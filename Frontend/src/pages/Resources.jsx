@@ -6,10 +6,10 @@ import {
 
 import ResourceCard from "../components/Resources/ResourceCard";
 import UploadResourceModal from "../components/Resources/UploadResourceModal";
-import { resourceData } from "../components/common/resourceData";
+import { useResources } from "../context/ResourceContext";
 
 function Resources() {
-  const [resources, setResources] = useState(resourceData);
+  const { resources, setResources, addResource } = useResources();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [showUploadModal, setShowUploadModal] =
@@ -53,7 +53,6 @@ function Resources() {
     ).toFixed(1);
 
     const newResource = {
-      id: Date.now(),
       name: file.name,
       size: `${sizeInMB} MB`,
       date: new Date().toLocaleDateString(
@@ -66,13 +65,9 @@ function Resources() {
       ),
       category: selectedCategory,
       type: extension,
-      file: file,
     };
 
-    setResources((previous) => [
-      newResource,
-      ...previous,
-    ]);
+    addResource(newResource);
   };
 
   const handleDelete = (id) => {
