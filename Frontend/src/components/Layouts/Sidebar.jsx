@@ -13,6 +13,7 @@ import {
 import { useSidebar } from "../../context/SidebarContext";
 import { icons } from "lucide-react";
 import { RiTeamFill } from "react-icons/ri";
+import { IoFolderOutline } from "react-icons/io5";
 
 const Sidebar = () => {
   const { pathname } = useLocation();
@@ -55,13 +56,15 @@ const Sidebar = () => {
       path: "/resources",
     },
     {
+      name: "Project Management",
+      icon: <IoFolderOutline />,
+      path: "/projects",
+    },
+    {
       name: "Team Management",
       icon: <RiTeamFill size={22} />,
       path: "/teams",
-      // ERROR: malformed object syntax was here (used `icons , <RiTeamFill />` instead of `icon: <RiTeamFill />`)
     },
-    { name: "Reports", icon: <FiBarChart2 size={22} />, path: "/reports" },
-    { name: "Resources", icon: <FiBookOpen size={22} />, path: "/resources" },
   ];
 
   return (
@@ -108,35 +111,30 @@ const Sidebar = () => {
       </div>
 
       {/* MENU */}
-      <nav className="mt-6 flex flex-col gap-2 px-3">
-        {menuItems.map((item) => {
-          const active = pathname === item.path;
+      {menuItems.map((item) => {
+        const active = pathname === item.path;
 
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`
-                flex items-center gap-3
-                px-4 py-3.5
-                rounded-xl
-                transition-all
-                ${
-                  active
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "text-gray-600 hover:bg-gray-100"
-                }
-              `}
-            >
-              <span className="flex items-center justify-center">
-                {item.icon}
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${active
+                ? "bg-blue-50 text-blue-700 font-semibold"
+                : "text-gray-600 hover:bg-gray-100"
+              }`}
+          >
+            <span className="flex items-center justify-center">
+              {item.icon}
+            </span>
+
+            {isOpen && (
+              <span className="text-[17px]">
+                {item.name}
               </span>
-
-              {isOpen && <span className="text-[17px]">{item.name}</span>}
-            </Link>
-          );
-        })}
-      </nav>
+            )}
+          </Link>
+        );
+      })}
 
       {/* USER */}
       <div className="mt-auto flex items-center gap-3 px-5 py-4 border-t border-gray-200">

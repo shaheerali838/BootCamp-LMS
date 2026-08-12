@@ -15,6 +15,8 @@ import TeamDetails from "../../components/teamManagement/TeamDetail";
 
 import LoginPage from "../../pages/LoginPage";
 import LoginOutPage from "../../pages/LoginOutPage";
+import ProjectManagement from "../../components/porject_Management/ProjectManagement";
+import ProjectDetail from "../../components/porject_Management/ProjectDetail";
 
 const AppRoutes = () => {
   return (
@@ -33,7 +35,9 @@ const AppRoutes = () => {
         {/* Team Management */}
         <Route path="/teams" element={<TeamManagement />} />
         <Route path="/teams/:id" element={<TeamDetails />} />
-
+        <Route path="/projects" element={<ProjectManagement />} />
+        <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/project" element={<Navigate to="/projects" replace />} />
         {/* Reports & Resources */}
         <Route path="/reports" element={<Reports />} />
         <Route path="/resources" element={<Resources />} />
