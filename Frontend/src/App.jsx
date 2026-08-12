@@ -6,6 +6,11 @@ import {
 } from "./context/SidebarContext";
 
 import { AttendanceProvider } from "./context/AttendanceContext";
+import { StudentProvider } from "./context/StudentContext";
+import { TaskProvider } from "./context/TaskContext";
+import { ProjectProvider } from "./context/ProjectContext";
+import { ResourceProvider } from "./context/ResourceContext";
+import { ReportProvider } from "./context/ReportContext";
 
 import Sidebar from "./components/Layouts/Sidebar";
 import Navbar from "./components/Layouts/Navbar";
@@ -89,9 +94,19 @@ function AppLayout() {
 function App() {
   return (
     <SidebarProvider>
-      <AttendanceProvider>
-        <AppLayout />
-      </AttendanceProvider>
+      <StudentProvider>
+        <AttendanceProvider>
+          <TaskProvider>
+            <ProjectProvider>
+              <ResourceProvider>
+                <ReportProvider>
+                  <AppLayout />
+                </ReportProvider>
+              </ResourceProvider>
+            </ProjectProvider>
+          </TaskProvider>
+        </AttendanceProvider>
+      </StudentProvider>
     </SidebarProvider>
   );
 }

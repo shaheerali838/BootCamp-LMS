@@ -1,8 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { taskData } from "../common/taskData";
+import { useTasks } from "../../context/TaskContext";
 
 function TodayTaskPreview() {
+  const { tasks } = useTasks();
+
   const getStatusStyle = (status) => {
     switch (status) {
       case "Completed":
@@ -49,7 +51,7 @@ function TodayTaskPreview() {
 
       {/* Tasks */}
       <div className="space-y-3 mt-5">
-        {taskData.slice(0, 4).map((task) => (
+        {tasks.slice(0, 4).map((task) => (
           <div
             key={task.id}
             className="border border-gray-200 rounded-lg p-4"
@@ -90,7 +92,7 @@ function TodayTaskPreview() {
       </div>
 
       {/* No Tasks */}
-      {taskData.length === 0 && (
+      {tasks.length === 0 && (
         <div className="py-10 text-center">
           <p className="text-sm text-gray-500">
             No tasks available.

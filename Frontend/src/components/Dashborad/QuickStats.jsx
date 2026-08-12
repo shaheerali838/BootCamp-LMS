@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { projectData } from "../common/projectData";
+import { useProjects } from "../../context/ProjectContext";
 
 function QuickStats() {
+  const { projects } = useProjects();
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-center justify-between">
@@ -25,7 +26,7 @@ function QuickStats() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
-        {projectData.map((project) => (
+        {projects.map((project) => (
           <div
             key={project.id}
             className="border border-gray-200 rounded-lg p-3"

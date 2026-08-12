@@ -9,10 +9,10 @@ import {
 import TaskCard from "../components/Tasks/TaskCard";
 import AssignTaskModal from "../components/Tasks/AssignTaskModal";
 
-import { taskData } from "../components/common/taskData";
+import { useTasks } from "../context/TaskContext";
 
 function Task() {
-  const [tasks, setTasks] = useState(taskData);
+  const { tasks, addTask } = useTasks();
 
   const [search, setSearch] = useState("");
 
@@ -40,10 +40,7 @@ function Task() {
   }, [tasks, search]);
 
   const handleAssignTask = (newTask) => {
-    setTasks((previous) => [
-      newTask,
-      ...previous,
-    ]);
+    addTask(newTask);
   };
 
   return (
