@@ -48,11 +48,7 @@ const Sidebar = () => {
       icon: <FiCalendar size={22} />,
       path: "/attendance",
     },
-    {
-      name: "Reports",
-      icon: <FiBarChart2 size={22} />,
-      path: "/reports",
-    },
+
     {
       name: "Resources",
       icon: <FiBookOpen size={22} />,
