@@ -1,9 +1,6 @@
 import "./App.css";
 
-import {
-  SidebarProvider,
-  useSidebar,
-} from "./context/SidebarContext";
+import { SidebarProvider, useSidebar } from "./context/SidebarContext";
 
 import { AttendanceProvider } from "./context/AttendanceContext";
 
@@ -12,16 +9,11 @@ import Navbar from "./components/Layouts/Navbar";
 
 import AppRoutes from "./pages/routes/AppRoutes";
 
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import LoginPage from "./pages/LoginPage";
 import AuthLayout from "./components/AuthLayout";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
-
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -34,9 +26,7 @@ function DashboardLayout() {
 
       <main
         className={`pt-16 transition-all duration-300 ${
-          isOpen
-            ? "ml-[280px]"
-            : "ml-[90px]"
+          isOpen ? "ml-70" : "ml-22.5"
         }`}
       >
         <AppRoutes />
@@ -45,46 +35,25 @@ function DashboardLayout() {
   );
 }
 
-
 function AppLayout() {
   return (
     <Routes>
-
       {/* Root URL */}
-      <Route
-        path="/"
-        element={
-          <Navigate
-            to="/login"
-            replace
-          />
-        }
-      />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Authentication */}
       <Route element={<AuthLayout />}>
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
+        <Route path="/login" element={<LoginPage />} />
       </Route>
 
       {/* Forget Password */}
-      <Route
-        path="/forget-password"
-        element={<ForgetPassword />}
-      />
+      <Route path="/forget-password" element={<ForgetPassword />} />
 
       {/* Dashboard / Application */}
-      <Route
-        path="/*"
-        element={<DashboardLayout />}
-      />
-
+      <Route path="/*" element={<DashboardLayout />} />
     </Routes>
   );
 }
-
 
 function App() {
   return (
@@ -95,6 +64,5 @@ function App() {
     </SidebarProvider>
   );
 }
-
 
 export default App;

@@ -139,7 +139,7 @@ const Sidebar = () => {
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            <span className="flex items-center justify-center flex-shrink-0">
+            <span className="flex items-center justify-center shrink-0">
               {item.icon}
             </span>
 
