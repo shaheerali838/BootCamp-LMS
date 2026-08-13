@@ -28,6 +28,7 @@ mainRouter.use("/team-members", teamMemberRoutes);
 
 //team projects
 mainRouter.use("/team-projects", teamProjectRoutes);
+
 mainRouter.use("/projects", projectRoutes);
 mainRouter.use("/sprints", sprintRoutes);
 mainRouter.use("/milestones", milestoneRoutes);
