@@ -417,7 +417,7 @@ const Sidebar = () => {
               text-white
               font-bold
               text-xs
-              flex-shrink-0
+              shrink-0
             `}
           >
             {role === "superadmin" ? "SA" : role === "admin" ? "AU" : "SB"}
