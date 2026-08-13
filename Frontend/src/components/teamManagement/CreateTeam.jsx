@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 
-function CreateTeam({ closeModal }) {
-  const { addTeam } = useTeamProject();
+function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
+  const edit = initialData || editingTeam;
+  const { addTeam, updateTeam } = useTeamProject();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -37,6 +38,18 @@ function CreateTeam({ closeModal }) {
     setMemberName("");
   };
 
+  // Populate form when editing
+  React.useEffect(() => {
+    if (edit) {
+      setFormData({
+        name: edit.name || "",
+        lead: edit.lead || "",
+        description: edit.description || "",
+        members: edit.members || [],
+      });
+    }
+  }, [edit]);
+
   const removeMember = (memberId) => {
     setFormData({
       ...formData,
@@ -51,10 +64,16 @@ function CreateTeam({ closeModal }) {
 
     if (!formData.name.trim()) return;
 
-    addTeam(formData);
+    if (edit) {
+      // Editing existing team
+      updateTeam(edit.id, formData);
+    } else {
+      addTeam(formData);
+    }
 
     setFormData({
       name: "",
+      lead: "",
       description: "",
       members: [],
     });
@@ -66,8 +85,8 @@ function CreateTeam({ closeModal }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Create Team
+            <h2 className="text-2xl font-bold text-gray-800">
+            {edit ? "Edit Team" : "Create Team"}
           </h2>
 
           <button
@@ -173,7 +192,7 @@ function CreateTeam({ closeModal }) {
               type="submit"
               className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg hover:bg-[#03669f]"
             >
-              Create Team
+              {initialData ? "Save Changes" : "Create Team"}
             </button>
           </div>
         </form>

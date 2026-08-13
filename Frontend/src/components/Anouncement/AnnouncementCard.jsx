@@ -75,12 +75,8 @@ const AnnouncementCard = ({
           </div>
         </div>
       </div>
-
-      {/* ANNOUNCEMENT DETAILS - Displays full description when card is expanded */}
-
       {showDetails && (
         <div className="border-t border-gray-200 bg-white p-5">
-          {/* Display description text with proper visibility and formatting */}
           <div>
             <h4 className="text-sm font-semibold text-gray-600 mb-2">Description:</h4>
             <p className="text-gray-800 leading-7 whitespace-pre-wrap break-words">

@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import {
+  FiSearch,
+  FiPlus,
+  FiFolder,
+  FiUsers,
+  FiLayers,
+} from "react-icons/fi";
 import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 import ProjectCard from "./PorjectCard";
 
@@ -11,22 +18,17 @@ function ProjectManagement() {
 
   const [showForm, setShowForm] = useState(false);
 
+  const [search, setSearch] = useState("");
+
+  // Project schema fields
   const [formData, setFormData] = useState({
-    name: "",
+    projectName: "",
     description: "",
-    teamId: "",
-    status: "Pending",
+    startDate: "",
+    deadline: "",
+    batch: "",
+    status: "pending",
   });
-
-  const [error, setError] = useState({});
-
-  const totalProjectMembers = projects.reduce((total, project) => {
-    const team = teams.find(
-      (team) => Number(team.id) === Number(project.teamId)
-    );
-
-    return total + (team?.members?.length || 0);
-  }, 0);
 
   const handleChange = (e) => {
     setFormData({
@@ -38,295 +40,383 @@ function ProjectManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    let newErrors = {};
-
-    if (!formData.name) {
-      newErrors.name = "Project name is required";
-    }
-
-    if (!formData.description) {
-      newErrors.description = "Description is required";
-    }
-
-    if (!formData.teamId) {
-      newErrors.teamId = "Please select a team";
-    }
-
-    setError(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
+    if (
+      !formData.projectName ||
+      !formData.description ||
+      !formData.startDate ||
+      !formData.deadline ||
+      !formData.batch
+    ) {
+      alert("Please fill all required fields");
       return;
     }
 
+    if (
+      new Date(formData.deadline) <
+      new Date(formData.startDate)
+    ) {
+      alert("Deadline must be after start date");
+      return;
+    }
+
+    // Map form fields to context's project structure
     addProject({
-      ...formData,
-      teamId: Number(formData.teamId),
+      projectName: formData.projectName,
+      name: formData.projectName,
+      description: formData.description,
+      startDate: formData.startDate,
+      deadline: formData.deadline,
+      batch: formData.batch,
+      teamId: formData.batch,
+      status: formData.status,
     });
 
     setFormData({
-      name: "",
+      projectName: "",
       description: "",
-      teamId: "",
-      status: "Pending",
+      startDate: "",
+      deadline: "",
+      batch: "",
+      status: "pending",
     });
 
-    setError({});
     setShowForm(false);
   };
 
+  // Search by projectName
+  const filteredProjects = projects.filter((project) =>
+    (project.name || project.projectName || "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  const totalMembers = teams.reduce(
+    (total, team) => total + (team.members?.length || 0),
+    0
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Project Management
-          </h1>
 
-          <p className="text-gray-500 mt-1">
-            Create, assign and manage your team projects.
-          </p>
+      {/* Header */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Project Management
+            </h1>
+
+            <p className="text-gray-500 mt-1">
+              Create, manage and track your projects.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="flex items-center justify-center gap-2 bg-[#0476b9] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+          >
+            <FiPlus size={18} />
+            Add Project
+          </button>
+
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="bg-[#0476b9] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#03669f] transition"
-        >
-          + Add Project
-        </button>
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+              <FiFolder size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Projects
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {projects.length}
+              </p>
+            </div>
+
+          </div>
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+              <FiLayers size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Teams
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {teams.length}
+              </p>
+            </div>
+
+          </div>
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+              <FiUsers size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Members
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {totalMembers}
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Search */}
+        <div className="relative mt-5">
+
+          <FiSearch
+            size={20}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-[#0476b9]"
+          />
+
+        </div>
+
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-9">
-        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500">
-            Total Projects
+      {/* Projects */}
+      {filteredProjects.length === 0 ? (
+
+        <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center mt-6">
+
+          <FiFolder
+            size={40}
+            className="mx-auto text-gray-300"
+          />
+
+          <h2 className="text-xl font-semibold text-gray-700 mt-3">
+            {search ? "No Projects Found" : "No Projects Yet"}
+          </h2>
+
+          <p className="text-gray-500 mt-2">
+            {search
+              ? "Try another search."
+              : "Create your first project."}
           </p>
 
-          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
-            {projects.length}
-          </h2>
         </div>
 
-        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500">
-            Project Members
-          </p>
+      ) : (
 
-          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
-            {totalProjectMembers}
-          </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
+
+          {filteredProjects.map((project) => {
+
+            const team = teams.find(
+              (team) =>
+                String(team._id || team.id) ===
+                String(project.teamId || project.batch)
+            );
+
+            return (
+              <ProjectCard
+                key={project._id || project.id}
+                project={project}
+                team={team}
+              />
+            );
+          })}
+
         </div>
-      </div>
 
+      )}
+
+      {/* Create Project Modal */}
       {showForm && (
+
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl">
+
+          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+
+            {/* Modal Header */}
             <div className="flex items-center justify-between mb-5">
+
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
                   Create Project
                 </h2>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  Assign this project to an existing team.
+                  Create a new project.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setError({});
-                }}
+                onClick={() => setShowForm(false)}
                 className="text-gray-500 hover:text-red-500 text-2xl"
               >
                 ×
               </button>
+
             </div>
 
-            {teams.length === 0 ? (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
-                <p className="font-semibold">
-                  No teams available
-                </p>
+            <form onSubmit={handleSubmit}>
 
-                <p className="text-sm mt-1">
-                  Please create a team first from Team Management.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Project Name
-                  </label>
+              {/* Project Name */}
+              <label className="block text-sm font-semibold text-gray-700">
+                Project Name
+              </label>
 
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter project name"
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.name
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  />
-
-                  {error.name && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Description
-                  </label>
-
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Enter project description"
-                    rows="4"
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.description
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  />
-
-                  {error.description && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.description}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Assign Team
-                  </label>
-
-                  <select
-                    name="teamId"
-                    value={formData.teamId}
-                    onChange={handleChange}
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.teamId
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">
-                      Select Team
-                    </option>
-
-                    {teams.map((team) => (
-                      <option
-                        key={team.id}
-                        value={team.id}
-                      >
-                        {team.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  {error.teamId && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.teamId}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Project Status
-                  </label>
-
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
-                  >
-                    <option value="Pending">
-                      Pending
-                    </option>
-
-                    <option value="In Progress">
-                      In Progress
-                    </option>
-
-                    <option value="Completed">
-                      Completed
-                    </option>
-                  </select>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setError({});
-                    }}
-                    className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
-                  >
-                    Create Project
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
-      {projects.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center">
-          <h2 className="text-xl font-semibold text-gray-700">
-            No Projects Yet
-          </h2>
-
-          <p className="text-gray-500 mt-2">
-            Create your first project and assign it to a team.
-          </p>
-
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-5 bg-[#0476b9] text-white px-5 py-2 rounded-lg font-semibold"
-          >
-            + Add Project
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {projects.map((project) => {
-            const team = teams.find(
-              (team) =>
-                Number(team.id) === Number(project.teamId)
-            );
-
-            return (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                team={team}
+              <input
+                type="text"
+                name="projectName"
+                value={formData.projectName}
+                onChange={handleChange}
+                placeholder="Enter project name"
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
-            );
-          })}
+
+              {/* Description */}
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Description
+              </label>
+
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter project description"
+                rows="4"
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
+
+              {/* Start Date */}
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Start Date
+              </label>
+
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
+
+              {/* Deadline */}
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Deadline
+              </label>
+
+              <input
+                type="date"
+                name="deadline"
+                value={formData.deadline}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
+
+              {/* Batch */}
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Batch
+              </label>
+
+              <select
+                name="batch"
+                value={formData.batch}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              >
+
+                <option value="">
+                  Select Batch
+                </option>
+
+                {teams.map((team) => (
+                  <option
+                    key={team._id || team.id}
+                    value={team._id || team.id}
+                  >
+                    {team.name}
+                  </option>
+                ))}
+
+              </select>
+
+              {/* Status */}
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Status
+              </label>
+
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              >
+
+                <option value="pending">
+                  Pending
+                </option>
+
+                <option value="in progress">
+                  In Progress
+                </option>
+
+                <option value="completed">
+                  Completed
+                </option>
+
+              </select>
+
+              {/* Buttons */}
+              <div className="flex gap-3 mt-6">
+
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+                >
+                  Create Project
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
         </div>
+
       )}
+
     </div>
   );
 }
