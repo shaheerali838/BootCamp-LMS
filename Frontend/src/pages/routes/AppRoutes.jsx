@@ -14,10 +14,10 @@ import Resources from "../../pages/Resources";
 import TeamManagement from "../../components/teamManagement/TeamManagement";
 import TeamDetails from "../../components/teamManagement/TeamDetail";
 
-import LoginPage from "../../pages/LoginPage";
-import LoginOutPage from "../../pages/LoginOutPage";
+// import LoginOutPage from "../../pages/LoginOutPage";
 import ProjectManagement from "../../components/porject_Management/ProjectManagement";
 import ProjectDetail from "../../components/porject_Management/ProjectDetail";
+import Announcement from "../../components/Anouncement/Announcement";
 
 // Student Layer Pages
 import StudentDashboard from "../Student/StudentDashboard";
@@ -45,7 +45,7 @@ const AppRoutes = () => {
 
         <Route path="/teams" element={<TeamManagement />} />
         <Route path="/teams/:id" element={<TeamDetails />} />
-
+        <Route path="/announcements" element={<Announcement/>}/>
         <Route path="/projects" element={<ProjectManagement />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
 

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import AuthPages from './AuthPages'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from "lucide-react";

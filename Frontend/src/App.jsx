@@ -9,6 +9,9 @@ import { ProjectProvider } from "./context/ProjectContext";
 import { ResourceProvider } from "./context/ResourceContext";
 import { ReportProvider } from "./context/ReportContext";
 
+// Import AnnouncementProvider to wrap announcement components with required context
+import { AnnouncementProvider } from "./contextAPI/Anouncement";
+
 import Sidebar from "./components/Layouts/Sidebar";
 import Navbar from "./components/Layouts/Navbar";
 
@@ -16,8 +19,8 @@ import AppRoutes from "./pages/routes/AppRoutes";
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import LoginPage from "./pages/LoginPage";
 import AuthLayout from "./components/AuthLayout";
+import LoginPages from "./pages/Auth/Loginpages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
 
 function DashboardLayout() {
@@ -48,7 +51,7 @@ function AppLayout() {
 
       {/* Authentication */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPages />} />
       </Route>
 
       {/* Forget Password */}
@@ -62,6 +65,7 @@ function AppLayout() {
 
 function App() {
   return (
+    // Wrap the entire app with providers to make contexts available to all components
     <SidebarProvider>
       <StudentProvider>
         <AttendanceProvider>
@@ -69,7 +73,9 @@ function App() {
             <ProjectProvider>
               <ResourceProvider>
                 <ReportProvider>
-                  <AppLayout />
+                  <AnnouncementProvider>
+                    <AppLayout />
+                  </AnnouncementProvider>
                 </ReportProvider>
               </ResourceProvider>
             </ProjectProvider>
