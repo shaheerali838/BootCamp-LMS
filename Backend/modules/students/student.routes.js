@@ -7,7 +7,7 @@ import PERMISSIONS from "../../constants/permission.js";
 const router = express.Router();
 
 router.post(
-  "/",
+  "/create-student",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   createStudent,
@@ -28,4 +28,3 @@ router.get(
 );
 
 export default router;
-

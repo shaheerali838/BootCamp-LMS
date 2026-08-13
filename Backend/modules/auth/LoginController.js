@@ -24,11 +24,11 @@ export const login = async (req, res) => {
     const emailAddress = email.trim().toLowerCase();
 
     // First, search for Admin or Super Admin
-    let user = await Admin.findOne({ email: emailAddress });
+    let user = await Admin.findOne({ email: emailAddress }).select("+password");
 
     // If not found, search for Student
     if (!user) {
-      user = await Student.findOne({ email: emailAddress });
+      user = await Student.findOne({ email: emailAddress }).select("+password"); // <-- Add it here
     }
 
     // User does not exist
@@ -48,6 +48,9 @@ export const login = async (req, res) => {
     }
 
     // Check password
+    console.log("Input:", password);
+    console.log("DB Hash:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -312,7 +315,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = await bcrypt.hash(newPassword, 10); // Put this back!
     user.tokenVersion += 1;
 
     await user.save();

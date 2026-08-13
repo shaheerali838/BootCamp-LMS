@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import Student from "../../model/student.model.js";
+import sendEmail from "../../utils/sendEmail.js";
 
 export const createStudent = async (req, res) => {
   try {
@@ -53,6 +54,29 @@ export const createStudent = async (req, res) => {
       mentorId,
     });
 
+    // --- NEW: Send the Welcome Email ---
+    try {
+      await sendEmail({
+        to: student.email,
+        subject: "Welcome to the LMS Bootcamp",
+        html: `
+          <h3>Welcome, ${student.firstName}!</h3>
+          <p>Your student account has been successfully created.</p>
+          <p><strong>Your Login Credentials:</strong></p>
+          <ul>
+            <li>Email: ${student.email}</li>
+            <li>Password: ${password}</li>
+          </ul>
+          <p>Please log in and change your password as soon as possible.</p>
+        `,
+      });
+      console.log("Welcome email sent successfully to", student.email);
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // We don't return an error here because the student WAS successfully created in the DB
+    }
+    // ------------------------------------
+
     const studentResponse = student.toObject();
     delete studentResponse.password;
 
@@ -87,4 +111,3 @@ export const getStudents = async (req, res) => {
     });
   }
 };
-
