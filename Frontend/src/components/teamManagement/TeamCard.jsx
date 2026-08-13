@@ -69,9 +69,9 @@ function TeamCard({ team, onEdit }) {
                     )}
                 </div>
 
-                <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-100 text-[#0476b9] flex items-center justify-center font-bold text-lg">
+                {/* <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-100 text-[#0476b9] flex items-center justify-center font-bold text-lg">
                     {getInitial(team.name)}
-                </div>
+                </div> */}
             </div>
 
             <p className="text-gray-500 text-sm py-2">

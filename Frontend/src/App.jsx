@@ -1,13 +1,19 @@
 import "./App.css";
+
 import { SidebarProvider, useSidebar } from "./context/SidebarContext";
 import { AttendanceProvider } from "./context/AttendanceContext";
 import { StudentProvider } from "./context/StudentContext";
 import { TaskProvider } from "./context/TaskContext";
 import { ProjectProvider } from "./context/ProjectContext";
+import { TeamProjectProvider } from "./contextAPI/TeamProjectContext";
 import { ResourceProvider } from "./context/ResourceContext";
 import { ReportProvider } from "./context/ReportContext";
-
-// Import AnnouncementProvider to wrap announcement components with required context
+import { AdminProvider } from "./context/AdminContext";
+import { BatchProvider } from "./context/BatchContext";
+import { MilestoneProvider } from "./context/MilestoneContext";
+import { SprintProvider } from "./context/SprintContext";
+import { RegistrationLogProvider } from "./context/RegistrationLogContext";
+import { ActivityLogProvider } from "./context/ActivityLogContext";
 import { AnnouncementProvider } from "./contextAPI/Anouncement";
 
 import Sidebar from "./components/Layouts/Sidebar";
@@ -17,10 +23,9 @@ import AppRoutes from "./pages/routes/AppRoutes";
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
-
 import AuthLayout from "./components/AuthLayout";
 import LoginPages from "./pages/Auth/Loginpages";
-import ForgetPassword from './pages/Auth/ForgetPassword'
+import ForgetPassword from "./pages/Auth/ForgetPassword";
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -45,38 +50,58 @@ function DashboardLayout() {
 function AppLayout() {
   return (
     <Routes>
-      {/* Root URL */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/"
+        element={<Navigate to="/login" replace />}
+      />
 
-      {/* Authentication */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPages />} />
+        <Route
+          path="/login"
+          element={<LoginPages />}
+        />
       </Route>
 
-      {/* Forget Password */}
-      <Route path="/forget-password" element={<ForgetPassword />} />
+      <Route
+        path="/forget-password"
+        element={<ForgetPassword />}
+      />
 
-      {/* Dashboard / Application */}
-      <Route path="/*" element={<DashboardLayout />} />
+      <Route
+        path="/*"
+        element={<DashboardLayout />}
+      />
     </Routes>
   );
 }
 
 function App() {
   return (
-    // Providers: wrap the app once with all needed contexts
-    // Order: SidebarProvider -> Announcement -> Attendance -> Student -> Task -> Project -> Resource -> Report
     <SidebarProvider>
       <AnnouncementProvider>
         <AttendanceProvider>
           <StudentProvider>
             <TaskProvider>
               <ProjectProvider>
-                <ResourceProvider>
-                  <ReportProvider>
-                    <AppLayout />
-                  </ReportProvider>
-                </ResourceProvider>
+                <TeamProjectProvider>
+                  <ResourceProvider>
+                    <ReportProvider>
+                      <AdminProvider>
+                        <BatchProvider>
+                          <MilestoneProvider>
+                            <SprintProvider>
+                              <RegistrationLogProvider>
+                                <ActivityLogProvider>
+                                  <AppLayout />
+                                </ActivityLogProvider>
+                              </RegistrationLogProvider>
+                            </SprintProvider>
+                          </MilestoneProvider>
+                        </BatchProvider>
+                      </AdminProvider>
+                    </ReportProvider>
+                  </ResourceProvider>
+                </TeamProjectProvider>
               </ProjectProvider>
             </TaskProvider>
           </StudentProvider>

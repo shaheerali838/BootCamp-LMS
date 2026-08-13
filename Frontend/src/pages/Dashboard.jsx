@@ -1,6 +1,6 @@
 import WelcomeHeader from "../components/Dashborad/WelcomeHeader";
 import StatsGrid from "../components/Dashborad/StatsGrid";
-
+import QuickActions from "../components/Dashborad/QuickActions";
 import AttendancePreview from "../components/Dashborad/AttendancePreview";
 import TodayTaskPreview from "../components/Dashborad/TodayTaskPreview";
 import QuickStats from "../components/Dashborad/QuickStats";
@@ -12,7 +12,8 @@ function Dashboard() {
 
       <StatsGrid />
 
-      
+      <QuickActions />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
           <AttendancePreview />
@@ -21,7 +22,6 @@ function Dashboard() {
         <TodayTaskPreview />
       </div>
 
-  
       <QuickStats />
     </div>
   );

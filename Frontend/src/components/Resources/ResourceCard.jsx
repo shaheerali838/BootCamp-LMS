@@ -1,10 +1,7 @@
 import React from "react";
-import {
-  FiDownload,
-  FiTrash2,
-} from "react-icons/fi";
+import { FiDownload, FiTrash2, FiEdit2 } from "react-icons/fi";
 
-function ResourceCard({ resource, onDelete }) {
+function ResourceCard({ resource, onDelete, onEdit }) {
   const getTypeStyle = () => {
     switch (resource.type) {
       case "PDF":
@@ -67,9 +64,7 @@ function ResourceCard({ resource, onDelete }) {
 
             <span>{resource.date}</span>
 
-            <span
-              className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600"
-            >
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
               {resource.category}
             </span>
           </div>
@@ -77,7 +72,17 @@ function ResourceCard({ resource, onDelete }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-4 ml-4">
+      <div className="flex items-center gap-3 ml-4">
+        {onEdit && (
+          <button
+            onClick={() => onEdit(resource)}
+            title="Edit Resource"
+            className="text-gray-400 hover:text-blue-600 transition"
+          >
+            <FiEdit2 size={18} />
+          </button>
+        )}
+
         <button
           onClick={handleDownload}
           title="Download"

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 
-function CreateTeam({ closeModal, initialData = null }) {
+function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
+  const edit = initialData || editingTeam;
   const { addTeam, updateTeam } = useTeamProject();
 
   const [formData, setFormData] = useState({
@@ -39,15 +40,15 @@ function CreateTeam({ closeModal, initialData = null }) {
 
   // Populate form when editing
   React.useEffect(() => {
-    if (initialData) {
+    if (edit) {
       setFormData({
-        name: initialData.name || "",
-        lead: initialData.lead || "",
-        description: initialData.description || "",
-        members: initialData.members || [],
+        name: edit.name || "",
+        lead: edit.lead || "",
+        description: edit.description || "",
+        members: edit.members || [],
       });
     }
-  }, [initialData]);
+  }, [edit]);
 
   const removeMember = (memberId) => {
     setFormData({
@@ -63,9 +64,9 @@ function CreateTeam({ closeModal, initialData = null }) {
 
     if (!formData.name.trim()) return;
 
-    if (initialData) {
+    if (edit) {
       // Editing existing team
-      updateTeam(initialData.id, formData);
+      updateTeam(edit.id, formData);
     } else {
       addTeam(formData);
     }
@@ -84,8 +85,8 @@ function CreateTeam({ closeModal, initialData = null }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {initialData ? "Edit Team" : "Create Team"}
+            <h2 className="text-2xl font-bold text-gray-800">
+            {edit ? "Edit Team" : "Create Team"}
           </h2>
 
           <button

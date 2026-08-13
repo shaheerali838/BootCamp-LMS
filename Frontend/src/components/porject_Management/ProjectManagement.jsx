@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import {
+  FiSearch,
+  FiPlus,
+  FiFolder,
+  FiUsers,
+  FiLayers,
+} from "react-icons/fi";
 import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 import ProjectCard from "./PorjectCard";
 
@@ -11,6 +18,9 @@ function ProjectManagement() {
 
   const [showForm, setShowForm] = useState(false);
 
+  const [search, setSearch] = useState("");
+
+  // Project schema fields
   const [formData, setFormData] = useState({
     projectName: "",
     description: "",
@@ -19,18 +29,6 @@ function ProjectManagement() {
     batch: "",
     status: "pending",
   });
-
-  const [error, setError] = useState({});
-
-  const totalProjectMembers = projects.reduce((total, project) => {
-    const team = teams.find(
-      (team) =>
-        String(team.id) === String(project.teamId) ||
-        String(team._id) === String(project.teamId)
-    );
-
-    return total + (team?.members?.length || 0);
-  }, 0);
 
   const handleChange = (e) => {
     setFormData({
@@ -42,48 +40,34 @@ function ProjectManagement() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    let newErrors = {};
-
-    if (!formData.projectName.trim()) {
-      newErrors.projectName = "Project name is required";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-
-    if (!formData.startDate) {
-      newErrors.startDate = "Start date is required";
-    }
-
-    if (!formData.deadline) {
-      newErrors.deadline = "Deadline is required";
-    }
-
     if (
-      formData.startDate &&
-      formData.deadline &&
-      new Date(formData.deadline) < new Date(formData.startDate)
+      !formData.projectName ||
+      !formData.description ||
+      !formData.startDate ||
+      !formData.deadline ||
+      !formData.batch
     ) {
-      newErrors.deadline = "Deadline must be after start date";
-    }
-
-    if (!formData.batch) {
-      newErrors.batch = "Please select a batch";
-    }
-
-    setError(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
+      alert("Please fill all required fields");
       return;
     }
 
+    if (
+      new Date(formData.deadline) <
+      new Date(formData.startDate)
+    ) {
+      alert("Deadline must be after start date");
+      return;
+    }
+
+    // Map form fields to context's project structure
     addProject({
       projectName: formData.projectName,
+      name: formData.projectName,
       description: formData.description,
       startDate: formData.startDate,
       deadline: formData.deadline,
       batch: formData.batch,
+      teamId: formData.batch,
       status: formData.status,
     });
 
@@ -96,264 +80,321 @@ function ProjectManagement() {
       status: "pending",
     });
 
-    setError({});
     setShowForm(false);
   };
 
-  const closeForm = () => {
-    setShowForm(false);
-    setError({});
-  };
+  // Search by projectName
+  const filteredProjects = projects.filter((project) =>
+    (project.name || project.projectName || "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  const totalMembers = teams.reduce(
+    (total, team) => total + (team.members?.length || 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Project Management
-          </h1>
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
 
-          <p className="text-gray-500 mt-1">
-            Create and manage your projects.
-          </p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Project Management
+            </h1>
+
+            <p className="text-gray-500 mt-1">
+              Create, manage and track your projects.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="flex items-center justify-center gap-2 bg-[#0476b9] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+          >
+            <FiPlus size={18} />
+            Add Project
+          </button>
+
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="bg-[#0476b9] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#03669f] transition"
-        >
-          + Add Project
-        </button>
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+              <FiFolder size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Projects
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {projects.length}
+              </p>
+            </div>
+
+          </div>
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+              <FiLayers size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Teams
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {teams.length}
+              </p>
+            </div>
+
+          </div>
+
+          <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+
+            <div className="w-11 h-11 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
+              <FiUsers size={22} />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Total Members
+              </p>
+
+              <p className="text-2xl font-bold text-gray-800">
+                {totalMembers}
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Search */}
+        <div className="relative mt-5">
+
+          <FiSearch
+            size={20}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-[#0476b9]"
+          />
+
+        </div>
+
       </div>
 
-      {/* Statistics */}
-      <div className="flex flex-wrap gap-4 mb-9">
+      {/* Projects */}
+      {filteredProjects.length === 0 ? (
 
-        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500">
-            Total Projects
+        <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center mt-6">
+
+          <FiFolder
+            size={40}
+            className="mx-auto text-gray-300"
+          />
+
+          <h2 className="text-xl font-semibold text-gray-700 mt-3">
+            {search ? "No Projects Found" : "No Projects Yet"}
+          </h2>
+
+          <p className="text-gray-500 mt-2">
+            {search
+              ? "Try another search."
+              : "Create your first project."}
           </p>
 
-          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
-            {projects.length}
-          </h2>
         </div>
 
-        <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500">
-            Project Members
-          </p>
+      ) : (
 
-          <h2 className="text-3xl font-bold text-[#0476b9] mt-2">
-            {totalProjectMembers}
-          </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
+
+          {filteredProjects.map((project) => {
+
+            const team = teams.find(
+              (team) =>
+                String(team._id || team.id) ===
+                String(project.teamId || project.batch)
+            );
+
+            return (
+              <ProjectCard
+                key={project._id || project.id}
+                project={project}
+                team={team}
+              />
+            );
+          })}
+
         </div>
 
-      </div>
+      )}
 
       {/* Create Project Modal */}
       {showForm && (
+
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
 
           <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
 
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-5">
+
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
                   Create Project
                 </h2>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  Enter project information.
+                  Create a new project.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={closeForm}
+                onClick={() => setShowForm(false)}
                 className="text-gray-500 hover:text-red-500 text-2xl"
               >
                 ×
               </button>
+
             </div>
 
             <form onSubmit={handleSubmit}>
 
               {/* Project Name */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700">
-                  Project Name
-                </label>
+              <label className="block text-sm font-semibold text-gray-700">
+                Project Name
+              </label>
 
-                <input
-                  type="text"
-                  name="projectName"
-                  value={formData.projectName}
-                  onChange={handleChange}
-                  placeholder="Enter project name"
-                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                    error.projectName
-                      ? "border-red-400"
-                      : "border-gray-300"
-                  }`}
-                />
-
-                {error.projectName && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {error.projectName}
-                  </p>
-                )}
-              </div>
+              <input
+                type="text"
+                name="projectName"
+                value={formData.projectName}
+                onChange={handleChange}
+                placeholder="Enter project name"
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
 
               {/* Description */}
-              <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Description
-                </label>
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Description
+              </label>
 
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Enter project description"
-                  rows="4"
-                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                    error.description
-                      ? "border-red-400"
-                      : "border-gray-300"
-                  }`}
-                />
-
-                {error.description && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {error.description}
-                  </p>
-                )}
-              </div>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Enter project description"
+                rows="4"
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
 
               {/* Start Date */}
-              <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Start Date
-                </label>
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Start Date
+              </label>
 
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                    error.startDate
-                      ? "border-red-400"
-                      : "border-gray-300"
-                  }`}
-                />
-
-                {error.startDate && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {error.startDate}
-                  </p>
-                )}
-              </div>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
 
               {/* Deadline */}
-              <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Deadline
-                </label>
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Deadline
+              </label>
 
-                <input
-                  type="date"
-                  name="deadline"
-                  value={formData.deadline}
-                  onChange={handleChange}
-                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                    error.deadline
-                      ? "border-red-400"
-                      : "border-gray-300"
-                  }`}
-                />
-
-                {error.deadline && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {error.deadline}
-                  </p>
-                )}
-              </div>
+              <input
+                type="date"
+                name="deadline"
+                value={formData.deadline}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              />
 
               {/* Batch */}
-              <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Batch
-                </label>
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Batch
+              </label>
 
-                <select
-                  name="batch"
-                  value={formData.batch}
-                  onChange={handleChange}
-                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                    error.batch
-                      ? "border-red-400"
-                      : "border-gray-300"
-                  }`}
-                >
-                  <option value="">
-                    Select Batch
+              <select
+                name="batch"
+                value={formData.batch}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              >
+
+                <option value="">
+                  Select Batch
+                </option>
+
+                {teams.map((team) => (
+                  <option
+                    key={team._id || team.id}
+                    value={team._id || team.id}
+                  >
+                    {team.name}
                   </option>
+                ))}
 
-                  {teams.map((team) => (
-                    <option
-                      key={team._id || team.id}
-                      value={team._id || team.id}
-                    >
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
-
-                {error.batch && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {error.batch}
-                  </p>
-                )}
-              </div>
+              </select>
 
               {/* Status */}
-              <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-700">
-                  Project Status
-                </label>
+              <label className="block text-sm font-semibold text-gray-700 mt-4">
+                Status
+              </label>
 
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
-                >
-                  <option value="pending">
-                    Pending
-                  </option>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+              >
 
-                  <option value="in progress">
-                    In Progress
-                  </option>
+                <option value="pending">
+                  Pending
+                </option>
 
-                  <option value="completed">
-                    Completed
-                  </option>
-                </select>
-              </div>
+                <option value="in progress">
+                  In Progress
+                </option>
+
+                <option value="completed">
+                  Completed
+                </option>
+
+              </select>
 
               {/* Buttons */}
               <div className="flex gap-3 mt-6">
 
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={() => setShowForm(false)}
                   className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
                 >
                   Cancel
@@ -369,54 +410,11 @@ function ProjectManagement() {
               </div>
 
             </form>
+
           </div>
-        </div>
-      )}
-
-      {/* Projects */}
-      {projects.length === 0 ? (
-
-        <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center">
-
-          <h2 className="text-xl font-semibold text-gray-700">
-            No Projects Yet
-          </h2>
-
-          <p className="text-gray-500 mt-2">
-            Create your first project.
-          </p>
-
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-5 bg-[#0476b9] text-white px-5 py-2 rounded-lg font-semibold"
-          >
-            + Add Project
-          </button>
 
         </div>
 
-      ) : (
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-
-          {projects.map((project) => {
-
-            const team = teams.find(
-              (team) =>
-                String(team.id) === String(project.teamId) ||
-                String(team._id) === String(project.batch)
-            );
-
-            return (
-              <ProjectCard
-                key={project._id || project.id}
-                project={project}
-                team={team}
-              />
-            );
-          })}
-
-        </div>
       )}
 
     </div>
