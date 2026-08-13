@@ -6,12 +6,14 @@ import {
   updateAdmin,
   deleteAdmin,
 } from "./admin.controller.js";
-import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
+import { requirePermission } from "../../middleware/permissionMiddleware.js";
+import PERMISSIONS from "../../constants/permission.js";
 
 const router = express.Router();
 
-router.use(protect);
-router.use(authorizeRoles("SUPER_ADMIN"));
+router.use(authMiddleware);
+router.use(requirePermission(PERMISSIONS.MANAGE_SUPER_ADMINS));
 
 router.route("/").post(createAdmin).get(getAllAdmins);
 

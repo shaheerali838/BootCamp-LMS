@@ -68,3 +68,23 @@ export const createStudent = async (req, res) => {
     });
   }
 };
+
+export const getStudents = async (req, res) => {
+  try {
+    const students = await Student.find()
+      .select("-password")
+      .populate("batchId", "batchName batchCode")
+      .populate("mentorId", "firstName lastName email");
+
+    return res.status(200).json({
+      success: true,
+      data: students,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+

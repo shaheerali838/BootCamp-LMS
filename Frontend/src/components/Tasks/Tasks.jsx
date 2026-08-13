@@ -4,17 +4,19 @@ import TaskHeader from "../components/Task/TaskHeader";
 import TaskStats from "../components/Task/TaskStats";
 import TaskList from "../components/Task/TaskList";
 
-import { taskData } from "../components/common/taskData";
+import { useTasks } from "../../context/TaskContext";
 
 function Tasks() {
+  const { tasks } = useTasks();
+
   return (
     <div className="p-5 space-y-5">
 
       <TaskHeader />
 
-      <TaskStats tasks={taskData} />
+      <TaskStats tasks={tasks} />
 
-      <TaskList tasks={taskData} />
+      <TaskList tasks={tasks} />
 
     </div>
   );

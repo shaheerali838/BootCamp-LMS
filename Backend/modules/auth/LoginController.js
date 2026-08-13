@@ -10,7 +10,6 @@ import {
 } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
 
-// ---------- LOGIN ----------
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -22,7 +21,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const emailAddress = email.toLowerCase();
+    const emailAddress = email.trim().toLowerCase();
 
     // First, search for Admin or Super Admin
     let user = await Admin.findOne({ email: emailAddress });
@@ -93,7 +92,6 @@ export const login = async (req, res) => {
   }
 };
 
-// ---------- LOGOUT ----------
 export const logout = async (req, res) => {
   try {
     res.clearCookie("refreshToken", {
@@ -114,8 +112,6 @@ export const logout = async (req, res) => {
   }
 };
 
-// ---------- REFRESH TOKEN ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
 export const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
@@ -128,6 +124,20 @@ export const refreshToken = async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+    if (decoded.type !== "refresh") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
+
+    if (!decoded.userId || decoded.tokenVersion === undefined) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
 
     let user;
 
@@ -143,6 +153,13 @@ export const refreshToken = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "User not found",
+      });
+    }
+
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token is no longer valid",
       });
     }
 
@@ -168,13 +185,19 @@ export const refreshToken = async (req, res) => {
   }
 };
 
-// ---------- FORGOT PASSWORD ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const admin = await Admin.findOne({ email: email.toLowerCase() });
-    if (!admin) {
+
+    const emailAddress = email.trim().toLowerCase();
+
+    let user = await Admin.findOne({ email: emailAddress });
+
+    if (!user) {
+      user = await Student.findOne({ email: emailAddress });
+    }
+
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found with this email",
@@ -182,20 +205,20 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = generateResetToken();
-    admin.resetPasswordTokenHash = hashToken(resetToken);
-    admin.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
-    await admin.save();
+    user.resetPasswordTokenHash = hashToken(resetToken);
+    user.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+    await user.save();
 
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({
-      to: admin.email,
+      to: user.email,
       subject: "Password Reset Request",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
           <h2>Password Reset Request</h2>
-          <p>Hello ${admin.firstName},</p>
+          <p>Hello ${user.firstName},</p>
           <p>Click the link below to reset your password:</p>
           <p><a href="${resetLink}">${resetLink}</a></p>
         </div>
@@ -214,8 +237,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ---------- RESET PASSWORD ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -228,22 +249,36 @@ export const resetPassword = async (req, res) => {
 
     const hashedToken = hashToken(token);
 
-    const admin = await Admin.findOne({
+    let user = await Admin.findOne({
       resetPasswordTokenHash: hashedToken,
       resetPasswordExpiresAt: { $gt: new Date() },
     });
 
-    if (!admin) {
+    if (!user) {
+      user = await Student.findOne({
+        resetPasswordTokenHash: hashedToken,
+        resetPasswordExpiresAt: { $gt: new Date() },
+      });
+    }
+
+    if (!user) {
       return res.status(400).json({
         success: false,
         message: "Invalid or expired reset token",
       });
     }
 
-    admin.password = await bcrypt.hash(newPassword, 10);
-    admin.resetPasswordTokenHash = null;
-    admin.resetPasswordExpiresAt = null;
-    await admin.save();
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.tokenVersion += 1;
+
+    user.resetPasswordTokenHash = null;
+    user.resetPasswordExpiresAt = null;
+
+    if (user.role === "STUDENT" && user.status !== "active") {
+      user.status = "active";
+    }
+
+    await user.save();
 
     return res.status(200).json({
       success: true,
@@ -257,11 +292,17 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// ---------- CHANGE PASSWORD ----------
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const user = req.user; // Comes from authMiddleware, handles Admin and Student
+    const user = req.user;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password and new password are required",
+      });
+    }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
@@ -272,6 +313,8 @@ export const changePassword = async (req, res) => {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    user.tokenVersion += 1;
+
     await user.save();
 
     return res.status(200).json({

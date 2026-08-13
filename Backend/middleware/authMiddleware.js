@@ -40,6 +40,13 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is no longer valid.",
+      });
+    }
+
     if (user.status !== "active") {
       return res.status(403).json({
         success: false,

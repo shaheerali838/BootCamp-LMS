@@ -10,11 +10,11 @@ import {
   FiPlus,
 } from "react-icons/fi";
 
-import { studentData } from "../components/common/studentData";
+import { useStudent } from "../context/StudentContext";
 import AddStudentModal from "../components/Student_Managment/AddStudentModal";
 
 function Students() {
-  const [students, setStudents] = useState(studentData);
+  const { students, addStudent } = useStudent();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -39,7 +39,7 @@ function Students() {
   ).length;
 
   const handleAddStudent = (newStudent) => {
-    setStudents((prev) => [...prev, newStudent]);
+    addStudent(newStudent);
   };
 
   return (

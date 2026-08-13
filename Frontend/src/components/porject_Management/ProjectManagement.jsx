@@ -12,17 +12,21 @@ function ProjectManagement() {
   const [showForm, setShowForm] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "",
+    projectName: "",
     description: "",
-    teamId: "",
-    status: "Pending",
+    startDate: "",
+    deadline: "",
+    batch: "",
+    status: "pending",
   });
 
   const [error, setError] = useState({});
 
   const totalProjectMembers = projects.reduce((total, project) => {
     const team = teams.find(
-      (team) => Number(team.id) === Number(project.teamId)
+      (team) =>
+        String(team.id) === String(project.teamId) ||
+        String(team._id) === String(project.teamId)
     );
 
     return total + (team?.members?.length || 0);
@@ -40,16 +44,32 @@ function ProjectManagement() {
 
     let newErrors = {};
 
-    if (!formData.name) {
-      newErrors.name = "Project name is required";
+    if (!formData.projectName.trim()) {
+      newErrors.projectName = "Project name is required";
     }
 
-    if (!formData.description) {
+    if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     }
 
-    if (!formData.teamId) {
-      newErrors.teamId = "Please select a team";
+    if (!formData.startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+
+    if (!formData.deadline) {
+      newErrors.deadline = "Deadline is required";
+    }
+
+    if (
+      formData.startDate &&
+      formData.deadline &&
+      new Date(formData.deadline) < new Date(formData.startDate)
+    ) {
+      newErrors.deadline = "Deadline must be after start date";
+    }
+
+    if (!formData.batch) {
+      newErrors.batch = "Please select a batch";
     }
 
     setError(newErrors);
@@ -59,23 +79,36 @@ function ProjectManagement() {
     }
 
     addProject({
-      ...formData,
-      teamId: Number(formData.teamId),
+      projectName: formData.projectName,
+      description: formData.description,
+      startDate: formData.startDate,
+      deadline: formData.deadline,
+      batch: formData.batch,
+      status: formData.status,
     });
 
     setFormData({
-      name: "",
+      projectName: "",
       description: "",
-      teamId: "",
-      status: "Pending",
+      startDate: "",
+      deadline: "",
+      batch: "",
+      status: "pending",
     });
 
     setError({});
     setShowForm(false);
   };
 
+  const closeForm = () => {
+    setShowForm(false);
+    setError({});
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
@@ -83,7 +116,7 @@ function ProjectManagement() {
           </h1>
 
           <p className="text-gray-500 mt-1">
-            Create, assign and manage your team projects.
+            Create and manage your projects.
           </p>
         </div>
 
@@ -96,7 +129,9 @@ function ProjectManagement() {
         </button>
       </div>
 
+      {/* Statistics */}
       <div className="flex flex-wrap gap-4 mb-9">
+
         <div className="bg-white border w-40 flex flex-col items-center border-gray-200 rounded-2xl p-5 shadow-sm">
           <p className="text-sm text-gray-500">
             Total Projects
@@ -116,11 +151,16 @@ function ProjectManagement() {
             {totalProjectMembers}
           </h2>
         </div>
+
       </div>
 
+      {/* Create Project Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl">
+
+          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+
+            {/* Modal Header */}
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -128,178 +168,222 @@ function ProjectManagement() {
                 </h2>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  Assign this project to an existing team.
+                  Enter project information.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setError({});
-                }}
+                onClick={closeForm}
                 className="text-gray-500 hover:text-red-500 text-2xl"
               >
                 ×
               </button>
             </div>
 
-            {teams.length === 0 ? (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
-                <p className="font-semibold">
-                  No teams available
-                </p>
+            <form onSubmit={handleSubmit}>
 
-                <p className="text-sm mt-1">
-                  Please create a team first from Team Management.
-                </p>
+              {/* Project Name */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Project Name
+                </label>
+
+                <input
+                  type="text"
+                  name="projectName"
+                  value={formData.projectName}
+                  onChange={handleChange}
+                  placeholder="Enter project name"
+                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
+                    error.projectName
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                />
+
+                {error.projectName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {error.projectName}
+                  </p>
+                )}
               </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Project Name
-                  </label>
 
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter project name"
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.name
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  />
+              {/* Description */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Description
+                </label>
 
-                  {error.name && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.name}
-                    </p>
-                  )}
-                </div>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Enter project description"
+                  rows="4"
+                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
+                    error.description
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                />
 
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Description
-                  </label>
+                {error.description && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {error.description}
+                  </p>
+                )}
+              </div>
 
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Enter project description"
-                    rows="4"
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.description
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  />
+              {/* Start Date */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Start Date
+                </label>
 
-                  {error.description && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.description}
-                    </p>
-                  )}
-                </div>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
+                    error.startDate
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                />
 
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Assign Team
-                  </label>
+                {error.startDate && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {error.startDate}
+                  </p>
+                )}
+              </div>
 
-                  <select
-                    name="teamId"
-                    value={formData.teamId}
-                    onChange={handleChange}
-                    className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
-                      error.teamId
-                        ? "border-red-400"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">
-                      Select Team
+              {/* Deadline */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Deadline
+                </label>
+
+                <input
+                  type="date"
+                  name="deadline"
+                  value={formData.deadline}
+                  onChange={handleChange}
+                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
+                    error.deadline
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                />
+
+                {error.deadline && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {error.deadline}
+                  </p>
+                )}
+              </div>
+
+              {/* Batch */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Batch
+                </label>
+
+                <select
+                  name="batch"
+                  value={formData.batch}
+                  onChange={handleChange}
+                  className={`w-full border rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9] ${
+                    error.batch
+                      ? "border-red-400"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <option value="">
+                    Select Batch
+                  </option>
+
+                  {teams.map((team) => (
+                    <option
+                      key={team._id || team.id}
+                      value={team._id || team.id}
+                    >
+                      {team.name}
                     </option>
+                  ))}
+                </select>
 
-                    {teams.map((team) => (
-                      <option
-                        key={team.id}
-                        value={team.id}
-                      >
-                        {team.name}
-                      </option>
-                    ))}
-                  </select>
+                {error.batch && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {error.batch}
+                  </p>
+                )}
+              </div>
 
-                  {error.teamId && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {error.teamId}
-                    </p>
-                  )}
-                </div>
+              {/* Status */}
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Project Status
+                </label>
 
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Project Status
-                  </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
+                >
+                  <option value="pending">
+                    Pending
+                  </option>
 
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
-                  >
-                    <option value="Pending">
-                      Pending
-                    </option>
+                  <option value="in progress">
+                    In Progress
+                  </option>
 
-                    <option value="In Progress">
-                      In Progress
-                    </option>
+                  <option value="completed">
+                    Completed
+                  </option>
+                </select>
+              </div>
 
-                    <option value="Completed">
-                      Completed
-                    </option>
-                  </select>
-                </div>
+              {/* Buttons */}
+              <div className="flex gap-3 mt-6">
 
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForm(false);
-                      setError({});
-                    }}
-                    className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
+                <button
+                  type="button"
+                  onClick={closeForm}
+                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
 
-                  <button
-                    type="submit"
-                    className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
-                  >
-                    Create Project
-                  </button>
-                </div>
-              </form>
-            )}
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+                >
+                  Create Project
+                </button>
+
+              </div>
+
+            </form>
           </div>
         </div>
       )}
 
+      {/* Projects */}
       {projects.length === 0 ? (
+
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center">
+
           <h2 className="text-xl font-semibold text-gray-700">
             No Projects Yet
           </h2>
 
           <p className="text-gray-500 mt-2">
-            Create your first project and assign it to a team.
+            Create your first project.
           </p>
 
           <button
@@ -308,25 +392,33 @@ function ProjectManagement() {
           >
             + Add Project
           </button>
+
         </div>
+
       ) : (
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+
           {projects.map((project) => {
+
             const team = teams.find(
               (team) =>
-                Number(team.id) === Number(project.teamId)
+                String(team.id) === String(project.teamId) ||
+                String(team._id) === String(project.batch)
             );
 
             return (
               <ProjectCard
-                key={project.id}
+                key={project._id || project.id}
                 project={project}
                 team={team}
               />
             );
           })}
+
         </div>
       )}
+
     </div>
   );
 }

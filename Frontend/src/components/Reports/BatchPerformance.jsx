@@ -1,7 +1,8 @@
 import React from "react";
-import { batchPerformanceData } from "../common/reportData";
+import { useReports } from "../../context/ReportContext";
 
 function BatchPerformance() {
+  const { batchPerformanceData } = useReports();
   const width = 700;
   const height = 250;
 

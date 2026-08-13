@@ -15,8 +15,13 @@ const getSavedData = (key, fallback) => {
 };
 
 export const TeamProjectProvider = ({ children }) => {
-  const [teams, setTeams] = useState(() => getSavedData("lms-teams", []));
-  const [projects, setProjects] = useState(() => getSavedData("lms-projects", []));
+  const [teams, setTeams] = useState(() =>
+    getSavedData("lms-teams", [])
+  );
+
+  const [projects, setProjects] = useState(() =>
+    getSavedData("lms-projects", [])
+  );
 
   useEffect(() => {
     window.localStorage.setItem("lms-teams", JSON.stringify(teams));
@@ -31,7 +36,7 @@ export const TeamProjectProvider = ({ children }) => {
       id: Date.now(),
       name: team.name,
       lead: team.lead || "",
-      description: team.description,
+      description: team.description || "",
       members: team.members || [],
       createdAt: new Date().toLocaleDateString(),
     };
@@ -39,17 +44,63 @@ export const TeamProjectProvider = ({ children }) => {
     setTeams((prevTeams) => [...prevTeams, newTeam]);
   };
 
+  const updateTeam = (teamId, updatedTeam) => {
+    setTeams((prevTeams) =>
+      prevTeams.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              ...updatedTeam,
+            }
+          : team
+      )
+    );
+  };
+
+  const deleteTeam = (teamId) => {
+    setTeams((prevTeams) =>
+      prevTeams.filter((team) => team.id !== teamId)
+    );
+
+    setProjects((prevProjects) =>
+      prevProjects.filter((project) => project.teamId !== teamId)
+    );
+  };
+
   const addProject = (project) => {
     const newProject = {
       id: Date.now(),
       name: project.name,
-      description: project.description,
-      teamId: project.teamId,
+      description: project.description || "",
+      teamId: Number(project.teamId),
       status: project.status || "Pending",
       createdAt: new Date().toLocaleDateString(),
     };
 
     setProjects((prevProjects) => [...prevProjects, newProject]);
+  };
+
+  const updateProject = (projectId, updatedProject) => {
+    setProjects((prevProjects) =>
+      prevProjects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              ...updatedProject,
+              teamId:
+                updatedProject.teamId !== undefined
+                  ? Number(updatedProject.teamId)
+                  : project.teamId,
+            }
+          : project
+      )
+    );
+  };
+
+  const deleteProject = (projectId) => {
+    setProjects((prevProjects) =>
+      prevProjects.filter((project) => project.id !== projectId)
+    );
   };
 
   const updateProjectStatus = (projectId, status) => {
@@ -63,7 +114,9 @@ export const TeamProjectProvider = ({ children }) => {
   };
 
   const getTeamProjects = (teamId) => {
-    return projects.filter((project) => project.teamId === teamId);
+    return projects.filter(
+      (project) => Number(project.teamId) === Number(teamId)
+    );
   };
 
   return (
@@ -72,7 +125,11 @@ export const TeamProjectProvider = ({ children }) => {
         teams,
         projects,
         addTeam,
+        updateTeam,
+        deleteTeam,
         addProject,
+        updateProject,
+        deleteProject,
         updateProjectStatus,
         getTeamProjects,
       }}

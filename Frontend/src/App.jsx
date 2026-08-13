@@ -1,8 +1,11 @@
 import "./App.css";
-
 import { SidebarProvider, useSidebar } from "./context/SidebarContext";
-
 import { AttendanceProvider } from "./context/AttendanceContext";
+import { StudentProvider } from "./context/StudentContext";
+import { TaskProvider } from "./context/TaskContext";
+import { ProjectProvider } from "./context/ProjectContext";
+import { ResourceProvider } from "./context/ResourceContext";
+import { ReportProvider } from "./context/ReportContext";
 
 // Import AnnouncementProvider to wrap announcement components with required context
 import { AnnouncementProvider } from "./contextAPI/Anouncement";
@@ -61,13 +64,24 @@ function AppLayout() {
 
 function App() {
   return (
-    // Wrap the entire app with providers to make contexts available to all components
+    // Providers: wrap the app once with all needed contexts
+    // Order: SidebarProvider -> Announcement -> Attendance -> Student -> Task -> Project -> Resource -> Report
     <SidebarProvider>
-      <AttendanceProvider>
-        <AnnouncementProvider>
-          <AppLayout />
-        </AnnouncementProvider>
-      </AttendanceProvider>
+      <AnnouncementProvider>
+        <AttendanceProvider>
+          <StudentProvider>
+            <TaskProvider>
+              <ProjectProvider>
+                <ResourceProvider>
+                  <ReportProvider>
+                    <AppLayout />
+                  </ReportProvider>
+                </ResourceProvider>
+              </ProjectProvider>
+            </TaskProvider>
+          </StudentProvider>
+        </AttendanceProvider>
+      </AnnouncementProvider>
     </SidebarProvider>
   );
 }

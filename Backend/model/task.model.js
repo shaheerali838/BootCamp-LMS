@@ -2,6 +2,24 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
+    sprintId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sprint",
+      required: true,
+    },
+
+    assignedStudentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      required: true,
+    },
+
+    assignedTeamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+      required: true,
+    },
+
     title: {
       type: String,
       required: true,
@@ -14,62 +32,21 @@ const taskSchema = new mongoose.Schema(
       trim: true,
     },
 
-    projectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
-      required: true,
-    },
-
-    milestoneId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Milestone",
-      required: true,
-    },
-
-    sprintId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Sprint",
-      required: true,
-    },
-
-    teamId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Team",
-      required: true,
-    },
-
-    assignedTo: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
-      required: true,
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
-      required: true,
-    },
-
     priority: {
       type: String,
-      enum: ["low", "medium", "high", "critical"],
-      default: "medium",
+      required: true,
+      trim: true,
     },
 
     status: {
       type: String,
-      enum: ["todo", "in_progress", "completed"],
-      default: "todo",
+      required: true,
+      trim: true,
     },
 
     dueDate: {
       type: Date,
       required: true,
-    },
-
-    completedAt: {
-      type: Date,
-      default: null,
     },
   },
   {
