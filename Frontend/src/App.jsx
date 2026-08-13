@@ -8,6 +8,12 @@ import { TaskProvider } from "./context/TaskContext";
 import { ProjectProvider } from "./context/ProjectContext";
 import { ResourceProvider } from "./context/ResourceContext";
 import { ReportProvider } from "./context/ReportContext";
+import { AdminProvider } from "./context/AdminContext";
+import { BatchProvider } from "./context/BatchContext";
+import { MilestoneProvider } from "./context/MilestoneContext";
+import { SprintProvider } from "./context/SprintContext";
+import { RegistrationLogProvider } from "./context/RegistrationLogContext";
+import { ActivityLogProvider } from "./context/ActivityLogContext";
 
 // Import AnnouncementProvider to wrap announcement components with required context
 import { AnnouncementProvider } from "./contextAPI/Anouncement";
@@ -74,7 +80,19 @@ function App() {
               <ResourceProvider>
                 <ReportProvider>
                   <AnnouncementProvider>
-                    <AppLayout />
+                    <AdminProvider>
+                      <BatchProvider>
+                        <MilestoneProvider>
+                          <SprintProvider>
+                            <RegistrationLogProvider>
+                              <ActivityLogProvider>
+                                <AppLayout />
+                              </ActivityLogProvider>
+                            </RegistrationLogProvider>
+                          </SprintProvider>
+                        </MilestoneProvider>
+                      </BatchProvider>
+                    </AdminProvider>
                   </AnnouncementProvider>
                 </ReportProvider>
               </ResourceProvider>
