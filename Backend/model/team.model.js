@@ -6,17 +6,21 @@ const teamSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
+
     batchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Batch",
       required: true,
     },
+
     mentor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
       required: true,
     },
+
     teamLead: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
@@ -29,8 +33,11 @@ const teamSchema = new mongoose.Schema(
       default: "active",
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
 const Team = mongoose.model("Team", teamSchema);
+
 export default Team;
