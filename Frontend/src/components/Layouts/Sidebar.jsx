@@ -367,7 +367,7 @@ const Sidebar = () => {
 
         This removes the sidebar scrollbar.
       */}
-      <div className="flex-1 py-2 overflow-hidden">
+      <div className="flex-1 overflow-y-auto py-2 custom-sidebar-scrollbar pr-1">
         {currentMenu.map((item) => {
           const active = pathname === item.path;
 

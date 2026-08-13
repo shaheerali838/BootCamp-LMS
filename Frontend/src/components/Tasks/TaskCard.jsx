@@ -3,9 +3,10 @@ import {
   FiUser,
   FiCalendar,
   FiClock,
+  FiUserCheck,
 } from "react-icons/fi";
 
-function TaskCard({ task }) {
+function TaskCard({ task, onAssign }) {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Completed":
@@ -16,6 +17,9 @@ function TaskCard({ task }) {
 
       case "Pending":
         return "bg-orange-100 text-orange-600";
+
+      case "In Review":
+        return "bg-purple-100 text-purple-600";
 
       default:
         return "bg-gray-100 text-gray-600";
@@ -36,13 +40,26 @@ function TaskCard({ task }) {
           </p>
         </div>
 
-        <span
-          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium ${getStatusStyle(
-            task.status
-          )}`}
-        >
-          {task.status}
-        </span>
+        <div className="flex items-center gap-3 shrink-0">
+          <span
+            className={`px-3 py-1.5 rounded-full text-xs font-medium ${getStatusStyle(
+              task.status
+            )}`}
+          >
+            {task.status}
+          </span>
+
+          {/* Assign Task Button for this specific card */}
+          {onAssign && (
+            <button
+              onClick={() => onAssign(task)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition"
+            >
+              <FiUserCheck size={14} />
+              Assign Task
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Task Information */}
@@ -54,22 +71,37 @@ function TaskCard({ task }) {
           <span>
             Assigned by{" "}
             <span className="font-medium text-gray-800">
-              {task.assignedBy}
+              {task.assignedBy || "Admin User"}
             </span>
           </span>
         </div>
+
+        {/* Assigned To (Student/Team) */}
+        {task.assignedTo && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <FiUserCheck size={17} className="text-emerald-500" />
+            <span>
+              Assigned to:{" "}
+              <span className="font-medium text-gray-800">
+                {task.assignedTo}
+              </span>
+            </span>
+          </div>
+        )}
 
         {/* Assigned Date */}
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <FiCalendar size={17} className="text-blue-500" />
+        {task.assignedDate && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <FiCalendar size={17} className="text-blue-500" />
 
-          <span>
-            Assigned:{" "}
-            <span className="font-medium text-gray-800">
-              {task.assignedDate}
+            <span>
+              Assigned:{" "}
+              <span className="font-medium text-gray-800">
+                {task.assignedDate}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
 
         {/* Due Date */}
         <div className="flex items-center gap-2 text-sm text-gray-500">

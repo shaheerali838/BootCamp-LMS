@@ -1,23 +1,19 @@
 import React, { useState } from "react";
-import {
-  FiX,
-  FiClipboard,
-} from "react-icons/fi";
+import { FiX, FiClipboard } from "react-icons/fi";
 
-function AssignTaskModal({ onClose, onAssign }) {
+function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    assignedTo: "Team A",
-    dueDate: "",
-    priority: "Medium",
+    title: taskToAssign ? taskToAssign.title : "",
+    description: taskToAssign ? taskToAssign.description : "",
+    assignedTo: taskToAssign?.assignedTo || "Team Alpha",
+    dueDate: taskToAssign?.dueDate || "",
+    priority: taskToAssign?.priority || "Medium",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((previous) => ({
-      ...previous,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
@@ -25,27 +21,34 @@ function AssignTaskModal({ onClose, onAssign }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (
-      !formData.title ||
-      !formData.description ||
-      !formData.dueDate
-    ) {
+    if (!formData.title || !formData.description || !formData.dueDate) {
       alert("Please fill all required fields.");
       return;
     }
 
-    const newTask = {
-      id: Date.now(),
-      title: formData.title,
-      description: formData.description,
-      assignedBy: "Admin User",
-      assignedTo: formData.assignedTo,
-      dueDate: formData.dueDate,
-      priority: formData.priority,
-      status: "Pending",
-    };
-
-    onAssign(newTask);
+    if (taskToAssign) {
+      // Assigning existing task
+      onAssign({
+        id: taskToAssign.id,
+        ...taskToAssign,
+        ...formData,
+        assignedDate: new Date().toISOString().split("T")[0],
+      });
+    } else {
+      // Creating new task
+      const newTask = {
+        id: Date.now(),
+        title: formData.title,
+        description: formData.description,
+        assignedBy: "Admin User",
+        assignedTo: formData.assignedTo,
+        assignedDate: new Date().toISOString().split("T")[0],
+        dueDate: formData.dueDate,
+        priority: formData.priority,
+        status: "Pending",
+      };
+      onAssign(newTask);
+    }
 
     onClose();
   };
@@ -53,7 +56,6 @@ function AssignTaskModal({ onClose, onAssign }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl">
-        
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -63,11 +65,15 @@ function AssignTaskModal({ onClose, onAssign }) {
 
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                Assign New Task
+                {taskToAssign
+                  ? `Assign Task: ${taskToAssign.title}`
+                  : "Create & Assign New Task"}
               </h2>
 
               <p className="text-sm text-gray-500 mt-1">
-                Assign a new task to a student or team
+                {taskToAssign
+                  ? "Assign this task to a student or team"
+                  : "Create a new task and assign it to a student or team"}
               </p>
             </div>
           </div>
@@ -81,14 +87,11 @@ function AssignTaskModal({ onClose, onAssign }) {
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-6 space-y-5"
-        >
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Task Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Task Title
+              Task Title *
             </label>
 
             <input
@@ -97,6 +100,7 @@ function AssignTaskModal({ onClose, onAssign }) {
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter task title"
+              required
               className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
             />
           </div>
@@ -104,7 +108,7 @@ function AssignTaskModal({ onClose, onAssign }) {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Description *
             </label>
 
             <textarea
@@ -113,17 +117,17 @@ function AssignTaskModal({ onClose, onAssign }) {
               onChange={handleChange}
               rows="4"
               placeholder="Enter task description"
+              required
               className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm resize-none focus:border-blue-500"
             />
           </div>
 
           {/* Assign To + Due Date */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            
             {/* Assign To */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assign To
+                Assign To (Team / Student)
               </label>
 
               <select
@@ -132,28 +136,21 @@ function AssignTaskModal({ onClose, onAssign }) {
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
               >
-                <option value="Team A">
-                  Team A
-                </option>
-
-                <option value="Team B">
-                  Team B
-                </option>
-
-                <option value="Team C">
-                  Team C
-                </option>
-
-                <option value="Team D">
-                  Team D
-                </option>
+                <option value="Team Alpha">Team Alpha</option>
+                <option value="Team Beta">Team Beta</option>
+                <option value="Team Gamma">Team Gamma</option>
+                <option value="Team Delta">Team Delta</option>
+                <option value="All Students">All Students</option>
+                <option value="Ali Hassan">Ali Hassan</option>
+                <option value="Sara Bilal">Sara Bilal</option>
+                <option value="Usman Tariq">Usman Tariq</option>
               </select>
             </div>
 
             {/* Due Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Due Date
+                Due Date *
               </label>
 
               <input
@@ -161,6 +158,7 @@ function AssignTaskModal({ onClose, onAssign }) {
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
+                required
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
               />
             </div>
@@ -178,17 +176,9 @@ function AssignTaskModal({ onClose, onAssign }) {
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
             >
-              <option value="Low">
-                Low
-              </option>
-
-              <option value="Medium">
-                Medium
-              </option>
-
-              <option value="High">
-                High
-              </option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
             </select>
           </div>
 
@@ -204,9 +194,9 @@ function AssignTaskModal({ onClose, onAssign }) {
 
             <button
               type="submit"
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition"
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow"
             >
-              Assign Task
+              {taskToAssign ? "Assign Task" : "Create Task"}
             </button>
           </div>
         </form>

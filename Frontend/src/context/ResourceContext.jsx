@@ -85,12 +85,19 @@ export const ResourceProvider = ({ children }) => {
     setResources((prev) => [...prev, { ...newResource, id: Date.now() }]);
   };
 
+  const updateResource = (id, updatedData) => {
+    setResources((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...updatedData } : r))
+    );
+  };
+
   return (
     <ResourceContext.Provider
       value={{
         resources,
         setResources,
         addResource,
+        updateResource,
       }}
     >
       {children}
