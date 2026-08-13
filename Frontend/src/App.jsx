@@ -11,6 +11,12 @@ import { TaskProvider } from "./context/TaskContext";
 import { ProjectProvider } from "./context/ProjectContext";
 import { ResourceProvider } from "./context/ResourceContext";
 import { ReportProvider } from "./context/ReportContext";
+import { AdminProvider } from "./context/AdminContext";
+import { BatchProvider } from "./context/BatchContext";
+import { MilestoneProvider } from "./context/MilestoneContext";
+import { SprintProvider } from "./context/SprintContext";
+import { RegistrationLogProvider } from "./context/RegistrationLogContext";
+import { ActivityLogProvider } from "./context/ActivityLogContext";
 
 import Sidebar from "./components/Layouts/Sidebar";
 import Navbar from "./components/Layouts/Navbar";
@@ -100,7 +106,19 @@ function App() {
             <ProjectProvider>
               <ResourceProvider>
                 <ReportProvider>
-                  <AppLayout />
+                  <AdminProvider>
+                    <BatchProvider>
+                      <MilestoneProvider>
+                        <SprintProvider>
+                          <RegistrationLogProvider>
+                            <ActivityLogProvider>
+                              <AppLayout />
+                            </ActivityLogProvider>
+                          </RegistrationLogProvider>
+                        </SprintProvider>
+                      </MilestoneProvider>
+                    </BatchProvider>
+                  </AdminProvider>
                 </ReportProvider>
               </ResourceProvider>
             </ProjectProvider>
