@@ -19,24 +19,6 @@ export const createStudent = async (req, res) => {
       mentorId,
     } = req.body;
 
-    if (
-      !rollNumber ||
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !phoneNumber ||
-      !gender ||
-      !dateOfBirth ||
-      !batchId ||
-      !mentorId
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "All required student fields must be provided",
-      });
-    }
-
     const existingStudent = await Student.findOne({
       email: email.toLowerCase(),
     });
@@ -55,17 +37,7 @@ export const createStudent = async (req, res) => {
         .json({ success: false, message: "Roll number already exists" });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(batchId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid batch ID" });
-    }
 
-    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid mentor ID" });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 

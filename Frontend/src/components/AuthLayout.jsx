@@ -8,11 +8,11 @@ const AuthLayout = () => {
       <div className="hidden lg:flex w-1/2 h-screen bg-white text-blue-900 px-10 py-6 flex-col justify-between overflow-hidden">
         <div>
           <div className="flex items-center gap-3">
-            <span className="text-ms font-bold tracking-wide">SMIT</span>
+            <span className="text-xl font-bold tracking-wide">SMIT</span>
 
             <span className="text-blue-700">|</span>
 
-            <span className="text-blue-700 text-ms">
+            <span className="text-blue-700 text-xl ">
               Saylani Mass IT Training
             </span>
           </div>
@@ -32,8 +32,7 @@ const AuthLayout = () => {
           </p>
 
           <h2 className="text-2xl font-bold leading-tight text-blue-900">
-            SMIT Bootcamp for{" "}
-            <span className="text-amber-400 italic">Future</span> IT
+            SMIT Bootcamp for <span className="text-blue-900 ">Future</span> IT
             Professionals.
           </h2>
 
@@ -85,7 +84,7 @@ const AuthLayout = () => {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 h-screen flex items-center justify-center bg-gray-50 px-6 py-4 overflow-hidden">
+      <div className="w-full lg:w-1/2 h-screen flex items-center justify-center bg-blue-800/75 px-6 py-4 overflow-hidden">
         <div className="w-full max-w-md">
           <Outlet />
         </div>

@@ -6,8 +6,8 @@ import {
   forgotPassword,
   resetPassword,
   changePassword,
-} from "./LoginController.js";
-import { register } from "./RegisterController.js";
+  register,
+} from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { adminMiddleware } from "../../middleware/adminMiddleware.js";
 import { validate } from "../../middleware/validate.js";
@@ -16,7 +16,7 @@ import {
   changePasswordValidator,
   forgotPasswordValidator,
   resetPasswordValidator,
-} from "./authValidator.js";
+} from "./auth.validation.js";
 
 const router = express.Router();
 

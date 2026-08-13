@@ -10,7 +10,9 @@ import {
 } from "./student.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { requirePermission } from "../../middleware/permissionMiddleware.js";
+import { validate } from "../../middleware/validate.js";
 import PERMISSIONS from "../../constants/permission.js";
+import { createStudentValidator, updateStudentValidator } from "./student.validation.js";
 
 const router = express.Router();
 
@@ -20,6 +22,8 @@ router.post(
   "/create-student",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  createStudentValidator,
+  validate,
   createStudent,
 );
 
@@ -56,6 +60,8 @@ router.put(
   "/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  updateStudentValidator,
+  validate,
   updateStudent,
 );
 

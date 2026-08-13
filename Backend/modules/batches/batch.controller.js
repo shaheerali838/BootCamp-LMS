@@ -12,32 +12,11 @@ export const createBatch = async (req, res) => {
             status,
         } = req.body;
 
-        // Required fields
-        if (!batchName || !program || !startDate || !endDate) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Batch name, program, start date and end date are required",
-            });
-        }
-
         // Validate dates
         const start = new Date(startDate);
         const end = new Date(endDate);
 
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid start date or end date",
-            });
-        }
 
-        if (start >= end) {
-            return res.status(400).json({
-                success: false,
-                message: "End date must be after start date",
-            });
-        }
 
         // Check duplicate batch
         const existingBatch = await Batch.findOne({
@@ -184,23 +163,7 @@ export const updateBatch = async (req, res) => {
             ? new Date(endDate)
             : batch.endDate;
 
-        // Validate dates
-        if (
-            isNaN(newStartDate.getTime()) ||
-            isNaN(newEndDate.getTime())
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid start date or end date",
-            });
-        }
 
-        if (newStartDate >= newEndDate) {
-            return res.status(400).json({
-                success: false,
-                message: "End date must be after start date",
-            });
-        }
 
         // Update only provided fields
         if (batchName) batch.batchName = batchName.trim();

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import Admin from "../../model/admin.model.js";
 import Student from "../../model/student.model.js";
 import {
@@ -28,7 +29,7 @@ export const login = async (req, res) => {
 
     // If not found, search for Student
     if (!user) {
-      user = await Student.findOne({ email: emailAddress }).select("+password"); // <-- Add it here
+      user = await Student.findOne({ email: emailAddress }).select("+password");
     }
 
     // User does not exist
@@ -48,9 +49,6 @@ export const login = async (req, res) => {
     }
 
     // Check password
-    console.log("Input:", password);
-    console.log("DB Hash:", user.password);
-
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -63,7 +61,7 @@ export const login = async (req, res) => {
     // Generate JWT
     const token = generateAccessToken(user);
 
-    // Generate Refresh Token & Cookie (From Nabeel's Branch)
+    // Generate Refresh Token & Cookie
     const refreshToken = generateRefreshToken(user);
 
     res.cookie("refreshToken", refreshToken, {
@@ -315,7 +313,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10); // Put this back!
+    user.password = await bcrypt.hash(newPassword, 10);
     user.tokenVersion += 1;
 
     await user.save();
@@ -323,6 +321,100 @@ export const changePassword = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const register = async (req, res) => {
+  try {
+    const {
+      rollNumber,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      gender,
+      dateOfBirth,
+      batchId,
+      mentorId,
+    } = req.body;
+
+    const existingStudent = await Student.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        message: "Student with this email already exists.",
+      });
+    }
+
+    const existingRollNumber = await Student.findOne({
+      rollNumber,
+    });
+
+    if (existingRollNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Roll number already exists.",
+      });
+    }
+
+    // Generate temporary password and setup token
+    const tempPassword = crypto.randomBytes(16).toString("hex");
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    const setupToken = generateResetToken();
+    const hashedSetupToken = hashToken(setupToken);
+    const setupTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const student = await Student.create({
+      rollNumber,
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      phoneNumber,
+      gender,
+      dateOfBirth,
+      batchId,
+      mentorId,
+      status: "active",
+      password: hashedPassword,
+      resetPasswordTokenHash: hashedSetupToken,
+      resetPasswordExpiresAt: setupTokenExpiresAt,
+    });
+
+    // Send setup email
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const setupLink = `${clientUrl}/reset-password?token=${setupToken}`;
+
+    await sendEmail({
+      to: student.email,
+      subject: "Welcome to Bootcamp LMS - Setup Your Password",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <h2>Welcome to Bootcamp LMS, ${student.firstName}!</h2>
+          <p>Your student account has been successfully created.</p>
+          <p>Please click the link below to set up your password and log in:</p>
+          <p><a href="${setupLink}">${setupLink}</a></p>
+          <p><i>This link will expire in 7 days.</i></p>
+        </div>
+      `,
+    });
+
+    const studentResponse = student.toObject();
+    delete studentResponse.password;
+
+    return res.status(201).json({
+      success: true,
+      message: "Student registered successfully. Setup email sent.",
+      data: studentResponse,
     });
   } catch (error) {
     return res.status(500).json({

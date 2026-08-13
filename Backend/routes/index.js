@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "../modules/auth/auth.routes.js";
+import adminRoutes from "../modules/admins/admin.routes.js";
 import studentRoutes from "../modules/students/student.routes.js";
 import teamRoutes from "../modules/teams/team.routes.js";
 import teamMemberRoutes from "../modules/teamMembers/teamMember.routes.js";
@@ -16,6 +17,9 @@ const mainRouter = express.Router();
 
 //auth
 mainRouter.use("/auth", authRoutes);
+
+//admins
+mainRouter.use("/admins", adminRoutes);
 
 //students
 mainRouter.use("/students", studentRoutes);
