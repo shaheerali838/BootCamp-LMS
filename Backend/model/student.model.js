@@ -100,4 +100,10 @@ const studentSchema = new mongoose.Schema(
 
 const Student = mongoose.model("Student", studentSchema);
 
+// Auto sync indexes: removes any legacy unique indexes (like user_1, studentCode_1) not in current schema
+Student.syncIndexes().catch((err) => {
+  console.log("Student index sync notice:", err.message);
+});
+
 export default Student;
+

@@ -13,9 +13,12 @@ const getTaskById = async (id) => {
 };
 
 const getTasksBySprintId = async (sprintId) => {
-  return await Task.find({ sprintId: sprintId }).populate(
-    "assignedStudentId assignedTeamId",
-  );
+  return await Task.find({ sprintId: sprintId })
+    .populate("assignedTeamId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    );
 };
 
 const updateTask = async (id, task) => {
@@ -27,15 +30,18 @@ const deleteTask = async (id) => {
 };
 
 const getTasksByStudentId = async (studentId) => {
-  return await Task.find({ assignedStudentId: studentId }).populate(
-    "sprintId assignedTeamId",
-  );
+  return await Task.find({ assignedStudentId: studentId })
+    .populate("sprintId")
+    .populate("assignedTeamId");
 };
 
 const getTasksByTeamId = async (teamId) => {
-  return await Task.find({ assignedTeamId: teamId }).populate(
-    "sprintId assignedStudentId",
-  );
+  return await Task.find({ assignedTeamId: teamId })
+    .populate("sprintId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    );
 };
 
 export {
