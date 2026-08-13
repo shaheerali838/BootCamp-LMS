@@ -10,10 +10,15 @@ import batchRoutes from "../modules/batches/batch.routes.js";
 const mainRouter = express.Router();
 
 mainRouter.use("/auth", authRoutes);
+
 mainRouter.use("/students", studentRoutes);
+
 mainRouter.use("/teams", teamRoutes);
+
 mainRouter.use("/team-members", teamMemberRoutes);
+
 mainRouter.use("/team-projects", teamProjectRoutes);
+
 mainRouter.use("/projects", projectRoutes);
 
 //batch
