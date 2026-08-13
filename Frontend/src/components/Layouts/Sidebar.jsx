@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 
 import { useSidebar } from "../../context/SidebarContext";
+import { GrAnnounce } from "react-icons/gr";
 import { RiTeamFill } from "react-icons/ri";
 import { IoFolderOutline } from "react-icons/io5";
 
@@ -69,6 +70,11 @@ const Sidebar = () => {
       name: "Reports",
       icon: <FiBarChart2 size={22} />,
       path: "/reports",
+    },
+     {
+      name: "Announcements",
+      icon: <GrAnnounce  size={22}/>,
+      path: "/announcements",
     },
     {
       name: "Resources",

@@ -206,3 +206,63 @@ function LoginPages() {
 }
 
 export default LoginPages;
+
+
+
+
+// const { login } = useAuth();
+ 
+  // const [email, setEmail] = useState("");
+  // const [password, setPassword] = useState("");
+  // const [loading, setLoading] = useState(false);
+
+   //  try {
+    //   setLoading(true);
+
+    //   const response = await login(
+    //     email,
+    //     password
+    //   );
+
+    //   console.log(
+    //     "Login response:",
+    //     response
+    //   );
+
+    //   const user =
+    //     response.data.user;
+
+    //   console.log(
+    //     "Logged in user:",
+    //     user
+    //   );
+  //   if (
+  //       user.role === "admin" ||
+  //       user.role === "superadmin"
+  //     ) {
+  //       navigate(
+  //         "/admin/dashboard"
+  //       );
+  //     } else if (
+  //       user.role === "student"
+  //     ) {
+  //       navigate(
+  //         "/student/dashboard"
+  //       );
+  //     } else {
+  //       navigate("/dashboard");
+  //     }
+  //   } catch (error) {
+  //     console.log(
+  //       "Login error:",
+  //       error
+  //     );
+
+  //     setError(
+  //       error.response?.data?.message ||
+  //         "Invalid email or password"
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
