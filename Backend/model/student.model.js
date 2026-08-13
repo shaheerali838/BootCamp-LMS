@@ -61,6 +61,11 @@ const studentSchema = new mongoose.Schema(
       default: "active",
     },
 
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+
     resetPasswordTokenHash: {
       type: String,
       default: null,

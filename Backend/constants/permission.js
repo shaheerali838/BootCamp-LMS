@@ -38,7 +38,7 @@ const PERMISSIONS = {
   // Attendance
   MARK_ATTENDANCE: "mark_attendance",
   VIEW_ATTENDANCE: "view_attendance",
-  VIEW_OWN_ATTENDANCE: "view_own_attENDANCE",
+  VIEW_OWN_ATTENDANCE: "view_own_attendance",
 
   // Evaluations
   EVALUATE_STUDENTS: "evaluate_students",
