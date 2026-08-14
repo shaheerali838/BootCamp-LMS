@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-import AttendanceReport from "../components/features/Reports/AttendanceReport";
-import TaskReport from "../components/features/Reports/TaskReport";
-import StudentPerformance from "../components/features/Reports/StudentPerformance";
-import ProjectStatus from "../components/features/Reports/ProjectStatus";
+import AttendanceReport from "../components/Reports/AttendanceReport";
+import TaskReport from "../components/Reports/TaskReport";
+import StudentPerformance from "../components/Reports/StudentPerformance";
+import ProjectStatus from "../components/Reports/ProjectStatus";
 
 function Reports() {
   const [activeTab, setActiveTab] = useState("attendance");

@@ -1,17 +1,30 @@
 import "./App.css";
 
-import { useSidebar } from "./context/SidebarContext";
-import { AppProvider } from "./context/AppProvider";
+import { SidebarProvider, useSidebar } from "./context/SidebarContext";
+import { AttendanceProvider } from "./context/AttendanceContext";
+import { StudentProvider } from "./context/StudentContext";
+import { TaskProvider } from "./context/TaskContext";
+import { ProjectProvider } from "./context/ProjectContext";
+import { TeamProjectProvider } from "./contextAPI/TeamProjectContext";
+import { ResourceProvider } from "./context/ResourceContext";
+import { ReportProvider } from "./context/ReportContext";
+import { AdminProvider } from "./context/AdminContext";
+import { BatchProvider } from "./context/BatchContext";
+import { MilestoneProvider } from "./context/MilestoneContext";
+import { SprintProvider } from "./context/SprintContext";
+import { RegistrationLogProvider } from "./context/RegistrationLogContext";
+import { ActivityLogProvider } from "./context/ActivityLogContext";
+import { AnnouncementProvider } from "./contextAPI/Anouncement";
 
-import Sidebar from "./components/layout/Sidebar";
-import Navbar from "./components/layout/Navbar";
+import Sidebar from "./components/Layouts/Sidebar";
+import Navbar from "./components/Layouts/Navbar";
 
-import AppRoutes from "./routes/AppRoutes";
+import AppRoutes from "./pages/routes/AppRoutes";
 
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import AuthLayout from "./components/layout/AuthLayout";
-import LoginPages from "./pages/Auth/LoginPages";
+import AuthLayout from "./components/AuthLayout";
+import LoginPages from "./pages/Auth/Loginpages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
 
 function DashboardLayout() {
@@ -64,9 +77,37 @@ function AppLayout() {
 
 function App() {
   return (
-    <AppProvider>
-      <AppLayout />
-    </AppProvider>
+    <SidebarProvider>
+      <AnnouncementProvider>
+        <AttendanceProvider>
+          <StudentProvider>
+            <TaskProvider>
+              <ProjectProvider>
+                <TeamProjectProvider>
+                  <ResourceProvider>
+                    <ReportProvider>
+                      <AdminProvider>
+                        <BatchProvider>
+                          <MilestoneProvider>
+                            <SprintProvider>
+                              <RegistrationLogProvider>
+                                <ActivityLogProvider>
+                                  <AppLayout />
+                                </ActivityLogProvider>
+                              </RegistrationLogProvider>
+                            </SprintProvider>
+                          </MilestoneProvider>
+                        </BatchProvider>
+                      </AdminProvider>
+                    </ReportProvider>
+                  </ResourceProvider>
+                </TeamProjectProvider>
+              </ProjectProvider>
+            </TaskProvider>
+          </StudentProvider>
+        </AttendanceProvider>
+      </AnnouncementProvider>
+    </SidebarProvider>
   );
 }
 

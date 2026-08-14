@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { FiSearch, FiUpload, FiX, FiEdit2 } from "react-icons/fi";
 
-import ResourceCard from "../components/features/Resources/ResourceCard";
-import UploadResourceModal from "../components/features/Resources/UploadResourceModal";
+import ResourceCard from "../components/Resources/ResourceCard";
+import UploadResourceModal from "../components/Resources/UploadResourceModal";
 import { useResources } from "../context/ResourceContext";
 
 function Resources() {

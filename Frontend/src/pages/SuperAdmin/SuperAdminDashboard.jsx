@@ -1,9 +1,9 @@
 import React from "react";
-import SystemStats from "../../components/features/Dashboard/SuperAdminDashboard/SystemStats";
-import SystemOverview from "../../components/features/Dashboard/SuperAdminDashboard/SystemOverview";
-import QuickActions from "../../components/features/Dashboard/SuperAdminDashboard/QuickActions";
-import RecentRegistrations from "../../components/features/Dashboard/SuperAdminDashboard/RecentRegistrations";
-import SystemActivity from "../../components/features/Dashboard/SuperAdminDashboard/SystemActivity";
+import SystemStats from "../../components/Dashboard/SuperAdminDashboard/SystemStats";
+import SystemOverview from "../../components/Dashboard/SuperAdminDashboard/SystemOverview";
+import QuickActions from "../../components/Dashboard/SuperAdminDashboard/QuickActions";
+import RecentRegistrations from "../../components/Dashboard/SuperAdminDashboard/RecentRegistrations";
+import SystemActivity from "../../components/Dashboard/SuperAdminDashboard/SystemActivity";
 
 function SuperAdminDashboard() {
   return (

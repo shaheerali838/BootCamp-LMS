@@ -1,10 +1,10 @@
 import React from "react";
-import StudentStats from "../../components/features/Dashboard/StudentDashboard/StudentStats";
-import MySchedule from "../../components/features/Dashboard/StudentDashboard/MySchedule";
-import MyTasks from "../../components/features/Dashboard/StudentDashboard/MyTasks";
-import MyProjects from "../../components/features/Dashboard/StudentDashboard/MyProjects";
-import Announcements from "../../components/features/Dashboard/StudentDashboard/Announcements";
-import RecentResources from "../../components/features/Dashboard/StudentDashboard/RecentResources";
+import StudentStats from "../../components/Dashboard/StudentDashboard/StudentStats";
+import MySchedule from "../../components/Dashboard/StudentDashboard/MySchedule";
+import MyTasks from "../../components/Dashboard/StudentDashboard/MyTasks";
+import MyProjects from "../../components/Dashboard/StudentDashboard/MyProjects";
+import Announcements from "../../components/Dashboard/StudentDashboard/Announcements";
+import RecentResources from "../../components/Dashboard/StudentDashboard/RecentResources";
 
 function StudentDashboard() {
   return (

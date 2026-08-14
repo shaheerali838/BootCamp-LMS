@@ -1,8 +1,8 @@
 import React from "react";
 import { FiBarChart2, FiPieChart, FiTrendingUp } from "react-icons/fi";
 import { useReports } from "../../context/ReportContext";
-import BatchPerformance from "../../components/features/Reports/BatchPerformance";
-import TaskDistribution from "../../components/features/Reports/TaskDistribution";
+import BatchPerformance from "../../components/Reports/BatchPerformance";
+import TaskDistribution from "../../components/Reports/TaskDistribution";
 
 function Reports() {
   const { reportSummary } = useReports();

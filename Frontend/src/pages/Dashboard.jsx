@@ -1,9 +1,9 @@
-import WelcomeHeader from "../components/features/Dashboard/WelcomeHeader";
-import StatsGrid from "../components/features/Dashboard/StatsGrid";
-import QuickActions from "../components/features/Dashboard/QuickActions";
-import AttendancePreview from "../components/features/Dashboard/AttendancePreview";
-import TodayTaskPreview from "../components/features/Dashboard/TodayTaskPreview";
-import QuickStats from "../components/features/Dashboard/QuickStats";
+import WelcomeHeader from "../components/Dashborad/WelcomeHeader";
+import StatsGrid from "../components/Dashborad/StatsGrid";
+import QuickActions from "../components/Dashborad/QuickActions";
+import AttendancePreview from "../components/Dashborad/AttendancePreview";
+import TodayTaskPreview from "../components/Dashborad/TodayTaskPreview";
+import QuickStats from "../components/Dashborad/QuickStats";
 
 function Dashboard() {
   return (
