@@ -5,6 +5,7 @@ const AnnouncementCard = ({
   announcement,
   onEdit,
   onDelete,
+  showActions = true,
 }) => {
   const [showDetails, setShowDetails] =
     useState(false);
@@ -38,25 +39,29 @@ const AnnouncementCard = ({
             className="flex items-center gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() =>
-                onEdit(announcement)
-              }
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition"
-              title="Edit announcement"
-            >
-              <FaEdit size={15} />
-            </button>
+            {showActions && (
+              <>
+                <button
+                  onClick={() =>
+                    onEdit(announcement)
+                  }
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition"
+                  title="Edit announcement"
+                >
+                  <FaEdit size={15} />
+                </button>
 
-            <button
-              onClick={() =>
-                onDelete(announcement.id)
-              }
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition"
-              title="Delete announcement"
-            >
-              <FaTrash size={14} />
-            </button>
+                <button
+                  onClick={() =>
+                    onDelete(announcement.id)
+                  }
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition"
+                  title="Delete announcement"
+                >
+                  <FaTrash size={14} />
+                </button>
+              </>
+            )}
             <button
               onClick={handleToggle}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 transition"

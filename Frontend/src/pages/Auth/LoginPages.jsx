@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import img from '../../../public/imges/images.jpg'
 
 function LoginPages() {
   const navigte = useNavigate();
@@ -67,7 +68,10 @@ function LoginPages() {
 
   return (
     <div className="w-full flex items-center justify-center">
-      <div className="w-full max-w-md">
+      <div className="w-full">
+        <div className="w-full flex items-center justify-center mb-4 lg:hidden">
+      <img src={img}alt="SMIT Logo"className="w-40 h-auto object-contain"/>
+    </div>
         <form
           onSubmit={submitForm}
           className="bg-white px-7 py-6 border border-gray-200 rounded-2xl shadow-sm w-full"
