@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const anouncementSchema = new mongoose.Schema(
+const announcementSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -19,5 +19,5 @@ const anouncementSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Anouncement = mongoose.model("Anouncement", anouncementSchema);
-export default Anouncement;
+const Announcement = mongoose.model("Announcement", announcementSchema);
+export default Announcement;

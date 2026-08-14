@@ -1,33 +1,31 @@
 import mongoose from "mongoose";
 
-const anouncementRecipientSchema = new mongoose.Schema(
+const announcementRecipientSchema = new mongoose.Schema(
   {
-    anouncementId: {
+    announcementId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Anouncement",
+      ref: "Announcement",
       required: true,
     },
     batchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Batch",
-      required: true,
+      // Made optional since an announcement might just be for a team or student
     },
     teamId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Team",
-      required: true,
     },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
-      required: true,
     },
   },
   { timestamps: true },
 );
 
-const AnouncementRecipient = mongoose.model(
-  "AnouncementRecipient",
-  anouncementRecipientSchema,
+const AnnouncementRecipient = mongoose.model(
+  "AnnouncementRecipient",
+  announcementRecipientSchema,
 );
-export default AnouncementRecipient;
+export default AnnouncementRecipient;

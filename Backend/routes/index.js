@@ -12,6 +12,7 @@ import sprintRoutes from "../modules/sprints/sprint.routes.js";
 import milestoneRoutes from "../modules/milestones/milestone.routes.js";
 import evaluationRoutes from "../modules/evaluations/evaluation.routes.js";
 import reportRoutes from "../modules/reports/report.routes.js";
+import announcementRoutes from "../modules/announcements/announcement.routes.js";
 
 const mainRouter = express.Router();
 
@@ -44,5 +45,8 @@ mainRouter.use("/batches", batchRoutes);
 
 //task
 mainRouter.use("/tasks", taskRoutes);
+
+//announcements
+mainRouter.use("/announcements", announcementRoutes);
 
 export default mainRouter;
