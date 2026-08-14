@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FiSearch,
   FiPlus,
@@ -17,10 +17,12 @@ function ProjectManagement() {
   } = useTeamProject();
 
   const [showForm, setShowForm] = useState(false);
-
   const [search, setSearch] = useState("");
 
-  // Project schema fields
+  // PAGINATION
+  const projectsPerPage = 3;
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [formData, setFormData] = useState({
     projectName: "",
     description: "",
@@ -59,7 +61,6 @@ function ProjectManagement() {
       return;
     }
 
-    // Map form fields to context's project structure
     addProject({
       projectName: formData.projectName,
       name: formData.projectName,
@@ -81,24 +82,45 @@ function ProjectManagement() {
     });
 
     setShowForm(false);
+    setCurrentPage(1);
   };
 
-  // Search by projectName
   const filteredProjects = projects.filter((project) =>
     (project.name || project.projectName || "")
       .toLowerCase()
       .includes(search.toLowerCase())
   );
 
+  // PAGINATION
+  const totalPages = Math.ceil(
+    filteredProjects.length / projectsPerPage
+  );
+
+  const startIndex = (currentPage - 1) * projectsPerPage;
+
+  const currentProjects = filteredProjects.slice(
+    startIndex,
+    startIndex + projectsPerPage
+  );
+  // PAGINATION
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+  // PAGINATION
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
   const totalMembers = teams.reduce(
-    (total, team) => total + (team.members?.length || 0),
+    (total, team) =>
+      total + (team.members?.length || 0),
     0
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 p-2">
       <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -124,7 +146,6 @@ function ProjectManagement() {
 
         </div>
 
-        {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
 
           <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
@@ -183,7 +204,6 @@ function ProjectManagement() {
 
         </div>
 
-        {/* Search */}
         <div className="relative mt-5">
 
           <FiSearch
@@ -195,7 +215,10 @@ function ProjectManagement() {
             type="text"
             placeholder="Search projects..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-[#0476b9]"
           />
 
@@ -203,7 +226,6 @@ function ProjectManagement() {
 
       </div>
 
-      {/* Projects */}
       {filteredProjects.length === 0 ? (
 
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center mt-6">
@@ -227,37 +249,85 @@ function ProjectManagement() {
 
       ) : (
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6">
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-2">
 
-          {filteredProjects.map((project) => {
+            {currentProjects.map((project) => {
 
-            const team = teams.find(
-              (team) =>
-                String(team._id || team.id) ===
-                String(project.teamId || project.batch)
-            );
+              const team = teams.find(
+                (team) =>
+                  String(team._id || team.id) ===
+                  String(project.teamId || project.batch)
+              );
 
-            return (
-              <ProjectCard
-                key={project._id || project.id}
-                project={project}
-                team={team}
-              />
-            );
-          })}
+              return (
+                <ProjectCard
+                  key={project._id || project.id}
+                  project={project}
+                  team={team}
+                />
+              );
+            })}
 
-        </div>
+          </div>
 
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6 mb-6">
+
+              <button
+                type="button"
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                Previous
+              </button>
+
+              {/* PAGINATION */}
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => goToPage(page)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition ${currentPage === page
+                      ? "bg-[#0476b9] text-white"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+              >
+                Next
+              </button>
+
+            </div>
+          )}
+        </>
       )}
 
-      {/* Create Project Modal */}
       {showForm && (
 
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
 
-          <div className="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
 
-            {/* Modal Header */}
             <div className="flex items-center justify-between mb-5">
 
               <div>
@@ -282,7 +352,6 @@ function ProjectManagement() {
 
             <form onSubmit={handleSubmit}>
 
-              {/* Project Name */}
               <label className="block text-sm font-semibold text-gray-700">
                 Project Name
               </label>
@@ -296,7 +365,6 @@ function ProjectManagement() {
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
 
-              {/* Description */}
               <label className="block text-sm font-semibold text-gray-700 mt-4">
                 Description
               </label>
@@ -310,7 +378,6 @@ function ProjectManagement() {
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
 
-              {/* Start Date */}
               <label className="block text-sm font-semibold text-gray-700 mt-4">
                 Start Date
               </label>
@@ -323,7 +390,6 @@ function ProjectManagement() {
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
 
-              {/* Deadline */}
               <label className="block text-sm font-semibold text-gray-700 mt-4">
                 Deadline
               </label>
@@ -336,7 +402,6 @@ function ProjectManagement() {
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
 
-              {/* Batch */}
               <label className="block text-sm font-semibold text-gray-700 mt-4">
                 Batch
               </label>
@@ -347,7 +412,6 @@ function ProjectManagement() {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               >
-
                 <option value="">
                   Select Batch
                 </option>
@@ -360,10 +424,8 @@ function ProjectManagement() {
                     {team.name}
                   </option>
                 ))}
-
               </select>
 
-              {/* Status */}
               <label className="block text-sm font-semibold text-gray-700 mt-4">
                 Status
               </label>
@@ -374,7 +436,6 @@ function ProjectManagement() {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               >
-
                 <option value="pending">
                   Pending
                 </option>
@@ -386,10 +447,8 @@ function ProjectManagement() {
                 <option value="completed">
                   Completed
                 </option>
-
               </select>
 
-              {/* Buttons */}
               <div className="flex gap-3 mt-6">
 
                 <button

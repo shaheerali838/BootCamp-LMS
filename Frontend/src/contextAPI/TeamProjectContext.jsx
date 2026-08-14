@@ -46,7 +46,7 @@ export const TeamProjectProvider = ({ children }) => {
             createdAt: new Date().toLocaleDateString(),
         };
 
-        setTeams((prev) => [...prev, newTeam]);
+        setTeams((prev) => [newTeam,...prev]);
     };
 
     // Update Team
@@ -81,7 +81,7 @@ export const TeamProjectProvider = ({ children }) => {
             createdAt: new Date().toLocaleDateString(),
         };
 
-        setProjects((prev) => [...prev, newProject]);
+        setProjects((prev) => [newProject,...prev]);
     };
 
     // Update Project

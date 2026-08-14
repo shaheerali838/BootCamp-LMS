@@ -48,11 +48,11 @@ function ProjectDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-2">
 
       <button
         onClick={() => navigate("/projects")}
-        className="text-[#0476b9] font-semibold mb-5 hover:underline"
+        className="text-[#fdfefe] ml-4 text-2xl border mb-2 bg-[#0476b9] py-3 px-8 rounded-md cursor-pointer"
       >
         ← Back to Projects
       </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch, FiUsers, FiPlus } from "react-icons/fi";
 import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 import TeamCard from "./TeamCard";
@@ -11,6 +11,10 @@ function TeamManagement() {
     const [editingTeam, setEditingTeam] = useState(null);
     const [search, setSearch] = useState("");
 
+    // PAGINATION
+    const teamsPerPage = 3;
+    const [currentPage, setCurrentPage] = useState(1);
+
     const totalTeams = teams.length;
 
     const totalMembers = teams.reduce(
@@ -21,6 +25,30 @@ function TeamManagement() {
     const filteredTeams = teams.filter((team) =>
         team.name.toLowerCase().includes(search.toLowerCase())
     );
+
+    // PAGINATION
+    const totalPages = Math.ceil(
+        filteredTeams.length / teamsPerPage
+    );
+
+    const startIndex =
+        (currentPage - 1) * teamsPerPage;
+
+    const currentTeams = filteredTeams.slice(
+        startIndex,
+        startIndex + teamsPerPage
+    );
+    // PAGINATION
+    useEffect(() => {
+        if (totalPages > 0 && currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [totalPages, currentPage]);
+
+    // PAGINATION
+    const goToPage = (page) => {
+        setCurrentPage(page);
+    };
 
     const handleCreate = () => {
         setEditingTeam(null);
@@ -38,9 +66,9 @@ function TeamManagement() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-2">
 
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-3">
 
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
@@ -92,7 +120,12 @@ function TeamManagement() {
                         <input
                             type="text"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+
+                                // PAGINATION
+                                setCurrentPage(1);
+                            }}
                             placeholder="Search teams..."
                             className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#0476b9] focus:ring-1 focus:ring-[#0476b9]"
                         />
@@ -147,17 +180,74 @@ function TeamManagement() {
 
             ) : (
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
 
-                    {filteredTeams.map((team) => (
-                        <TeamCard
-                            key={team.id}
-                            team={team}
-                            onEdit={handleEdit}
-                        />
-                    ))}
+                        {currentTeams.map((team) => (
+                            <TeamCard
+                                key={team.id}
+                                team={team}
+                                onEdit={handleEdit}
+                            />
+                        ))}
 
-                </div>
+                    </div>
+
+                    {/* PAGINATION */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-6 mb-6">
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    goToPage(currentPage - 1)
+                                }
+                                disabled={currentPage === 1}
+                                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === 1
+                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                Previous
+                            </button>
+
+                            {/* PAGINATION */}
+                            {Array.from(
+                                { length: totalPages },
+                                (_, index) => index + 1
+                            ).map((page) => (
+                                <button
+                                    key={page}
+                                    type="button"
+                                    onClick={() => goToPage(page)}
+                                    className={`w-10 h-10 rounded-lg font-semibold transition ${currentPage === page
+                                            ? "bg-[#0476b9] text-white"
+                                            : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    goToPage(currentPage + 1)
+                                }
+                                disabled={
+                                    currentPage === totalPages
+                                }
+                                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === totalPages
+                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                Next
+                            </button>
+
+                        </div>
+                    )}
+                </>
 
             )}
 
