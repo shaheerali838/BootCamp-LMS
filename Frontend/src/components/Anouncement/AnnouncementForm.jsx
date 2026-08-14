@@ -1,43 +1,76 @@
 import React, { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
+import { useAnnouncement } from "../../contextAPI/Anouncement";
 
 const AnnouncementForm = ({
   onSubmit,
   editingAnnouncement,
   onCancel,
 }) => {
+  const { announcements } = useAnnouncement();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [postedBy, setPostedBy] = useState("");
+  const [date, setDate] = useState("");
 
   useEffect(() => {
     if (editingAnnouncement) {
-      setTitle(editingAnnouncement.title);
-      setDescription(editingAnnouncement.description);
+      setTitle(editingAnnouncement.title || "");
+      setDescription(
+        editingAnnouncement.description || ""
+      );
+      setPostedBy(
+        editingAnnouncement.postedBy || ""
+      );
+      setDate(
+        editingAnnouncement.createdAt || ""
+      );
+    } else if (announcements.length > 0) {
+      const announcement = announcements[0];
+
+      setTitle(announcement.title || "");
+      setDescription(
+        announcement.description || ""
+      );
+      setPostedBy(
+        announcement.postedBy || ""
+      );
+      setDate(
+        announcement.createdAt || ""
+      );
     } else {
       setTitle("");
       setDescription("");
+      setPostedBy("");
+      setDate("");
     }
-  }, [editingAnnouncement]);
+  }, [editingAnnouncement, announcements]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim()) {
-      alert("Please fill in both title and description");
+    if (
+      !title.trim() ||
+      !description.trim() ||
+      !postedBy.trim() ||
+      !date.trim()
+    ) {
+      alert("Please fill in all fields");
       return;
     }
 
     onSubmit({
       title: title.trim(),
       description: description.trim(),
+      postedBy: postedBy.trim(),
+      createdAt: date.trim(),
     });
-
-    setTitle("");
-    setDescription("");
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-semibold text-gray-800">
           {editingAnnouncement
@@ -48,8 +81,7 @@ const AnnouncementForm = ({
         <button
           type="button"
           onClick={onCancel}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 bg-gray-100 hover:bg-gray-200 hover:text-gray-700 transition"
-          title="Cancel"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 bg-gray-100 hover:bg-gray-200 transition"
         >
           <FaTimes size={15} />
         </button>
@@ -59,6 +91,7 @@ const AnnouncementForm = ({
         onSubmit={handleSubmit}
         className="space-y-5"
       >
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Announcement Title
@@ -71,6 +104,38 @@ const AnnouncementForm = ({
               setTitle(e.target.value)
             }
             placeholder="Enter announcement title"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Posted By
+          </label>
+
+          <input
+            type="text"
+            value={postedBy}
+            onChange={(e) =>
+              setPostedBy(e.target.value)
+            }
+            placeholder="Super Admin or Admin"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Date
+          </label>
+
+          <input
+            type="date"
+            value={date}
+            onChange={(e) =>
+              setDate(e.target.value)
+            }
+            placeholder="August 14, 2026"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -92,10 +157,11 @@ const AnnouncementForm = ({
         </div>
 
         <div className="flex items-center justify-end gap-3">
+
           <button
             type="button"
             onClick={onCancel}
-            className="flex items-center gap-2 px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+            className="px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
           >
             Cancel
           </button>
@@ -108,7 +174,9 @@ const AnnouncementForm = ({
               ? "Update Announcement"
               : "Create Announcement"}
           </button>
+
         </div>
+
       </form>
     </div>
   );

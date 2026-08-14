@@ -13,22 +13,15 @@ const getSavedAnnouncements = () => {
 
     return saved ? JSON.parse(saved) : [];
   } catch (error) {
-    console.error(
-      "Failed to load announcements:",
-      error
-    );
-
+    console.error("Failed to load announcements:", error);
     return [];
   }
 };
 
 export const AnnouncementProvider = ({ children }) => {
-  const [announcements, setAnnouncements] =
-    useState(getSavedAnnouncements);
-
-  // --------------------------------
-  // SAVE TO LOCAL STORAGE
-  // --------------------------------
+  const [announcements, setAnnouncements] = useState(
+    getSavedAnnouncements
+  );
 
   useEffect(() => {
     localStorage.setItem(
@@ -37,16 +30,13 @@ export const AnnouncementProvider = ({ children }) => {
     );
   }, [announcements]);
 
-  // --------------------------------
-  // ADD ANNOUNCEMENT
-  // --------------------------------
-
   const addAnnouncement = (announcement) => {
     const newAnnouncement = {
       id: Date.now(),
       title: announcement.title,
       description: announcement.description,
-      createdAt: new Date().toLocaleDateString(),
+      postedBy: announcement.postedBy,
+      createdAt: announcement.createdAt,
     };
 
     setAnnouncements((prev) => [
@@ -55,14 +45,7 @@ export const AnnouncementProvider = ({ children }) => {
     ]);
   };
 
-  // --------------------------------
-  // UPDATE ANNOUNCEMENT
-  // --------------------------------
-
-  const updateAnnouncement = (
-    id,
-    updatedData
-  ) => {
+  const updateAnnouncement = (id, updatedData) => {
     setAnnouncements((prev) =>
       prev.map((announcement) =>
         announcement.id === id
@@ -74,10 +57,6 @@ export const AnnouncementProvider = ({ children }) => {
       )
     );
   };
-
-  // --------------------------------
-  // DELETE ANNOUNCEMENT
-  // --------------------------------
 
   const deleteAnnouncement = (id) => {
     setAnnouncements((prev) =>
@@ -102,14 +81,8 @@ export const AnnouncementProvider = ({ children }) => {
   );
 };
 
-// --------------------------------
-// CUSTOM HOOK
-// --------------------------------
-
 export const useAnnouncement = () => {
-  const context = useContext(
-    AnnouncementContext
-  );
+  const context = useContext(AnnouncementContext);
 
   if (!context) {
     throw new Error(

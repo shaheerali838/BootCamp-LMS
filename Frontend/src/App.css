@@ -201,3 +201,12 @@
 .custom-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+.auth-scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.auth-scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
