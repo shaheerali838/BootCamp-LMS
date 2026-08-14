@@ -96,17 +96,17 @@ const Sidebar = () => {
       path: "/dashboard",
     },
     {
-      name: "Student Management",
+      name: "Student",
       icon: <FiUsers size={19} />,
       path: "/students",
     },
     {
-      name: "Attendance Management",
+      name: "Attendance",
       icon: <FiCalendar size={19} />,
       path: "/attendance",
     },
     {
-      name: "Team Management",
+      name: "Team",
       icon: <RiTeamFill size={19} />,
       path: "/teams",
     },
