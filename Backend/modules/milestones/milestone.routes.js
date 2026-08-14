@@ -28,7 +28,7 @@ const router = express.Router();
 
 // Create Milestone
 router.post(
-  "/",
+  "/create-milestone",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_MILESTONES),
   createMilestoneValidation,
@@ -39,7 +39,7 @@ router.post(
 
 // Get All Milestones
 router.get(
-  "/",
+  "/get-all-milestones",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_MILESTONES),
   getAllMilestonesHandler,
@@ -47,7 +47,7 @@ router.get(
 
 // Search Milestone
 router.get(
-  "/search",
+  "/search-milestones",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_MILESTONES),
   searchMilestoneHandler,
@@ -55,7 +55,7 @@ router.get(
 
 // Get Milestones by Project
 router.get(
-  "/project/:projectId",
+  "/get-milestones-by-project/:projectId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_MILESTONES),
   getMilestonesByProjectHandler,
@@ -63,7 +63,7 @@ router.get(
 
 // Get Milestones by Status
 router.get(
-  "/status/:status",
+  "/get-milestones-by-status/:status",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_MILESTONES),
   getMilestonesByStatusHandler,
@@ -71,7 +71,7 @@ router.get(
 
 // Get Milestone By ID
 router.get(
-  "/:id",
+  "/get-milestone/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_MILESTONES),
   checkMilestoneExists,
@@ -80,7 +80,7 @@ router.get(
 
 // Update Milestone
 router.put(
-  "/:id",
+  "/update-milestone/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_MILESTONES),
   updateMilestoneValidation,
@@ -91,7 +91,7 @@ router.put(
 
 // Delete Milestone
 router.delete(
-  "/:id",
+  "/delete-milestone/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_MILESTONES),
   checkMilestoneExists,

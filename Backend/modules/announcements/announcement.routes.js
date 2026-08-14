@@ -14,18 +14,11 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router
-  .route("/")
-  .post(requirePermission(PERMISSIONS.CREATE_ANNOUNCEMENTS), createAnnouncement)
-  .get(requirePermission(PERMISSIONS.VIEW_ANNOUNCEMENTS), getAllAnnouncements);
+router.post("/create-announcement", requirePermission(PERMISSIONS.CREATE_ANNOUNCEMENTS), createAnnouncement);
+router.get("/get-all-announcements", requirePermission(PERMISSIONS.VIEW_ANNOUNCEMENTS), getAllAnnouncements);
 
-router
-  .route("/:id")
-  .get(requirePermission(PERMISSIONS.VIEW_ANNOUNCEMENTS), getAnnouncementById)
-  .put(requirePermission(PERMISSIONS.UPDATE_ANNOUNCEMENTS), updateAnnouncement)
-  .delete(
-    requirePermission(PERMISSIONS.DELETE_ANNOUNCEMENTS),
-    deleteAnnouncement,
-  );
+router.get("/get-announcement/:id", requirePermission(PERMISSIONS.VIEW_ANNOUNCEMENTS), getAnnouncementById);
+router.put("/update-announcement/:id", requirePermission(PERMISSIONS.UPDATE_ANNOUNCEMENTS), updateAnnouncement);
+router.delete("/delete-announcement/:id", requirePermission(PERMISSIONS.DELETE_ANNOUNCEMENTS), deleteAnnouncement);
 
 export default router;

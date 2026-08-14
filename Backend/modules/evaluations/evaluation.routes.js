@@ -17,30 +17,30 @@ const router = express.Router();
 
 // Create Evaluation
 router.post(
-  "/",
+  "/create-evaluation",
   createEvaluationValidation,
   validateMiddleware,
   createEvaluationHandler
 );
 
 // Get All Evaluations
-router.get("/", getAllEvaluationsHandler);
+router.get("/get-all-evaluations", getAllEvaluationsHandler);
 
 // Get Evaluations by Student
-router.get("/student/:studentId", getEvaluationsByStudentHandler);
+router.get("/get-evaluations-by-student/:studentId", getEvaluationsByStudentHandler);
 
 // Get Evaluations by Project
-router.get("/project/:projectId", getEvaluationsByProjectHandler);
+router.get("/get-evaluations-by-project/:projectId", getEvaluationsByProjectHandler);
 
 // Get Evaluations by Evaluator
-router.get("/evaluator/:evaluatorId", getEvaluationsByEvaluatorHandler);
+router.get("/get-evaluations-by-evaluator/:evaluatorId", getEvaluationsByEvaluatorHandler);
 
 // Get Evaluation By ID
-router.get("/:id", checkEvaluationExists, getEvaluationByIdHandler);
+router.get("/get-evaluation/:id", checkEvaluationExists, getEvaluationByIdHandler);
 
 // Update Evaluation
 router.put(
-  "/:id",
+  "/update-evaluation/:id",
   updateEvaluationValidation,
   validateMiddleware,
   checkEvaluationExists,
@@ -48,6 +48,6 @@ router.put(
 );
 
 // Delete Evaluation
-router.delete("/:id", checkEvaluationExists, deleteEvaluationHandler);
+router.delete("/delete-evaluation/:id", checkEvaluationExists, deleteEvaluationHandler);
 
 export default router;

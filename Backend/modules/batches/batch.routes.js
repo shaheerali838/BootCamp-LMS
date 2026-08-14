@@ -18,7 +18,7 @@ const router = express.Router();
 
 // Create Batch
 router.post(
-    "/",
+    "/create-batch",
     authMiddleware,
     requirePermission(PERMISSIONS.MANAGE_BATCHES),
     createBatchValidator,
@@ -28,7 +28,7 @@ router.post(
 
 // Get All Batches
 router.get(
-    "/",
+    "/get-all-batches",
     authMiddleware,
     requirePermission(PERMISSIONS.MANAGE_BATCHES),
     getAllBatches
@@ -36,7 +36,7 @@ router.get(
 
 // Get Single Batch
 router.get(
-    "/:id",
+    "/get-batch/:id",
     authMiddleware,
     requirePermission(PERMISSIONS.MANAGE_BATCHES),
     getBatchById
@@ -44,7 +44,7 @@ router.get(
 
 // Update Batch
 router.put(
-    "/:id",
+    "/update-batch/:id",
     authMiddleware,
     requirePermission(PERMISSIONS.MANAGE_BATCHES),
     updateBatchValidator,
@@ -54,7 +54,7 @@ router.put(
 
 // Delete Batch
 router.delete(
-    "/:id",
+    "/delete-batch/:id",
     authMiddleware,
     requirePermission(PERMISSIONS.MANAGE_BATCHES),
     deleteBatch

@@ -26,7 +26,7 @@ const router = express.Router();
 
 // Create Project
 router.post(
-  "/",
+  "/create-project",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   createProjectValidation,
@@ -37,7 +37,7 @@ router.post(
 
 // Get All Projects
 router.get(
-  "/",
+  "/get-all-projects",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   getAllProjectsHandler,
@@ -45,7 +45,7 @@ router.get(
 
 // Search Project
 router.get(
-  "/search",
+  "/search-projects",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   searchProjectHandler,
@@ -53,7 +53,7 @@ router.get(
 
 // Get Projects by Batch
 router.get(
-  "/batch/:batchId",
+  "/get-projects-by-batch/:batchId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   getProjectsByBatchHandler,
@@ -61,7 +61,7 @@ router.get(
 
 // Get Projects by Status
 router.get(
-  "/status/:status",
+  "/get-projects-by-status/:status",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   getProjectsByStatusHandler,
@@ -69,7 +69,7 @@ router.get(
 
 // Get Project By ID
 router.get(
-  "/:id",
+  "/get-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   checkProjectExists,
@@ -78,7 +78,7 @@ router.get(
 
 // Update Project
 router.put(
-  "/:id",
+  "/update-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   updateProjectValidation,
@@ -89,7 +89,7 @@ router.put(
 
 // Delete Project
 router.delete(
-  "/:id",
+  "/delete-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   checkProjectExists,

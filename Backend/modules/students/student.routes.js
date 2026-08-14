@@ -30,7 +30,7 @@ router.post(
 // 2. Get All Students (With Pagination & Search)
 
 router.get(
-  "/",
+  "/get-all-students",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   getStudents,
@@ -39,7 +39,7 @@ router.get(
 // 3. Get All Students in a Specific Batch
 
 router.get(
-  "/batch/:batchId",
+  "/get-students-by-batch/:batchId",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   getStudentsByBatch,
@@ -48,7 +48,7 @@ router.get(
 // 4. Get Single Student by ID
 
 router.get(
-  "/:id",
+  "/get-student/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   getStudentById,
@@ -57,7 +57,7 @@ router.get(
 // 5. Update Student details
 
 router.put(
-  "/:id",
+  "/update-student/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   updateStudentValidator,
@@ -68,7 +68,7 @@ router.put(
 // 6. Update Student Status (Active / Inactive)
 
 router.patch(
-  "/:id/status",
+  "/update-student-status/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   updateStudentStatus,
@@ -77,7 +77,7 @@ router.patch(
 // 7. Delete Student
 
 router.delete(
-  "/:id",
+  "/delete-student/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
   deleteStudent,

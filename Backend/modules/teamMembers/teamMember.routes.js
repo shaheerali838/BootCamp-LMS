@@ -24,7 +24,7 @@ const router = express.Router();
 
 // Add Member to Team
 router.post(
-  "/",
+  "/add-member",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   addMemberValidation,
@@ -35,7 +35,7 @@ router.post(
 
 // Get All Members of a Team
 router.get(
-  "/team/:teamId",
+  "/get-members-by-team/:teamId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TEAMS),
   getTeamMembersHandler,
@@ -43,7 +43,7 @@ router.get(
 
 // Get Member By ID
 router.get(
-  "/:id",
+  "/get-member/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TEAMS),
   checkTeamMemberExists,
@@ -52,7 +52,7 @@ router.get(
 
 // Update Member
 router.put(
-  "/:id",
+  "/update-member/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   updateMemberValidation,
@@ -63,7 +63,7 @@ router.put(
 
 // Remove Member from Team
 router.delete(
-  "/:id",
+  "/remove-member/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   checkTeamMemberExists,
@@ -72,7 +72,7 @@ router.delete(
 
 // Remove Member by Team and Student ID
 router.delete(
-  "/team/:teamId/student/:studentId",
+  "/remove-specific-member/team/:teamId/student/:studentId",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   removeMemberByTeamAndStudentHandler,
