@@ -1,7 +1,7 @@
 import React from "react";
 import { FaBullhorn } from "react-icons/fa";
-import { useAnnouncement } from "../../contextAPI/Anouncement";
-import AnnouncementCard from "../../components/Anouncement/AnnouncementCard";
+import { useAnnouncement } from "../../context/AnnouncementContext";
+import AnnouncementCard from "../../components/features/Announcements/AnnouncementCard";
 
 const Announcements = () => {
   const { announcements } = useAnnouncement();

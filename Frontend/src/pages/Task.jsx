@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { FiSearch, FiClipboard, FiPlus } from "react-icons/fi";
 
-import TaskCard from "../components/Tasks/TaskCard";
-import AssignTaskModal from "../components/Tasks/AssignTaskModal";
+import TaskCard from "../components/features/Tasks/TaskCard";
+import AssignTaskModal from "../components/features/Tasks/AssignTaskModal";
 import { useTasks } from "../context/TaskContext";
 
 function Task() {
