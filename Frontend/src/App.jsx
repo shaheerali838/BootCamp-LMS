@@ -39,7 +39,7 @@ function DashboardLayout() {
       <Navbar />
 
       <main
-        className={`pt-16 transition-all duration-300 ${
+        className={`pt-10 transition-all duration-300 ${
           isOpen ? "ml-70" : "ml-22.5"
         }`}
       >

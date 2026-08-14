@@ -1,6 +1,5 @@
 import React from "react";
 import StudentStats from "../../components/Dashboard/StudentDashboard/StudentStats";
-import MySchedule from "../../components/Dashboard/StudentDashboard/MySchedule";
 import MyTasks from "../../components/Dashboard/StudentDashboard/MyTasks";
 import MyProjects from "../../components/Dashboard/StudentDashboard/MyProjects";
 import Announcements from "../../components/Dashboard/StudentDashboard/Announcements";
@@ -8,7 +7,7 @@ import RecentResources from "../../components/Dashboard/StudentDashboard/RecentR
 
 function StudentDashboard() {
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-3 space-y-3   mx-auto min-h-screen">
       {/* Top Header */}
       <div>
         <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
@@ -17,11 +16,11 @@ function StudentDashboard() {
           <span className="font-bold text-gray-700">Dashboard</span>
         </div>
 
-        <div className="text-xs text-gray-400 font-medium mt-1">
+        <div className="text-[11px] text-gray-400 font-medium mt-0.5">
           Wednesday, August 12, 2026
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mt-3 flex items-center gap-2">
+        <h1 className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2">
           Welcome back, Sara 👋
         </h1>
 
@@ -33,16 +32,17 @@ function StudentDashboard() {
       {/* Top Stats Cards */}
       <StudentStats />
 
-      {/* 2x2 Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MySchedule />
+      {/* Row 1: 3 Column Cards (My Tasks | My Projects | Announcements) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <MyTasks />
         <MyProjects />
         <Announcements />
       </div>
 
-      {/* Bottom Recent Resources Section */}
-      <RecentResources />
+      {/* Row 2: Recent Resources Section (Isolated Row) */}
+      <div>
+        <RecentResources />
+      </div>
     </div>
   );
 }
