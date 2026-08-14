@@ -25,10 +25,10 @@ function TeamDetail() {
   const projects = getTeamProjects(team.id);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-2 bg-gray-50 min-h-screen">
       <button
         onClick={() => navigate(-1)}
-        className="text-[#0476b9] mb-5"
+        className="text-[#fcfefe] ml-4 text-2xl mb-2 bg-[#0476b9] py-3 px-8 rounded-md cursor-pointer"
       >
         ← Back
       </button>

@@ -40,7 +40,7 @@ function TeamCard({ team, onEdit }) {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition w-full">
+        <div className="bg-white border border-gray-200 rounded-2xl p-2 shadow-sm hover:shadow-md transition w-full">
 
             <div className="flex items-center justify-between">
 
@@ -53,7 +53,7 @@ function TeamCard({ team, onEdit }) {
                         Description
                     </p>
 
-                    <div className="w-[250px] h-20 border border-gray-300 rounded-md p-2">
+                    <div className="w-full h-20 border border-gray-300 rounded-md p-2">
                         <p className="h-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
                             {team?.description}
                         </p>
