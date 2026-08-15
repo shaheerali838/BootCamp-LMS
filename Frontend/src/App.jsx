@@ -1,27 +1,18 @@
 import "./App.css";
 
-import {
-  SidebarProvider,
-  useSidebar,
-} from "./context/SidebarContext";
+import { useSidebar } from "./context/SidebarContext";
+import { AppProvider } from "./context/AppProvider";
 
-import { AttendanceProvider } from "./context/AttendanceContext";
+import Sidebar from "./components/layout/Sidebar";
+import Navbar from "./components/layout/Navbar";
 
-import Sidebar from "./components/Layouts/Sidebar";
-import Navbar from "./components/Layouts/Navbar";
+import AppRoutes from "./routes/AppRoutes";
 
-import AppRoutes from "./pages/routes/AppRoutes";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
-import LoginPage from "./pages/LoginPage";
-import AuthLayout from "./components/AuthLayout";
+import AuthLayout from "./components/layout/AuthLayout";
+import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
-
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -33,10 +24,8 @@ function DashboardLayout() {
       <Navbar />
 
       <main
-        className={`pt-16 transition-all duration-300 ${
-          isOpen
-            ? "ml-[280px]"
-            : "ml-[90px]"
+        className={`pt-10 transition-all duration-300 ${
+          isOpen ? "ml-70" : "ml-22.5"
         }`}
       >
         <AppRoutes />
@@ -45,56 +34,40 @@ function DashboardLayout() {
   );
 }
 
-
 function AppLayout() {
   return (
     <Routes>
-
-      {/* Root URL */}
       <Route
         path="/"
-        element={
-          <Navigate
-            to="/login"
-            replace
-          />
-        }
+        element={<Navigate to="/login" replace />}
       />
 
-      {/* Authentication */}
       <Route element={<AuthLayout />}>
         <Route
           path="/login"
-          element={<LoginPage />}
+          element={<LoginPages />}
         />
       </Route>
 
-      {/* Forget Password */}
       <Route
         path="/forget-password"
         element={<ForgetPassword />}
       />
 
-      {/* Dashboard / Application */}
       <Route
         path="/*"
         element={<DashboardLayout />}
       />
-
     </Routes>
   );
 }
 
-
 function App() {
   return (
-    <SidebarProvider>
-      <AttendanceProvider>
-        <AppLayout />
-      </AttendanceProvider>
-    </SidebarProvider>
+    <AppProvider>
+      <AppLayout />
+    </AppProvider>
   );
 }
-
 
 export default App;

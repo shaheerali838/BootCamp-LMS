@@ -25,7 +25,7 @@ const router = express.Router();
 
 // Assign Project to Team
 router.post(
-  "/",
+  "/assign-project",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   assignProjectValidation,
@@ -36,7 +36,7 @@ router.post(
 
 // Get All Projects of a Team
 router.get(
-  "/team/:teamId",
+  "/get-projects-by-team/:teamId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   getTeamProjectsHandler,
@@ -44,7 +44,7 @@ router.get(
 
 // Get All Teams of a Project
 router.get(
-  "/project/:projectId",
+  "/get-teams-by-project/:projectId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   getProjectTeamsHandler,
@@ -52,7 +52,7 @@ router.get(
 
 // Get TeamProject By ID
 router.get(
-  "/:id",
+  "/get-team-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_PROJECTS),
   checkTeamProjectExists,
@@ -61,7 +61,7 @@ router.get(
 
 // Update TeamProject
 router.put(
-  "/:id",
+  "/update-team-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   updateTeamProjectValidation,
@@ -72,7 +72,7 @@ router.put(
 
 // Remove Project from Team
 router.delete(
-  "/:id",
+  "/remove-team-project/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   checkTeamProjectExists,
@@ -81,7 +81,7 @@ router.delete(
 
 // Remove Project by Team and Project ID
 router.delete(
-  "/team/:teamId/project/:projectId",
+  "/remove-specific-project/team/:teamId/project/:projectId",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_PROJECTS),
   removeProjectByTeamAndProjectHandler,

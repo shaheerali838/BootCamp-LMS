@@ -6,17 +6,16 @@ function AuthPages() {
       <NavLink
         to="/login"
         className={({ isActive }) =>
-          `relative mr-7 pb-3 text-sm font-medium transition ${isActive
-            ? "text-[#111528]"
-            : "text-gray-500 hover:text-[#111528]"
+          `relative mr-7 pb-3 text-sm font-medium transition ${
+            isActive ? "text-[#111528]" : "text-gray-500 hover:text-[#111528]"
           }`
-        }>
+        }
+      >
         {({ isActive }) => (
           <>
             Login
-
             {isActive && (
-              <span className="absolute bottom-[-1px] left-0 h-[2px] w-[40px] bg-amber-400" />
+              <span className="absolute -bottom-px left-0 h-0.5 w-10 bg-amber-400" />
             )}
           </>
         )}

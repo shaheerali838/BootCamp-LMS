@@ -1,19 +1,20 @@
-import WelcomeHeader from "../components/Dashborad/WelcomeHeader";
-import StatsGrid from "../components/Dashborad/StatsGrid";
-
-import AttendancePreview from "../components/Dashborad/AttendancePreview";
-import TodayTaskPreview from "../components/Dashborad/TodayTaskPreview";
-import QuickStats from "../components/Dashborad/QuickStats";
+import WelcomeHeader from "../components/features/Dashboard/WelcomeHeader";
+import StatsGrid from "../components/features/Dashboard/StatsGrid";
+import QuickActions from "../components/features/Dashboard/QuickActions";
+import AttendancePreview from "../components/features/Dashboard/AttendancePreview";
+import TodayTaskPreview from "../components/features/Dashboard/TodayTaskPreview";
+import QuickStats from "../components/features/Dashboard/QuickStats";
 
 function Dashboard() {
   return (
-    <div className="p-5 space-y-5">
+    <div className="p-3 space-y-3">
       <WelcomeHeader />
 
       <StatsGrid />
 
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <QuickActions />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <div className="lg:col-span-2">
           <AttendancePreview />
         </div>
@@ -21,7 +22,6 @@ function Dashboard() {
         <TodayTaskPreview />
       </div>
 
-  
       <QuickStats />
     </div>
   );

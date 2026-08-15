@@ -1,11 +1,13 @@
 import express from "express";
-import { login, logout, refreshToken } from "./LoginController.js";
 import {
+  login,
+  logout,
+  refreshToken,
   forgotPassword,
   resetPassword,
   changePassword,
-} from "./password.controller.js";
-import { register } from "./RegisterController.js";
+  register,
+} from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { adminMiddleware } from "../../middleware/adminMiddleware.js";
 import { validate } from "../../middleware/validate.js";
@@ -14,8 +16,8 @@ import {
   changePasswordValidator,
   forgotPasswordValidator,
   resetPasswordValidator,
-} from "./authValidator.js";
-import { registerValidator } from "./registerValidator.js";
+  registerValidator,
+} from "./auth.validation.js";
 
 const router = express.Router();
 
@@ -38,7 +40,7 @@ router.post(
   "/forgot-password",
   forgotPasswordValidator,
   validate,
-  forgotPassword,
+  forgotPassword
 );
 
 router.post("/reset-password", resetPasswordValidator, validate, resetPassword);
@@ -48,7 +50,7 @@ router.post(
   authMiddleware,
   changePasswordValidator,
   validate,
-  changePassword,
+  changePassword
 );
 
 export default router;

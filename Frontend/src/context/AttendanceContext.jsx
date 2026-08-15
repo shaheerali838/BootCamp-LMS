@@ -2,41 +2,148 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
 } from "react";
-
-import { attendanceData } from "../components/common/attendanceData";
 
 const AttendanceContext = createContext();
 
-export const AttendanceProvider = ({ children }) => {
-  const [attendance, setAttendance] = useState(attendanceData);
+const STORAGE_KEY = "lms_attendance";
 
-  const updateAttendance = (
-    studentId,
-    date,
-    status,
-    time
-  ) => {
-    setAttendance((prev) =>
-      prev.map((student) => {
-        if (student.id !== studentId) {
+const initialAttendanceData = [
+  {
+    studentId: 1,
+    attendance: [
+      {
+        date: "2026-08-11",
+        status: "Present",
+        time: "08:45 AM",
+        checkInTime: "08:45 AM",
+        checkOutTime: "04:30 PM",
+      },
+      {
+        date: "2026-08-10",
+        status: "Present",
+        time: "08:52 AM",
+        checkInTime: "08:52 AM",
+        checkOutTime: "04:30 PM",
+      },
+      {
+        date: "2026-08-09",
+        status: "Late",
+        time: "09:18 AM",
+        checkInTime: "09:18 AM",
+        checkOutTime: "04:35 PM",
+      },
+    ],
+  },
+  {
+    studentId: 2,
+    attendance: [
+      {
+        date: "2026-08-11",
+        status: "Absent",
+        time: "--:--",
+        checkInTime: "--:--",
+        checkOutTime: "--:--",
+      },
+      {
+        date: "2026-08-10",
+        status: "Present",
+        time: "08:48 AM",
+        checkInTime: "08:48 AM",
+        checkOutTime: "04:30 PM",
+      },
+      {
+        date: "2026-08-09",
+        status: "Present",
+        time: "08:55 AM",
+        checkInTime: "08:55 AM",
+        checkOutTime: "04:25 PM",
+      },
+    ],
+  },
+  {
+    studentId: 3,
+    attendance: [
+      {
+        date: "2026-08-11",
+        status: "Present",
+        time: "08:50 AM",
+        checkInTime: "08:50 AM",
+        checkOutTime: "04:30 PM",
+      },
+      {
+        date: "2026-08-10",
+        status: "Present",
+        time: "08:47 AM",
+        checkInTime: "08:47 AM",
+        checkOutTime: "04:30 PM",
+      },
+      {
+        date: "2026-08-09",
+        status: "Present",
+        time: "08:51 AM",
+        checkInTime: "08:51 AM",
+        checkOutTime: "04:30 PM",
+      },
+    ],
+  },
+];
+
+export const AttendanceProvider = ({ children }) => {
+  const [attendance, setAttendance] = useState(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : initialAttendanceData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(attendance));
+  }, [attendance]);
+
+  const updateAttendance = (studentId, date, status, time, checkOutTime = null) => {
+    setAttendance((prev) => {
+      const studentExists = prev.some(
+        (student) => student.studentId === studentId || student.id === studentId
+      );
+
+      if (!studentExists) {
+        return [
+          ...prev,
+          {
+            studentId,
+            attendance: [
+              {
+                date,
+                status,
+                time: time || "--:--",
+                checkInTime: time || "--:--",
+                checkOutTime: checkOutTime || "--:--",
+              },
+            ],
+          },
+        ];
+      }
+
+      return prev.map((student) => {
+        if (student.studentId !== studentId && student.id !== studentId) {
           return student;
         }
 
-        const existingAttendance = student.attendance.find(
+        const existingAttendance = student.attendance?.find(
           (item) => item.date === date
         );
 
         if (existingAttendance) {
           return {
             ...student,
-
             attendance: student.attendance.map((item) =>
               item.date === date
                 ? {
                     ...item,
                     status,
-                    time,
+                    time: time || item.time || "--:--",
+                    checkInTime: time || item.checkInTime || item.time || "--:--",
+                    checkOutTime: checkOutTime !== null ? checkOutTime : item.checkOutTime || "--:--",
                   }
                 : item
             ),
@@ -45,17 +152,26 @@ export const AttendanceProvider = ({ children }) => {
 
         return {
           ...student,
-
           attendance: [
-            ...student.attendance,
+            ...(student.attendance || []),
             {
               date,
               status,
-              time,
+              time: time || "--:--",
+              checkInTime: time || "--:--",
+              checkOutTime: checkOutTime || "--:--",
             },
           ],
         };
-      })
+      });
+    });
+  };
+
+  const getStudentAttendance = (studentId) => {
+    return (
+      attendance.find(
+        (student) => student.studentId === studentId || student.id === studentId
+      )?.attendance || []
     );
   };
 
@@ -64,6 +180,8 @@ export const AttendanceProvider = ({ children }) => {
       value={{
         attendance,
         updateAttendance,
+        setAttendance,
+        getStudentAttendance,
       }}
     >
       {children}
@@ -75,9 +193,7 @@ export const useAttendance = () => {
   const context = useContext(AttendanceContext);
 
   if (!context) {
-    throw new Error(
-      "useAttendance must be used inside AttendanceProvider"
-    );
+    throw new Error("useAttendance must be used inside AttendanceProvider");
   }
 
   return context;

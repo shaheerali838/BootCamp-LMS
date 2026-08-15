@@ -1,43 +1,188 @@
 import bcrypt from "bcryptjs";
-import Admin from "../model/admin.model.js";
-import connectDB from "../config/db.js";
+import Admin from "../../model/admin.model.js";
+import mongoose from "mongoose";
+import ROLES from "../../constants/roles.js";
 
-const seedSuperAdmin = async () => {
+// ---------- CREATE ADMIN ----------
+export const createAdmin = async (req, res) => {
   try {
-    await connectDB();
+    const { firstName, lastName, email, password, role, phoneNumber, status } = req.body;
 
-    const existingSuperAdmin = await Admin.findOne({
-      role: "SUPER_ADMIN",
-    });
-
-    if (existingSuperAdmin) {
-      console.log("Super Admin already exists.");
-      process.exit(0);
+    if (!firstName || !lastName || !email || !password || !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "First name, last name, email, password, and phone number are required.",
+      });
     }
 
-    const password = "SuperAdmin@123";
+    const emailAddress = email.trim().toLowerCase();
+
+    const existingAdmin = await Admin.findOne({ email: emailAddress });
+    if (existingAdmin) {
+      return res.status(409).json({ success: false, message: "Email already exists" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const superAdmin = await Admin.create({
-      firstName: "System",
-      lastName: "Administrator",
-      email: "superadmin@bootcamp.local",
+    const admin = await Admin.create({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: emailAddress,
       password: hashedPassword,
-      role: "SUPER_ADMIN",
-      phoneNumber: "03000000000",
-      status: "active",
+      role: role || ROLES.ADMIN,
+      phoneNumber: phoneNumber.trim(),
+      status: status || "active",
     });
 
-    console.log("Super Admin created successfully.");
-    console.log("Email:", superAdmin.email);
-    console.log("Password:", password);
+    const adminResponse = admin.toObject();
+    delete adminResponse.password;
 
-    process.exit(0);
+    return res.status(201).json({
+      success: true,
+      message: "Admin created successfully",
+      data: adminResponse,
+    });
   } catch (error) {
-    console.error("Failed to create Super Admin:", error.message);
-    process.exit(1);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create admin",
+      error: error.message,
+    });
   }
 };
 
-seedSuperAdmin();
+// ---------- GET ALL ADMINS ----------
+export const getAllAdmins = async (req, res) => {
+  try {
+    const { search, role, status } = req.query;
+    let query = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query = {
+        $or: [{ firstName: searchRegex }, { lastName: searchRegex }, { email: searchRegex }],
+      };
+    }
+
+    if (role) query.role = role;
+    if (status) query.status = status;
+
+    const admins = await Admin.find(query).select("-password").sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: admins.length,
+      data: admins,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch admins",
+      error: error.message,
+    });
+  }
+};
+
+// ---------- GET ADMIN BY ID ----------
+export const getAdminById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid admin ID" });
+    }
+
+    const admin = await Admin.findById(id).select("-password");
+
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    return res.status(200).json({ success: true, data: admin });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch admin",
+      error: error.message,
+    });
+  }
+};
+
+// ---------- UPDATE ADMIN ----------
+export const updateAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid admin ID" });
+    }
+
+    const admin = await Admin.findById(id);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    const { firstName, lastName, email, password, role, phoneNumber, status } = req.body;
+
+    if (email && email.toLowerCase() !== admin.email) {
+      const existingEmail = await Admin.findOne({ email: email.toLowerCase(), _id: { $ne: id } });
+      if (existingEmail) {
+        return res.status(409).json({ success: false, message: "Email already exists" });
+      }
+    }
+
+    if (firstName) admin.firstName = firstName.trim();
+    if (lastName) admin.lastName = lastName.trim();
+    if (email) admin.email = email.toLowerCase().trim();
+    if (phoneNumber) admin.phoneNumber = phoneNumber.trim();
+    if (role) admin.role = role;
+    if (status) admin.status = status;
+
+    if (password) {
+      admin.password = await bcrypt.hash(password, 10);
+    }
+
+    await admin.save();
+
+    const adminResponse = admin.toObject();
+    delete adminResponse.password;
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin updated successfully",
+      data: adminResponse,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update admin",
+      error: error.message,
+    });
+  }
+};
+
+// ---------- DELETE ADMIN ----------
+export const deleteAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid admin ID" });
+    }
+
+    const admin = await Admin.findById(id);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    await Admin.findByIdAndDelete(id);
+
+    return res.status(200).json({ success: true, message: "Admin deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete admin",
+      error: error.message,
+    });
+  }
+};

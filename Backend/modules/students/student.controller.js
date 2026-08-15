@@ -9,22 +9,23 @@ import {
   findStudentByEmail,
   findStudentByRollNumber,
 } from "./student.service.js";
+import sendEmail from "../../utils/sendEmail.js";
 
-// 1. Create a new Student
+// ---------- CREATE STUDENT ----------
 export const createStudent = async (req, res) => {
   try {
-    const { email, rollNumber } = req.body;
+    const { email, rollNumber, password } = req.body;
 
-    const existingEmail = await findStudentByEmail(email);
-    if (existingEmail) {
+    const existingStudent = await findStudentByEmail(email);
+    if (existingStudent) {
       return res.status(409).json({
         success: false,
         message: "Email already exists",
       });
     }
 
-    const existingRoll = await findStudentByRollNumber(rollNumber);
-    if (existingRoll) {
+    const existingRollNumber = await findStudentByRollNumber(rollNumber);
+    if (existingRollNumber) {
       return res.status(409).json({
         success: false,
         message: "Roll number already exists",
@@ -32,6 +33,26 @@ export const createStudent = async (req, res) => {
     }
 
     const student = await createStudentService(req.body);
+
+    // Send Welcome Email
+    try {
+      await sendEmail({
+        to: student.email,
+        subject: "Welcome to the LMS Bootcamp",
+        html: `
+          <h3>Welcome, ${student.firstName}!</h3>
+          <p>Your student account has been successfully created.</p>
+          <p><strong>Your Login Credentials:</strong></p>
+          <ul>
+            <li>Email: ${student.email}</li>
+            <li>Password: ${password}</li>
+          </ul>
+          <p>Please log in and change your password as soon as possible.</p>
+        `,
+      });
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError.message);
+    }
 
     return res.status(201).json({
       success: true,
@@ -47,7 +68,7 @@ export const createStudent = async (req, res) => {
   }
 };
 
-// 2. Get All Students (Pagination & Search)
+// ---------- GET ALL STUDENTS ----------
 export const getStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -70,7 +91,7 @@ export const getStudents = async (req, res) => {
   }
 };
 
-// 3. Get Single Student by ID
+// ---------- GET SINGLE STUDENT ----------
 export const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -96,7 +117,7 @@ export const getStudentById = async (req, res) => {
   }
 };
 
-// 4. Get All Students in a Specific Batch
+// ---------- GET STUDENTS BY BATCH ----------
 export const getStudentsByBatch = async (req, res) => {
   try {
     const { batchId } = req.params;
@@ -116,7 +137,7 @@ export const getStudentsByBatch = async (req, res) => {
   }
 };
 
-// 5. Update Student details
+// ---------- UPDATE STUDENT ----------
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
@@ -165,7 +186,7 @@ export const updateStudent = async (req, res) => {
   }
 };
 
-// 6. Update Student Status (Active / Inactive)
+// ---------- UPDATE STUDENT STATUS ----------
 export const updateStudentStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -194,7 +215,7 @@ export const updateStudentStatus = async (req, res) => {
   }
 };
 
-// 7. Delete Student
+// ---------- DELETE STUDENT ----------
 export const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;

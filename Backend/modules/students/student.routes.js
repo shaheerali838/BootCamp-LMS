@@ -24,6 +24,16 @@ const router = express.Router();
 
 // 1. Create a new Student
 router.post(
+  "/create-student",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  createStudentValidation,
+  validate,
+  createStudent
+);
+
+// REST fallback
+router.post(
   "/",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
@@ -34,6 +44,14 @@ router.post(
 
 // 2. Get All Students (With Pagination & Search)
 router.get(
+  "/get-all-students",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  getStudents
+);
+
+// REST fallback
+router.get(
   "/",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
@@ -41,6 +59,16 @@ router.get(
 );
 
 // 3. Get All Students in a Specific Batch
+router.get(
+  "/get-students-by-batch/:batchId",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  batchIdParamValidation,
+  validate,
+  getStudentsByBatch
+);
+
+// REST fallback
 router.get(
   "/batch/:batchId",
   authMiddleware,
@@ -52,6 +80,16 @@ router.get(
 
 // 4. Get Single Student by ID
 router.get(
+  "/get-student/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  studentIdValidation,
+  validate,
+  getStudentById
+);
+
+// REST fallback
+router.get(
   "/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
@@ -61,6 +99,16 @@ router.get(
 );
 
 // 5. Update Student details
+router.put(
+  "/update-student/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  updateStudentValidation,
+  validate,
+  updateStudent
+);
+
+// REST fallback
 router.put(
   "/:id",
   authMiddleware,
@@ -72,6 +120,16 @@ router.put(
 
 // 6. Update Student Status (Active / Inactive)
 router.patch(
+  "/update-student-status/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  updateStudentStatusValidation,
+  validate,
+  updateStudentStatus
+);
+
+// REST fallback
+router.patch(
   "/:id/status",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
@@ -81,6 +139,16 @@ router.patch(
 );
 
 // 7. Delete Student
+router.delete(
+  "/delete-student/:id",
+  authMiddleware,
+  requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  studentIdValidation,
+  validate,
+  deleteStudent
+);
+
+// REST fallback
 router.delete(
   "/:id",
   authMiddleware,

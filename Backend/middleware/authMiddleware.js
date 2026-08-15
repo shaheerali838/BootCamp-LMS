@@ -23,9 +23,9 @@ export const authMiddleware = async (req, res, next) => {
     let user;
 
     if (userRole === ROLES.ADMIN || userRole === ROLES.SUPER_ADMIN) {
-      user = await Admin.findById(decoded.userId).select("-password");
+      user = await Admin.findById(decoded.userId).select("+password");
     } else if (userRole === ROLES.STUDENT) {
-      user = await Student.findById(decoded.userId).select("-password");
+      user = await Student.findById(decoded.userId).select("+password");
     } else {
       return res.status(403).json({
         success: false,
@@ -37,6 +37,13 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: "User not found.",
+      });
+    }
+
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is no longer valid.",
       });
     }
 
