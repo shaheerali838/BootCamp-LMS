@@ -1,12 +1,10 @@
 import express from "express";
+import { login, logout, refreshToken } from "./LoginController.js";
 import {
-  login,
-  logout,
-  refreshToken,
   forgotPassword,
   resetPassword,
   changePassword,
-} from "./LoginController.js";
+} from "./password.controller.js";
 import { register } from "./RegisterController.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { adminMiddleware } from "../../middleware/adminMiddleware.js";
@@ -17,6 +15,7 @@ import {
   forgotPasswordValidator,
   resetPasswordValidator,
 } from "./authValidator.js";
+import { registerValidator } from "./registerValidator.js";
 
 const router = express.Router();
 
@@ -24,7 +23,14 @@ router.post("/login", loginValidator, validate, login);
 
 router.post("/logout", logout);
 
-router.post("/register", authMiddleware, adminMiddleware, register);
+router.post(
+  "/register",
+  authMiddleware,
+  adminMiddleware,
+  registerValidator,
+  validate,
+  register
+);
 
 router.post("/refresh-token", refreshToken);
 

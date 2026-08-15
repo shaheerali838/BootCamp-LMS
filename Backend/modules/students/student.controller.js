@@ -1,101 +1,42 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import Student from "../../model/student.model.js";
+import {
+  createStudentService,
+  getStudentsService,
+  getStudentByIdService,
+  getStudentsByBatchService,
+  updateStudentService,
+  updateStudentStatusService,
+  deleteStudentService,
+  findStudentByEmail,
+  findStudentByRollNumber,
+} from "./student.service.js";
 
-
-//       Create a new Student  
-
+// 1. Create a new Student
 export const createStudent = async (req, res) => {
   try {
-    const {
-      rollNumber,
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    } = req.body;
+    const { email, rollNumber } = req.body;
 
-    if (
-      !rollNumber ||
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !phoneNumber ||
-      !gender ||
-      !dateOfBirth ||
-      !batchId ||
-      !mentorId
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "All required student fields must be provided",
-      });
-    }
-
-    const existingStudent = await Student.findOne({
-      email: email.toLowerCase(),
-    });
-
-    if (existingStudent) {
+    const existingEmail = await findStudentByEmail(email);
+    if (existingEmail) {
       return res.status(409).json({
         success: false,
         message: "Email already exists",
       });
     }
 
-    const existingRollNumber = await Student.findOne({
-      rollNumber: rollNumber.trim(),
-    });
-
-    if (existingRollNumber) {
+    const existingRoll = await findStudentByRollNumber(rollNumber);
+    if (existingRoll) {
       return res.status(409).json({
         success: false,
         message: "Roll number already exists",
       });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(batchId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid batch ID",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid mentor ID",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const student = await Student.create({
-      rollNumber: rollNumber.trim(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.toLowerCase().trim(),
-      password: hashedPassword,
-      phoneNumber: phoneNumber.trim(),
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    });
-
-    const studentResponse = student.toObject();
-    delete studentResponse.password;
+    const student = await createStudentService(req.body);
 
     return res.status(201).json({
       success: true,
       message: "Student created successfully",
-      data: studentResponse,
+      data: student,
     });
   } catch (error) {
     return res.status(500).json({
@@ -106,50 +47,19 @@ export const createStudent = async (req, res) => {
   }
 };
 
-
-//       Get all Students (Supports Pagination & Search)
- 
+// 2. Get All Students (Pagination & Search)
 export const getStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+    const search = req.query.search || "";
 
-    const { search } = req.query;
-    let query = {};
-
-    // Search by Name, Email or Roll Number
-    if (search) {
-      const searchRegex = new RegExp(search, "i");
-      query = {
-        $or: [
-          { firstName: searchRegex },
-          { lastName: searchRegex },
-          { email: searchRegex },
-          { rollNumber: searchRegex },
-        ],
-      };
-    }
-
-    const totalStudents = await Student.countDocuments(query);
-
-    const students = await Student.find(query)
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const result = await getStudentsService({ page, limit, search });
 
     return res.status(200).json({
       success: true,
-      data: students,
-      pagination: {
-        totalItems: totalStudents,
-        currentPage: page,
-        totalPages: Math.ceil(totalStudents / limit),
-        pageSize: limit,
-      },
+      data: result.students,
+      pagination: result.pagination,
     });
   } catch (error) {
     return res.status(500).json({
@@ -160,24 +70,11 @@ export const getStudents = async (req, res) => {
   }
 };
 
-
-//      Get Single Student by ID
- 
+// 3. Get Single Student by ID
 export const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid student ID",
-      });
-    }
-
-    const student = await Student.findById(id)
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email");
+    const student = await getStudentByIdService(id);
 
     if (!student) {
       return res.status(404).json({
@@ -199,24 +96,11 @@ export const getStudentById = async (req, res) => {
   }
 };
 
-
-//     Get All Students in a Specific Batch
- 
+// 4. Get All Students in a Specific Batch
 export const getStudentsByBatch = async (req, res) => {
   try {
     const { batchId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(batchId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid batch ID",
-      });
-    }
-
-    const students = await Student.find({ batchId })
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email");
+    const students = await getStudentsByBatchService(batchId);
 
     return res.status(200).json({
       success: true,
@@ -232,48 +116,14 @@ export const getStudentsByBatch = async (req, res) => {
   }
 };
 
-
-//       Update Student details
-
+// 5. Update Student details
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
+    const { email, rollNumber } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid student ID",
-      });
-    }
-
-    const student = await Student.findById(id);
-
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found",
-      });
-    }
-
-    const {
-      rollNumber,
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    } = req.body;
-
-    if (email && email.toLowerCase() !== student.email) {
-      const existingEmail = await Student.findOne({
-        email: email.toLowerCase(),
-        _id: { $ne: id },
-      });
-
+    if (email) {
+      const existingEmail = await findStudentByEmail(email, id);
       if (existingEmail) {
         return res.status(409).json({
           success: false,
@@ -282,12 +132,8 @@ export const updateStudent = async (req, res) => {
       }
     }
 
-    if (rollNumber && rollNumber !== student.rollNumber) {
-      const existingRoll = await Student.findOne({
-        rollNumber,
-        _id: { $ne: id },
-      });
-
+    if (rollNumber) {
+      const existingRoll = await findStudentByRollNumber(rollNumber, id);
       if (existingRoll) {
         return res.status(409).json({
           success: false,
@@ -296,43 +142,19 @@ export const updateStudent = async (req, res) => {
       }
     }
 
-    if (batchId && !mongoose.Types.ObjectId.isValid(batchId)) {
-      return res.status(400).json({
+    const updatedStudent = await updateStudentService(id, req.body);
+
+    if (!updatedStudent) {
+      return res.status(404).json({
         success: false,
-        message: "Invalid batch ID",
+        message: "Student not found",
       });
     }
-
-    if (mentorId && !mongoose.Types.ObjectId.isValid(mentorId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid mentor ID",
-      });
-    }
-
-    if (rollNumber) student.rollNumber = rollNumber.trim();
-    if (firstName) student.firstName = firstName.trim();
-    if (lastName) student.lastName = lastName.trim();
-    if (email) student.email = email.toLowerCase().trim();
-    if (phoneNumber) student.phoneNumber = phoneNumber.trim();
-    if (gender) student.gender = gender;
-    if (dateOfBirth) student.dateOfBirth = dateOfBirth;
-    if (batchId) student.batchId = batchId;
-    if (mentorId) student.mentorId = mentorId;
-
-    if (password) {
-      student.password = await bcrypt.hash(password, 10);
-    }
-
-    await student.save();
-
-    const studentResponse = student.toObject();
-    delete studentResponse.password;
 
     return res.status(200).json({
       success: true,
       message: "Student updated successfully",
-      data: studentResponse,
+      data: updatedStudent,
     });
   } catch (error) {
     return res.status(500).json({
@@ -343,34 +165,13 @@ export const updateStudent = async (req, res) => {
   }
 };
 
-
-//      Update Student status (active / inactive)
-
- 
+// 6. Update Student Status (Active / Inactive)
 export const updateStudentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid student ID",
-      });
-    }
-
-    if (!["active", "inactive"].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Status must be active or inactive",
-      });
-    }
-
-    const student = await Student.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true, runValidators: true }
-    ).select("-password");
+    const student = await updateStudentStatusService(id, status);
 
     if (!student) {
       return res.status(404).json({
@@ -393,22 +194,11 @@ export const updateStudentStatus = async (req, res) => {
   }
 };
 
-
-//     Delete Student
-
- 
+// 7. Delete Student
 export const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid student ID",
-      });
-    }
-
-    const student = await Student.findById(id);
+    const student = await deleteStudentService(id);
 
     if (!student) {
       return res.status(404).json({
@@ -416,8 +206,6 @@ export const deleteStudent = async (req, res) => {
         message: "Student not found",
       });
     }
-
-    await Student.findByIdAndDelete(id);
 
     return res.status(200).json({
       success: true,

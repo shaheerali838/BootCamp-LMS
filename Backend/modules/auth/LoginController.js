@@ -5,10 +5,7 @@ import Student from "../../model/student.model.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-  hashToken,
-  generateResetToken,
 } from "../../utils/token.js";
-import sendEmail from "../../utils/sendEmail.js";
 
 // ---------- LOGIN ----------
 export const login = async (req, res) => {
@@ -115,7 +112,6 @@ export const logout = async (req, res) => {
 };
 
 // ---------- REFRESH TOKEN ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
 export const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
@@ -164,124 +160,6 @@ export const refreshToken = async (req, res) => {
     return res.status(401).json({
       success: false,
       message: "Invalid refresh token",
-    });
-  }
-};
-
-// ---------- FORGOT PASSWORD ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
-export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const admin = await Admin.findOne({ email: email.toLowerCase() });
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found with this email",
-      });
-    }
-
-    const resetToken = generateResetToken();
-    admin.resetPasswordTokenHash = hashToken(resetToken);
-    admin.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
-    await admin.save();
-
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-    const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
-
-    await sendEmail({
-      to: admin.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Password Reset Request</h2>
-          <p>Hello ${admin.firstName},</p>
-          <p>Click the link below to reset your password:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-        </div>
-      `,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Password reset email sent successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ---------- RESET PASSWORD ----------
-// TODO: Update this later to search Student model as well (Context Issue #26)
-export const resetPassword = async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    if (!token || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Token and new password are required",
-      });
-    }
-
-    const hashedToken = hashToken(token);
-
-    const admin = await Admin.findOne({
-      resetPasswordTokenHash: hashedToken,
-      resetPasswordExpiresAt: { $gt: new Date() },
-    });
-
-    if (!admin) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired reset token",
-      });
-    }
-
-    admin.password = await bcrypt.hash(newPassword, 10);
-    admin.resetPasswordTokenHash = null;
-    admin.resetPasswordExpiresAt = null;
-    await admin.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Password has been reset successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ---------- CHANGE PASSWORD ----------
-export const changePassword = async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    const user = req.user; // Comes from authMiddleware, handles Admin and Student
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: "Incorrect current password",
-      });
-    }
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Password changed successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
     });
   }
 };
