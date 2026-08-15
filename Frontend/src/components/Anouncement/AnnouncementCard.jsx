@@ -20,7 +20,7 @@ const AnnouncementCard = ({
   };
 
   return (
-    <div className="bg-white border w-full border-gray-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+    <div className="bg-white border w-full  border-gray-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
       <div
         className="p-5 cursor-pointer"
         onClick={handleToggle}

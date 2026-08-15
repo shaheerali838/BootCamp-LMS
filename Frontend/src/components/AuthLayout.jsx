@@ -37,10 +37,9 @@ const AuthLayout = () => {
       </p>
 
       <h2 className="text-2xl xl:text-3xl font-bold leading-tight text-blue-900">
-        SMIT Bootcamp for{" "}
-        <span className="text-amber-400 italic">
+        SMIT Bootcamp for
           Future
-        </span>{" "}
+        
         IT Professionals.
       </h2>
 
@@ -111,7 +110,7 @@ const AuthLayout = () => {
 
   </div>
 
-  <div className="w-full h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-6 overflow-hidden auth-scrollbar-none">
+  <div className="w-full h-screen flex items-center justify-center bg-[#0476b9] px-4 ">
 
     <div className="w-full max-w-md">
       <Outlet />

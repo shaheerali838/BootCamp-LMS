@@ -53,9 +53,9 @@ const Announcement = () => {
 
   return (
     <div className=" w-full bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-2 sm:px-2 lg:px-2 py-2">
 
-        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-6">
+        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-3">
 
           <div className="flex items-center justify-between gap-4">
 
@@ -99,7 +99,7 @@ const Announcement = () => {
           </div>
         )}
 
-        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-[40px]">
 
           <div className="flex items-center justify-between gap-4 mb-5">
             <h2 className="text-lg font-semibold text-gray-800">

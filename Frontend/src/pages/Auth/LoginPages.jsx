@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import img from '../../../public/imges/images.jpg'
+import img from "../../../public/imges/images.jpg";
+// import { useAuth } from "../../contextAPI/AuthContext";
 
 function LoginPages() {
-  const navigte = useNavigate();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -19,6 +20,13 @@ function LoginPages() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    // Remove field error while typing
+    setError((prev) => ({
+      ...prev,
+      [e.target.name]: "",
+      general: "",
+    }));
   };
 
   const submitForm = (e) => {
@@ -26,7 +34,7 @@ function LoginPages() {
 
     let newErrors = {};
 
-    if (!formData.email) {
+    if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     }
 
@@ -43,50 +51,57 @@ function LoginPages() {
       return;
     }
 
+    // Temporary login
     if (
       formData.email === "admin@example.com" &&
       formData.password === "123456"
     ) {
       localStorage.setItem("isLoggedIn", "true");
-      navigte("/dashboard");
+
+      navigate("/dashboard");
+
+      setFormData({
+        email: "",
+        password: "",
+      });
+
+      setError({});
     } else {
       setError({
         general: "Invalid email or password",
       });
-      return;
     }
-
-    console.log(formData);
-
-    setFormData({
-      email: "",
-      password: "",
-    });
-
-    setError({});
   };
 
   return (
-    <div className="w-full flex items-center justify-center">
-      <div className="w-full">
-        <div className="w-full flex items-center justify-center mb-4 lg:hidden">
-      <img src={img}alt="SMIT Logo"className="w-40 h-auto object-contain"/>
-    </div>
+    <div className="w-full min-h-screen flex items-center justify-center px-2 ">
+
+      <div className="w-full max-w-md">
+
+        <div className="w-full flex items-center py-2 justify-center lg:hidden">
+          <img
+            src={img}
+            alt="SMIT Logo"
+            className="w-30 h-20 object-contain"
+          />
+        </div>
+
         <form
           onSubmit={submitForm}
-          className="bg-white px-7 py-6 border border-gray-200 rounded-2xl shadow-sm w-full"
+          className="bg-white w-full px-4 py-4 sm:px-6 sm:py-6 border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm"
         >
+
           {error.general && (
-            <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm mb-4">
+            <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs sm:text-sm mb-3 sm:mb-4">
               {error.general}
             </p>
           )}
 
-          <h1 className="font-bold text-3xl text-[#111528]">
+          <h1 className="font-bold text-2xl sm:text-3xl text-[#111528]">
             Welcome back
           </h1>
 
-          <p className="text-gray-500 text-sm leading-6 mt-1">
+          <p className="text-gray-500 text-xs sm:text-sm leading-5 sm:leading-6 mt-1">
             Kindly provide the Email and password used during SMIT
             registration.
           </p>
@@ -94,7 +109,7 @@ function LoginPages() {
           <div>
             <label
               htmlFor="email"
-              className="block text-gray-700 text-sm font-semibold mt-4"
+              className="block text-gray-700 text-sm font-semibold mt-3 sm:mt-4"
             >
               Email
             </label>
@@ -106,11 +121,10 @@ function LoginPages() {
               value={formData.email}
               onChange={handleChange}
               placeholder="you@school.edu"
-              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${
-                error.email
+              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${error.email
                   ? "border-red-400"
                   : "border-gray-300 focus:border-[#0476b9]"
-              }`}
+                }`}
             />
 
             {error.email && (
@@ -123,7 +137,7 @@ function LoginPages() {
           <div>
             <label
               htmlFor="password"
-              className="block text-gray-700 text-sm font-semibold mt-4"
+              className="block text-gray-700 text-sm font-semibold mt-3 sm:mt-4"
             >
               Password
             </label>
@@ -136,11 +150,10 @@ function LoginPages() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
-                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${
-                  error.password
+                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${error.password
                     ? "border-red-400"
                     : "border-gray-300 focus:border-[#0476b9]"
-                }`}
+                  }`}
               />
 
               <button
@@ -163,7 +176,8 @@ function LoginPages() {
             )}
           </div>
 
-          <div className="flex p-2 items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 p-1 sm:p-2 mt-2 items-start sm:items-center justify-between">
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -189,20 +203,11 @@ function LoginPages() {
 
           <button
             type="submit"
-            className="bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-4 w-full hover:bg-[#03669f] transition"
+            className="bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-3 sm:mt-4 w-full hover:bg-[#03669f] transition"
           >
             Log in
           </button>
 
-          {/* <p className="text-center text-sm text-gray-500 mt-5">
-            Don't have an account?{" "}
-            <NavLink
-              to="/signup"
-              className="font-semibold text-[#0476b9] hover:underline"
-            >
-              Sign Up
-            </NavLink>
-          </p> */}
         </form>
       </div>
     </div>
@@ -210,63 +215,3 @@ function LoginPages() {
 }
 
 export default LoginPages;
-
-
-
-
-// const { login } = useAuth();
- 
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
-  // const [loading, setLoading] = useState(false);
-
-   //  try {
-    //   setLoading(true);
-
-    //   const response = await login(
-    //     email,
-    //     password
-    //   );
-
-    //   console.log(
-    //     "Login response:",
-    //     response
-    //   );
-
-    //   const user =
-    //     response.data.user;
-
-    //   console.log(
-    //     "Logged in user:",
-    //     user
-    //   );
-  //   if (
-  //       user.role === "admin" ||
-  //       user.role === "superadmin"
-  //     ) {
-  //       navigate(
-  //         "/admin/dashboard"
-  //       );
-  //     } else if (
-  //       user.role === "student"
-  //     ) {
-  //       navigate(
-  //         "/student/dashboard"
-  //       );
-  //     } else {
-  //       navigate("/dashboard");
-  //     }
-  //   } catch (error) {
-  //     console.log(
-  //       "Login error:",
-  //       error
-  //     );
-
-  //     setError(
-  //       error.response?.data?.message ||
-  //         "Invalid email or password"
-  //     );
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
