@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { FiClock, FiPlus, FiTrash2, FiEdit2, FiFilter } from "react-icons/fi";
 import { useSprints } from "../../context/SprintContext";
-import { useProjects } from "../../context/ProjectContext";
 
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
-  const { projects } = useProjects();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);

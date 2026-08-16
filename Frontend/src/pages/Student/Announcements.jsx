@@ -1,10 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
 import { useAnnouncement } from "../../contextAPI/Anouncement";
 import AnnouncementCard from "../../components/Anouncement/AnnouncementCard";
 
 const Announcements = () => {
-  const { announcements } = useAnnouncement();
+  const { announcements = [] } = useAnnouncement();
+
+  // UPDATED: Pagination logic (6 items per page)
+  const itemsPerPage = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(announcements.length / itemsPerPage);
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const currentAnnouncements = announcements.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="min-h-screen w-full bg-gray-50">
@@ -22,7 +38,7 @@ const Announcements = () => {
               </h1>
 
               <p className="text-sm text-gray-500">
-                View the latest school announcements
+                View the latest school announcements from Context API
               </p>
             </div>
           </div>
@@ -55,20 +71,68 @@ const Announcements = () => {
               </h3>
 
               <p className="text-sm text-gray-500 mt-1">
-                There are currently no announcements available.
+                There are currently no announcements created by Super Admin or Admin.
               </p>
 
             </div>
           ) : (
-            <div className="w-full flex flex-col gap-4">
-              {announcements.map((announcement) => (
-                <AnnouncementCard
-                  key={announcement.id}
-                  announcement={announcement}
-                  showActions={false}
-                />
-              ))}
-            </div>
+            <>
+              <div className="w-full flex flex-col gap-4">
+                {currentAnnouncements.map((announcement) => (
+                  <AnnouncementCard
+                    key={announcement.id}
+                    announcement={announcement}
+                    showActions={false}
+                  />
+                ))}
+              </div>
+
+              {/* UPDATED: Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-lg text-xs font-semibold border transition ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-9 h-9 rounded-lg text-xs font-semibold transition ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className={`px-4 py-2 rounded-lg text-xs font-semibold border transition ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
         </div>
@@ -77,4 +141,4 @@ const Announcements = () => {
   );
 };
 
-export default Announcements;
+export default Announcements;

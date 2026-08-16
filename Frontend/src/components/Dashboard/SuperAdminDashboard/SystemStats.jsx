@@ -3,7 +3,8 @@ import StatCard from "../../Dashborad/StatCard";
 import { useAdmins } from "../../../context/AdminContext";
 import { useStudent } from "../../../context/StudentContext";
 import { useBatches } from "../../../context/BatchContext";
-import { useProjects } from "../../../context/ProjectContext";
+// UPDATED: Import useTeamProject from contextAPI to pull projects count and teams count
+import { useTeamProject } from "../../../contextAPI/TeamProjectContext";
 
 import {
   FiShield,
@@ -18,7 +19,8 @@ function SystemStats() {
   const { admins } = useAdmins();
   const { students } = useStudent();
   const { batches } = useBatches();
-  const { projects } = useProjects();
+  // UPDATED: Access projects and teams from TeamProjectContext API
+  const { projects = [], teams = [] } = useTeamProject();
 
   const superAdminsCount = admins.filter(
     (a) => a.role === "Super Admin"
@@ -32,7 +34,8 @@ function SystemStats() {
   const batchesCount = batches.length;
   const projectsCount = projects.length;
 
-  const teamsCount = new Set(students.map((s) => s.team)).size || 4;
+  const teamsCount = teams.length || new Set(students.map((s) => s.team)).size || 4;
+
 
   const stats = [
     {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   FiSearch,
   FiPlus,
@@ -11,6 +12,8 @@ import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 import ProjectCard from "./PorjectCard";
 
 function ProjectManagement() {
+  const location = useLocation();
+  const isSuperAdmin = location.pathname.startsWith("/superadmin");
   const {
     teams,
     projects,
@@ -21,6 +24,7 @@ function ProjectManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [search, setSearch] = useState("");
+
 
   // --------------------------------
   // PAGINATION
@@ -364,6 +368,11 @@ function ProjectManagement() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-3 px-3">
 
         <div>
+          <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-1">
+            <span>{isSuperAdmin ? "Super Admin" : "Admin"}</span>
+            <span>›</span>
+            <span className="font-semibold text-gray-800">Project Management</span>
+          </div>
           <h1 className="text-3xl font-bold text-gray-800">
             Project Management
           </h1>

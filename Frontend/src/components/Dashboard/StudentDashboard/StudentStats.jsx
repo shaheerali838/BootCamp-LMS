@@ -2,13 +2,15 @@ import React from "react";
 import { FiCheckCircle, FiShare2, FiFolder, FiVolume2 } from "react-icons/fi";
 import { useAttendance } from "../../../context/AttendanceContext";
 import { useTasks } from "../../../context/TaskContext";
-import { useProjects } from "../../../context/ProjectContext";
+// UPDATED: Import useTeamProject to fix runtime error and pull live projects count
+import { useTeamProject } from "../../../contextAPI/TeamProjectContext";
 
 function StudentStats() {
   const { attendance } = useAttendance();
   const { tasks } = useTasks();
-  const { projects } = useProjects();
-
+  // UPDATED: Pull projects from TeamProjectContext API
+  const { projects = [] } = useTeamProject();
+  
   const studentRecord = attendance.find(
     (item) => item.rollNo === "SMIT-1001" || item.id === 1
   );
@@ -24,6 +26,7 @@ function StudentStats() {
   const tasksCount = tasks.length || 6;
   const projectsCount = projects.length || 3;
   const announcementsCount = 2;
+
 
   const stats = [
     {

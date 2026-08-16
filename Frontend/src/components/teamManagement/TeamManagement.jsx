@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
     FiSearch,
     FiUsers,
@@ -10,6 +11,8 @@ import TeamCard from "./TeamCard";
 import CreateTeam from "./CreateTeam";
 
 function TeamManagement() {
+    const location = useLocation();
+    const isSuperAdmin = location.pathname.startsWith("/superadmin");
     const { teams } = useTeamProject();
 
     const [showModal, setShowModal] = useState(false);
@@ -78,14 +81,20 @@ function TeamManagement() {
     return (
         <div className="min-h-screen bg-gray-50 p-2">
             <div className="mb-3 pl-3">
+                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-1">
+                    <span>{isSuperAdmin ? "Super Admin" : "Admin"}</span>
+                    <span>›</span>
+                    <span className="font-semibold text-gray-800">Team Management</span>
+                </div>
                 <h1 className="text-2xl font-bold text-gray-800">
                     Team Management
                 </h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-500 text-sm mt-0.5">
                     Create, manage and search your teams.
                 </p>
             </div>
             <div className="bg-white border flex items-center justify-between border-gray-200 rounded-2xl shadow-sm p-5 mb-3">
+
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3 min-w-[130px]">
                         <div className="flex items-center gap-2">

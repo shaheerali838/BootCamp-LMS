@@ -113,12 +113,21 @@ const AppRoutes = () => {
 
       <Route path="/superadmin/batches" element={<BatchManagement />} />
 
-      <Route path="/superadmin/teams" element={<SuperAdminTeamManagement />} />
+      {/* UPDATED: Mapped SuperAdmin teams, projects, and announcements to unified Context-driven components */}
+      <Route path="/superadmin/teams" element={<TeamManagement />} />
+      <Route path="/superadmin/teams/:id" element={<TeamDetails />} />
 
       <Route
         path="/superadmin/projects"
-        element={<SuperAdminProjectManagement />}
+        element={<ProjectManagement />}
       />
+      <Route path="/superadmin/projects/:id" element={<ProjectDetail />} />
+
+      <Route
+        path="/superadmin/announcements"
+        element={<Announcement />}
+      />
+
 
       <Route path="/superadmin/milestones" element={<MilestoneManagement />} />
 
@@ -134,6 +143,7 @@ const AppRoutes = () => {
         path="/superadmin/configuration"
         element={<SystemConfiguration />}
       />
+
 
       {/* ================= DEFAULT ================= */}
 

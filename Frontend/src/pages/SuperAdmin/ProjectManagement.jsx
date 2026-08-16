@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { FiFolder, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
-import { useProjects } from "../../context/ProjectContext";
 
 function ProjectManagement() {
   const { projects, addProject, updateProject, setProjects } = useProjects();

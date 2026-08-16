@@ -1,9 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiVolume2 } from "react-icons/fi";
+import { useAnnouncement } from "../../../contextAPI/Anouncement";
 
 function Announcements() {
-  const announcements = [
+  const { announcements: contextAnnouncements = [] } = useAnnouncement();
+
+  const fallbackAnnouncements = [
     {
       id: 1,
       title: "New Module Released",
@@ -31,6 +34,19 @@ function Announcements() {
       avatarBg: "bg-purple-100 text-purple-600",
     },
   ];
+
+  const announcements = contextAnnouncements.length > 0
+    ? contextAnnouncements.slice(0, 3).map((a, idx) => ({
+        id: a.id,
+        title: a.title,
+        subtitle: a.description || "School announcement update",
+        date: a.createdAt || "Recent",
+        avatarType: idx % 2 === 0 ? "initials" : "icon",
+        avatarText: (a.postedBy || "SA").slice(0, 2).toUpperCase(),
+        avatarBg: idx === 0 ? "bg-blue-100 text-blue-600" : idx === 1 ? "bg-orange-100 text-orange-500" : "bg-purple-100 text-purple-600",
+      }))
+    : fallbackAnnouncements;
+
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] h-full flex flex-col justify-between">

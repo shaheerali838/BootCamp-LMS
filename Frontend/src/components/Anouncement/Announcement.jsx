@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { FaBullhorn, FaPlus } from "react-icons/fa";
 import AnnouncementCard from "../../components/Anouncement/AnnouncementCard";
 import AnnouncementForm from "../../components/Anouncement/AnnouncementForm";
 import { useAnnouncement } from "../../contextAPI/Anouncement";
 
 const Announcement = () => {
+  const location = useLocation();
+  const isSuperAdmin = location.pathname.startsWith("/superadmin");
+
   const {
     announcements,
     addAnnouncement,
@@ -65,6 +69,11 @@ const Announcement = () => {
               </div>
 
               <div className="min-w-0">
+                <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-0.5">
+                  <span>{isSuperAdmin ? "Super Admin" : "Admin"}</span>
+                  <span>›</span>
+                  <span className="font-semibold text-gray-800">Announcements</span>
+                </div>
                 <h1 className="text-2xl font-bold text-gray-800 truncate">
                   Announcements
                 </h1>
@@ -74,6 +83,7 @@ const Announcement = () => {
                 </p>
               </div>
             </div>
+
 
             {!showForm && (
               <button

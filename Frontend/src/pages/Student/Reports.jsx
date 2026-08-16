@@ -2,13 +2,11 @@ import React from "react";
 import { FiBarChart2, FiCheckCircle, FiAward, FiTrendingUp } from "react-icons/fi";
 import { useAttendance } from "../../context/AttendanceContext";
 import { useTasks } from "../../context/TaskContext";
-import { useProjects } from "../../context/ProjectContext";
 import { useReports } from "../../context/ReportContext";
 
 function Reports() {
   const { attendance } = useAttendance();
   const { tasks } = useTasks();
-  const { projects } = useProjects();
   const { batchPerformanceData } = useReports();
 
   const studentRecord = attendance.find((s) => s.rollNo === "SMIT-1001") || { attendance: [] };

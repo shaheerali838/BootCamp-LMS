@@ -1,10 +1,8 @@
 import "./App.css";
-
 import { SidebarProvider, useSidebar } from "./context/SidebarContext";
 import { AttendanceProvider } from "./context/AttendanceContext";
 import { StudentProvider } from "./context/StudentContext";
 import { TaskProvider } from "./context/TaskContext";
-import { ProjectProvider } from "./context/ProjectContext";
 import { TeamProjectProvider } from "./contextAPI/TeamProjectContext";
 import { ResourceProvider } from "./context/ResourceContext";
 import { ReportProvider } from "./context/ReportContext";
@@ -82,7 +80,6 @@ function App() {
         <AttendanceProvider>
           <StudentProvider>
             <TaskProvider>
-              <ProjectProvider>
                 <TeamProjectProvider>
                   <ResourceProvider>
                     <ReportProvider>
@@ -102,7 +99,7 @@ function App() {
                     </ReportProvider>
                   </ResourceProvider>
                 </TeamProjectProvider>
-              </ProjectProvider>
+              
             </TaskProvider>
           </StudentProvider>
         </AttendanceProvider>
