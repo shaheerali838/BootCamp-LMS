@@ -79,6 +79,8 @@ const AppRoutes = () => {
 
       {/* ================= STUDENT ROUTES ================= */}
 
+      <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
+
       <Route path="/student/dashboard" element={<StudentDashboard />} />
 
       <Route path="/student/attendance" element={<MyAttendance />} />
@@ -96,6 +98,8 @@ const AppRoutes = () => {
       <Route path="/student/reports" element={<StudentReports />} />
 
       {/* ================= SUPER ADMIN ROUTES ================= */}
+
+      <Route path="/superadmin" element={<Navigate to="/superadmin/dashboard" replace />} />
 
       <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
 

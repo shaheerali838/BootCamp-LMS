@@ -12,7 +12,7 @@ export const BatchProvider = ({ children }) => {
   const fetchBatches = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/batches");
+      const response = await api.get("/batches/get-all-batches");
       if (response.data.success) {
         setBatches(response.data.batches);
       }
@@ -41,7 +41,7 @@ export const BatchProvider = ({ children }) => {
         status: newBatch.status || "active",
       };
 
-      const response = await api.post("/batches", payload);
+      const response = await api.post("/batches/create-batch", payload);
       if (response.data.success) {
         setBatches((prev) => [response.data.batch, ...prev]);
       }
@@ -65,7 +65,7 @@ export const BatchProvider = ({ children }) => {
         status: updatedData.status,
       };
 
-      const response = await api.put(`/batches/${id}`, payload);
+      const response = await api.put(`/batches/update-batch/${id}`, payload);
       if (response.data.success) {
         setBatches((prev) =>
           prev.map((b) => (b._id === id ? response.data.batch : b))
@@ -83,7 +83,7 @@ export const BatchProvider = ({ children }) => {
   const deleteBatch = async (id) => {
     setLoading(true);
     try {
-      const response = await api.delete(`/batches/${id}`);
+      const response = await api.delete(`/batches/delete-batch/${id}`);
       if (response.data.success) {
         setBatches((prev) => prev.filter((b) => b._id !== id));
       }

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { FiUserCheck, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
+import {
+  FiUserCheck,
+  FiPlus,
+  FiTrash2,
+  FiEdit2,
+  FiSearch,
+} from "react-icons/fi";
 import { useAdmins } from "../../context/AdminContext";
 
 function AdminManagement() {
@@ -56,7 +62,6 @@ function AdminManagement() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -80,7 +85,10 @@ function AdminManagement() {
       {/* Filter and Search Bar */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <FiSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <FiSearch
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
           <input
             type="text"
             value={search}
@@ -117,7 +125,10 @@ function AdminManagement() {
         </div>
         <div className="divide-y divide-gray-100">
           {filtered.map((item) => (
-            <div key={item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm">
+            <div
+              key={item.id}
+              className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
+            >
               <div className="col-span-2">
                 <div className="font-bold text-gray-900">{item.name}</div>
                 <div className="text-xs text-gray-400">{item.email}</div>
@@ -176,7 +187,9 @@ function AdminManagement() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="e.g. Sir Ahmed"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
@@ -189,7 +202,9 @@ function AdminManagement() {
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   placeholder="ahmed@smit.edu.pk"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
@@ -200,7 +215,9 @@ function AdminManagement() {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   <option value="Admin">Admin</option>
@@ -214,7 +231,9 @@ function AdminManagement() {
                 <input
                   type="text"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   placeholder="0300-1234567"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
