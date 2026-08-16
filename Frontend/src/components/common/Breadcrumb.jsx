@@ -10,6 +10,7 @@ function Breadcrumb() {
     "/dashboard": "Dashboard",
     "/students": "Student Management",
     "/teams": "Team Management",
+    "/tasks":"Task",
     "/attendance": "Attendance Management",
     "/projects": "Project Management",
     "/announcements": "Announcements",

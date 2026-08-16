@@ -7,15 +7,10 @@ import RecentResources from "../../components/features/Dashboard/StudentDashboar
 
 function StudentDashboard() {
   return (
-    <div className="p-3 space-y-3   mx-auto min-h-screen">
+    <div className="p-3 space-y-3 mt-5   mx-auto min-h-screen">
       {/* Top Header */}
       <div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-          <span>Home</span>
-          <span>/</span>
-          <span className="font-bold text-gray-700">Dashboard</span>
-        </div>
-
+       
         <div className="text-[11px] text-gray-400 font-medium mt-0.5">
           Wednesday, August 12, 2026
         </div>

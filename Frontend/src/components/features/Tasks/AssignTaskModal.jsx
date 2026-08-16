@@ -41,7 +41,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
         title: formData.title,
         description: formData.description,
         assignedBy: "Admin User",
-        assignedTo: formData.assignedTo,
+        assignedTo: "Unassigned",
         assignedDate: new Date().toISOString().split("T")[0],
         dueDate: formData.dueDate,
         priority: formData.priority,
@@ -67,13 +67,13 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
               <h2 className="text-lg font-semibold text-gray-900">
                 {taskToAssign
                   ? `Assign Task: ${taskToAssign.title}`
-                  : "Create & Assign New Task"}
+                  : "Create New Task"}
               </h2>
 
               <p className="text-sm text-gray-500 mt-1">
                 {taskToAssign
                   ? "Assign this task to a student or team"
-                  : "Create a new task and assign it to a student or team"}
+                  : "Create a new task for your course"}
               </p>
             </div>
           </div>
@@ -122,32 +122,50 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
             />
           </div>
 
-          {/* Assign To + Due Date */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Assign To */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assign To (Team / Student)
-              </label>
+          {/* Conditional Layout: 2 Columns when assigning existing task, Full-width Due Date when creating new task */}
+          {taskToAssign ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Assign To (Only shown when assigning an existing task) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assign To (Team / Student)
+                </label>
 
-              <select
-                name="assignedTo"
-                value={formData.assignedTo}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
-              >
-                <option value="Team Alpha">Team Alpha</option>
-                <option value="Team Beta">Team Beta</option>
-                <option value="Team Gamma">Team Gamma</option>
-                <option value="Team Delta">Team Delta</option>
-                <option value="All Students">All Students</option>
-                <option value="Ali Hassan">Ali Hassan</option>
-                <option value="Sara Bilal">Sara Bilal</option>
-                <option value="Usman Tariq">Usman Tariq</option>
-              </select>
+                <select
+                  name="assignedTo"
+                  value={formData.assignedTo}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+                >
+                  <option value="Team Alpha">Team Alpha</option>
+                  <option value="Team Beta">Team Beta</option>
+                  <option value="Team Gamma">Team Gamma</option>
+                  <option value="Team Delta">Team Delta</option>
+                  <option value="All Students">All Students</option>
+                  <option value="Ali Hassan">Ali Hassan</option>
+                  <option value="Sara Bilal">Sara Bilal</option>
+                  <option value="Usman Tariq">Usman Tariq</option>
+                </select>
+              </div>
+
+              {/* Due Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Date *
+                </label>
+
+                <input
+                  type="date"
+                  name="dueDate"
+                  value={formData.dueDate}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+                />
+              </div>
             </div>
-
-            {/* Due Date */}
+          ) : (
+            /* Due Date Full-Width (When creating new task) */
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Due Date *
@@ -162,7 +180,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
               />
             </div>
-          </div>
+          )}
 
           {/* Priority */}
           <div>

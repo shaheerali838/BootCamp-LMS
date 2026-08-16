@@ -9,11 +9,7 @@ function MyProjects() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <span>Student Portal</span>
-          <span>›</span>
-          <span className="font-semibold text-gray-800">My Projects</span>
-        </div>
+      
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Projects & Milestones</h1>
