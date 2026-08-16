@@ -4,7 +4,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import { useRegistrationLog } from "../../../../context/RegistrationLogContext";
+import { useRegistrationLog } from "../../../../context/SystemContext";
 
 function RecentRegistrations() {
   const { registrations } = useRegistrationLog();

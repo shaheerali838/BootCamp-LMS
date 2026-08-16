@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiBookOpen, FiPlus, FiTrash2, FiSearch, FiFileText } from "react-icons/fi";
-import { useResources } from "../../context/ResourceContext";
+import { useResources } from "../../context/SystemContext";
 
 function Resources() {
   const { resources, addResource, setResources } = useResources();

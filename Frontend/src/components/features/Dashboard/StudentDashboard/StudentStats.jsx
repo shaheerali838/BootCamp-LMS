@@ -1,7 +1,7 @@
 import React from "react";
 import { FiCheckCircle, FiShare2, FiFolder, FiVolume2 } from "react-icons/fi";
-import { useAttendance } from "../../../../context/AttendanceContext";
-import { useTasks } from "../../../../context/TaskContext";
+import { useAttendance } from "../../../../context/AcademicContext";
+import { useTasks } from "../../../../context/WorkContext";
 import { useTeamProject } from "../../../../context/TeamProjectContext";
 function StudentStats() {
   const { attendance } = useAttendance();

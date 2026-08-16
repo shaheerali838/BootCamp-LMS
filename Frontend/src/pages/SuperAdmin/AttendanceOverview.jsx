@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers } from "react-icons/fi";
-import { useStudent } from "../../context/StudentContext";
-import { useAttendance } from "../../context/AttendanceContext";
+import { useStudent, useAttendance } from "../../context/AcademicContext";
 
 function AttendanceOverview() {
   const { students } = useStudent();

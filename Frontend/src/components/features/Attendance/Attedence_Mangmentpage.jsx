@@ -9,8 +9,7 @@ import {
   FiSave,
 } from "react-icons/fi";
 
-import { useStudent } from "../../../context/StudentContext";
-import { useAttendance } from "../../../context/AttendanceContext";
+import { useStudent, useAttendance } from "../../../context/AcademicContext";
 
 function AttendanceManagement() {
   const { students } = useStudent();

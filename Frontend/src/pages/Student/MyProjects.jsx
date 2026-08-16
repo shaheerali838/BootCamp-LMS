@@ -8,7 +8,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { useTeamProject } from "../../context/TeamProjectContext";
-import { useStudent } from "../../context/StudentContext";
+import { useStudent } from "../../context/AcademicContext";
 
 function MyProjects() {
   const { projects = [], teams = [] } = useTeamProject();

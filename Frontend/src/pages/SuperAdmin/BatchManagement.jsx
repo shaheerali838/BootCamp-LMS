@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiLayers, FiPlus, FiTrash2, FiEdit2, FiSearch, FiLoader, FiAlertCircle } from "react-icons/fi";
-import { useBatches } from "../../context/BatchContext";
+import { useBatches } from "../../context/AcademicContext";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } = useBatches();

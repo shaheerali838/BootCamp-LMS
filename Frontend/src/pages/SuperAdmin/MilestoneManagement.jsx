@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { FiCheckSquare, FiPlus, FiTrash2, FiEdit2, FiFilter } from "react-icons/fi";
-import { useMilestones } from "../../context/MilestoneContext";
+import { useMilestones } from "../../context/WorkContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
 
 function MilestoneManagement() {
   const { milestones, addMilestone, updateMilestone, deleteMilestone } = useMilestones();
+  const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);

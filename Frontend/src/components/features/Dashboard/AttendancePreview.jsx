@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { useAttendance } from "../../../context/AttendanceContext";
+import { useAttendance } from "../../../context/AcademicContext";
 
 function AttendancePreview() {
   const { attendance } = useAttendance();

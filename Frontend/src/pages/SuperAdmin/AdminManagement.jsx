@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiUserCheck, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
-import { useAdmins } from "../../context/AdminContext";
+import { useAdmins } from "../../context/SystemContext";
 
 function AdminManagement() {
   const { admins, addAdmin, updateAdmin, deleteAdmin } = useAdmins();

@@ -1,34 +1,18 @@
 import React from "react";
 import { SidebarProvider } from "./SidebarContext";
-import { AttendanceProvider } from "./AttendanceContext";
-import { StudentProvider } from "./StudentContext";
-import { TaskProvider } from "./TaskContext";
 import { TeamProjectProvider } from "./TeamProjectContext";
-import { ResourceProvider } from "./ResourceContext";
-import { ReportProvider } from "./ReportContext";
-import { AdminProvider } from "./AdminContext";
-import { BatchProvider } from "./BatchContext";
-import { MilestoneProvider } from "./MilestoneContext";
-import { SprintProvider } from "./SprintContext";
-import { RegistrationLogProvider } from "./RegistrationLogContext";
-import { ActivityLogProvider } from "./ActivityLogContext";
 import { AnnouncementProvider } from "./AnnouncementContext";
+import { AcademicProvider } from "./AcademicContext";
+import { WorkProvider } from "./WorkContext";
+import { SystemProvider } from "./SystemContext";
 
 const providers = [
   SidebarProvider,
   AnnouncementProvider,
-  AttendanceProvider,
-  StudentProvider,
-  TaskProvider,
+  AcademicProvider,
+  WorkProvider,
   TeamProjectProvider,
-  ResourceProvider,
-  ReportProvider,
-  AdminProvider,
-  BatchProvider,
-  MilestoneProvider,
-  SprintProvider,
-  RegistrationLogProvider,
-  ActivityLogProvider,
+  SystemProvider,
 ];
 
 export const AppProvider = ({ children }) => {

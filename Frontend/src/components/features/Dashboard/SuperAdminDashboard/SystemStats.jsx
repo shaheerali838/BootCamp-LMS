@@ -1,8 +1,7 @@
 import React from "react";
 import StatCard from "../../Dashboard/StatCard";
-import { useAdmins } from "../../../../context/AdminContext";
-import { useStudent } from "../../../../context/StudentContext";
-import { useBatches } from "../../../../context/BatchContext";
+import { useAdmins } from "../../../../context/SystemContext";
+import { useStudent, useBatches } from "../../../../context/AcademicContext";
 import { useTeamProject } from "../../../../context/TeamProjectContext";
 
 import {
