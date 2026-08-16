@@ -66,6 +66,7 @@ const Sidebar = () => {
     navigate("/dashboard");
   };
 
+
   /*
    * Keep sidebar open on desktop.
    *

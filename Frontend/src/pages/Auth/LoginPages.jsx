@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import img from "../../../public/imges/images.jpg";
-// import { useAuth } from "../../contextAPI/AuthContext";
+import img from "/imges/images.jpg?url";
+import { useAuth } from "../../context/AuthContext";
+import { FiLoader } from "react-icons/fi";
 
 function LoginPages() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -14,6 +16,7 @@ function LoginPages() {
 
   const [error, setError] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -29,7 +32,7 @@ function LoginPages() {
     }));
   };
 
-  const submitForm = (e) => {
+  const submitForm = async (e) => {
     e.preventDefault();
 
     let newErrors = {};
@@ -41,8 +44,7 @@ function LoginPages() {
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password =
-        "Password must be at least 6 characters long";
+      newErrors.password = "Password must be at least 6 characters long";
     }
 
     setError(newErrors);
@@ -51,46 +53,48 @@ function LoginPages() {
       return;
     }
 
-    // Temporary login
-    if (
-      formData.email === "admin@example.com" &&
-      formData.password === "123456"
-    ) {
-      localStorage.setItem("isLoggedIn", "true");
+    setIsLoading(true);
+    try {
+      const response = await login(formData.email, formData.password);
 
-      navigate("/dashboard");
+      const userRole = (response.data?.user?.role || "STUDENT")
+        .toUpperCase()
+        .replace(/[\s_]+/g, "");
+
+      if (userRole === "SUPERADMIN") {
+        navigate("/superadmin/dashboard", { replace: true });
+      } else if (userRole === "ADMIN") {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/student/dashboard", { replace: true });
+      }
 
       setFormData({
         email: "",
         password: "",
       });
-
       setError({});
-    } else {
+    } catch (err) {
+      console.error(err);
       setError({
-        general: "Invalid email or password",
+        general: err.response?.data?.message || "Invalid email or password",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center px-2 ">
-
       <div className="w-full max-w-md">
-
         <div className="w-full flex items-center py-2 justify-center lg:hidden">
-          <img
-            src={img}
-            alt="SMIT Logo"
-            className="w-30 h-20 object-contain"
-          />
+          <img src={img} alt="SMIT Logo" className="w-30 h-20 object-contain" />
         </div>
 
         <form
           onSubmit={submitForm}
           className="bg-white w-full px-4 py-4 sm:px-6 sm:py-6 border border-gray-200 rounded-xl sm:rounded-2xl shadow-sm"
         >
-
           {error.general && (
             <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs sm:text-sm mb-3 sm:mb-4">
               {error.general}
@@ -102,8 +106,7 @@ function LoginPages() {
           </h1>
 
           <p className="text-gray-500 text-xs sm:text-sm leading-5 sm:leading-6 mt-1">
-            Kindly provide the Email and password used during SMIT
-            registration.
+            Kindly provide the Email and password used during SMIT registration.
           </p>
 
           <div>
@@ -120,17 +123,17 @@ function LoginPages() {
               id="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoading}
               placeholder="you@school.edu"
-              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${error.email
+              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${
+                error.email
                   ? "border-red-400"
                   : "border-gray-300 focus:border-[#0476b9]"
-                }`}
+              } ${isLoading ? "bg-gray-100" : ""}`}
             />
 
             {error.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {error.email}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{error.email}</p>
             )}
           </div>
 
@@ -149,35 +152,31 @@ function LoginPages() {
                 id="password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
                 placeholder="Enter your password"
-                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${error.password
+                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${
+                  error.password
                     ? "border-red-400"
                     : "border-gray-300 focus:border-[#0476b9]"
-                  }`}
+                } ${isLoading ? "bg-gray-100" : ""}`}
               />
 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0476b9]"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
             {error.password && (
-              <p className="text-red-500 text-xs mt-1">
-                {error.password}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{error.password}</p>
             )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 p-1 sm:p-2 mt-2 items-start sm:items-center justify-between">
-
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -185,10 +184,7 @@ function LoginPages() {
                 className="accent-[#0476b9]"
               />
 
-              <label
-                htmlFor="remember"
-                className="text-gray-500 text-sm ml-2"
-              >
+              <label htmlFor="remember" className="text-gray-500 text-sm ml-2">
                 Remember me
               </label>
             </div>
@@ -203,11 +199,12 @@ function LoginPages() {
 
           <button
             type="submit"
-            className="bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-3 sm:mt-4 w-full hover:bg-[#03669f] transition"
+            disabled={isLoading}
+            className="flex items-center justify-center gap-2 bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-3 sm:mt-4 w-full hover:bg-[#03669f] transition disabled:opacity-70"
           >
+            {isLoading && <FiLoader className="animate-spin" />}
             Log in
           </button>
-
         </form>
       </div>
     </div>

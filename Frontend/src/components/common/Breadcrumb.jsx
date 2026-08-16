@@ -5,20 +5,24 @@ import { useLocation } from "react-router-dom";
 function Breadcrumb() {
   const location = useLocation();
 
-  const pageNames = {
-    "/": "Dashboard",
-    "/dashboard": "Dashboard",
-    "/students": "Student Management",
-    "/teams": "Team Management",
-    "/tasks":"Task",
-    "/attendance": "Attendance Management",
-    "/projects": "Project Management",
-    "/announcements": "Announcements",
-    "/reports": "Reports & Analytics",
-    "/resources": "Resource Library",
+  // Generate a readable title from the pathname
+  const formatPath = (path) => {
+    if (path === "/" || path.endsWith("/dashboard")) return "Dashboard";
+    
+    // Get the last segment of the path
+    const segments = path.split("/").filter(Boolean);
+    if (segments.length === 0) return "Dashboard";
+    
+    const lastSegment = segments[segments.length - 1];
+    
+    // Convert kebab-case or snake_case to Title Case
+    return lastSegment
+      .split(/[-_]/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
-  const currentPage = pageNames[location.pathname] || "Dashboard";
+  const currentPage = formatPath(location.pathname);
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",

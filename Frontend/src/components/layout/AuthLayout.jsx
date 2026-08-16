@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import img from "../../../public/imges/images-removebg-preview.png";
+import img from "/imges/images-removebg-preview.png?url";
 
 const AuthLayout = () => {
   return (
