@@ -9,7 +9,7 @@ import {
   FiFolder,
 } from "react-icons/fi";
 
-import { useTeamProject } from "../../contextAPI/TeamProjectContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/StudentContext";
 
 function MyTeam() {

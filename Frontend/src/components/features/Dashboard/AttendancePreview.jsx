@@ -129,9 +129,9 @@ function AttendancePreview() {
 
         {/* Attendance Rows */}
         <div className="divide-y divide-gray-100">
-          {displayedData.map((student) => (
+          {displayedData.map((student, index) => (
             <div
-              key={student.id}
+              key={student.id || student.rollNo || index}
               className="grid grid-cols-5 items-center px-3 py-2.5 hover:bg-gray-50/50 transition text-xs"
             >
               {/* Student */}

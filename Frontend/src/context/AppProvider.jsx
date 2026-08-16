@@ -3,7 +3,6 @@ import { SidebarProvider } from "./SidebarContext";
 import { AttendanceProvider } from "./AttendanceContext";
 import { StudentProvider } from "./StudentContext";
 import { TaskProvider } from "./TaskContext";
-import { ProjectProvider } from "./ProjectContext";
 import { TeamProjectProvider } from "./TeamProjectContext";
 import { ResourceProvider } from "./ResourceContext";
 import { ReportProvider } from "./ReportContext";
@@ -21,7 +20,6 @@ const providers = [
   AttendanceProvider,
   StudentProvider,
   TaskProvider,
-  ProjectProvider,
   TeamProjectProvider,
   ResourceProvider,
   ReportProvider,

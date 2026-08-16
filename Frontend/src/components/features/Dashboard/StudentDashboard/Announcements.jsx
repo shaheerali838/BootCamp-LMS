@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiVolume2 } from "react-icons/fi";
-import { useAnnouncement } from "../../../contextAPI/Anouncement";
+import { useAnnouncement } from "../../../../context/AnnouncementContext";
 
 function Announcements() {
   const { announcements: contextAnnouncements = [] } = useAnnouncement();
