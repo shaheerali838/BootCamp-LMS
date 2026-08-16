@@ -40,39 +40,36 @@ function TeamCard({ team, onEdit }) {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-2 shadow-sm hover:shadow-md transition w-full">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition  w-full">
 
-            <div className="flex items-center justify-between">
+           <div className="flex items-center justify-between">
+    <div className="w-full">
 
-                <div className="min-w-0">
-                    <h2 className="text-xl font-bold text-gray-800 truncate">
-                        {team.name}
-                    </h2>
+        <h2 className="text-xl font-bold text-gray-800 truncate">
+            {team.name}
+        </h2>
 
-                    <p className="text-black/40 mt-2 text-sm">
-                        Description
-                    </p>
+        <p className="text-gray-500 text-sm mt-4">
+            Description
+        </p>
 
-                    <div className="w-full h-20 border border-gray-300 rounded-md p-2">
-                        <p className="h-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
-                            {team?.description}
-                        </p>
-                    </div>
+        <div className="w-full h-20 border border-gray-300 rounded-md p-2 mt-1">
+            <p className="h-full w-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
+                {team?.description || "No description available"}
+            </p>
+        </div>
 
-                    {team.lead && (
-                        <p className="text-gray-500 text-xs mt-2">
-                            Lead:{" "}
-                            <span className="font-semibold text-gray-700">
-                                {team.lead}
-                            </span>
-                        </p>
-                    )}
-                </div>
+        {team.lead && (
+            <p className="text-gray-500 text-xs mt-2">
+                Lead:{" "}
+                <span className="font-semibold text-gray-700">
+                    {team.lead}
+                </span>
+            </p>
+        )}
 
-                {/* <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-100 text-[#0476b9] flex items-center justify-center font-bold text-lg">
-                    {getInitial(team.name)}
-                </div> */}
-            </div>
+    </div>
+</div>
 
             <p className="text-gray-500 text-sm py-2">
                 Members: {team.members.length}

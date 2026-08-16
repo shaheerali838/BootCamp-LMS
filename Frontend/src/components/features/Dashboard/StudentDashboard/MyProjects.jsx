@@ -1,9 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useProjects } from "../../../../context/ProjectContext";
-
+import { useTeamProject } from "../../../../context/TeamProjectContext";
 function MyProjects() {
-  const { projects } = useProjects();
+  const { projects = [] } = useTeamProject();
 
   const displayProjects = [
     {
@@ -26,7 +25,13 @@ function MyProjects() {
     },
   ];
 
-  const list = projects.length > 0 ? projects.slice(0, 3) : displayProjects;
+  const list = projects.length > 0 ? projects.slice(0, 3).map(p => ({
+    id: p.id || p._id,
+    title: p.name || p.projectName || p.title || "Untitled Project",
+    subtitle: `${p.category || "Team Project"} • ${p.status || "In Progress"}`,
+    progress: p.progress !== undefined ? p.progress : 50,
+  })) : displayProjects;
+
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">

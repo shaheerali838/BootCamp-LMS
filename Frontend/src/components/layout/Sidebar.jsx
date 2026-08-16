@@ -220,6 +220,13 @@ const Sidebar = () => {
       icon: <IoFolderOutline size={19} />,
       path: "/superadmin/projects",
     },
+    // UPDATED: Added Announcements navigation item for SuperAdmin role
+    {
+      name: "Announcements",
+      icon: <GrAnnounce size={22} />,
+      path: "/superadmin/announcements",
+    },
+
     {
       name: "Milestones",
       icon: <FiCheckSquare size={19} />,

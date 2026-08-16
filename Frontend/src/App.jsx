@@ -1,8 +1,6 @@
 import "./App.css";
-
 import { useSidebar } from "./context/SidebarContext";
 import { AppProvider } from "./context/AppProvider";
-
 import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
 
@@ -66,8 +64,7 @@ function App() {
   return (
     <AppProvider>
       <AppLayout />
-    </AppProvider>
-  );
+    </AppProvider>  );
 }
 
 export default App;
