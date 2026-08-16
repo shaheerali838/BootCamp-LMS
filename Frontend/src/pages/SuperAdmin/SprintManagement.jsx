@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { FiClock, FiPlus, FiTrash2, FiEdit2, FiFilter } from "react-icons/fi";
 import { useSprints } from "../../context/SprintContext";
+import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
+  // Access global projects from TeamProjectContext API
+  const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);

@@ -95,18 +95,11 @@ function MyProjects() {
     displayList.length / itemsPerPage
   );
 
-  useEffect(() => {
-    if (
-      totalPages > 0 &&
-      currentPage > totalPages
-    ) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
+  const validPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
 
   const currentProjects = displayList.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (validPage - 1) * itemsPerPage,
+    validPage * itemsPerPage
   );
 
   // --------------------------------

@@ -27,15 +27,11 @@ function MyTeam() {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(teams.length / itemsPerPage);
 
-  useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
+  const validPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
 
   const currentTeams = teams.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (validPage - 1) * itemsPerPage,
+    validPage * itemsPerPage
   );
 
   // ADDED: Find project assigned to a team

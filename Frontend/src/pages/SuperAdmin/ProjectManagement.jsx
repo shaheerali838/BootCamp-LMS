@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { FiFolder, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
+import { useTeamProject } from "../../contextAPI/TeamProjectContext";
 
 function ProjectManagement() {
-  const { projects, addProject, updateProject, setProjects } = useProjects();
+  const { projects = [], addProject, updateProject, deleteProject } = useTeamProject();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);

@@ -22,7 +22,8 @@ import AppRoutes from "./pages/routes/AppRoutes";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import AuthLayout from "./components/AuthLayout";
-import LoginPages from "./pages/Auth/Loginpages";
+// Auth component imports
+import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
 
 function DashboardLayout() {

@@ -1,182 +1,126 @@
-// import React, {
-//   createContext,
-//   useContext,
-//   useEffect,
-//   useState,
-// } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import api from "../api/api";
 
-// import api from "../api/axios";
+const AuthContext = createContext();
 
-// const AuthContext = createContext(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-// export const AuthProvider = ({ children }) => {
-//   // --------------------------------
-//   // USER
-//   // --------------------------------
+  // Load saved user
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
 
-//   const [user, setUser] = useState(() => {
-//     const savedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
 
-//     if (!savedUser) {
-//       return null;
-//     }
+    setLoading(false);
+  }, []);
 
-//     try {
-//       return JSON.parse(savedUser);
-//     } catch {
-//       return null;
-//     }
-//   });
+  // LOGIN
+  const login = async (email, password) => {
+    const response = await api.post("/auth/login", {
+      email,
+      password,
+    });
 
-//   // --------------------------------
-//   // ACCESS TOKEN
-//   // --------------------------------
+    const { accessToken, user } = response.data.data;
 
-//   const [accessToken, setAccessToken] = useState(() => {
-//     return localStorage.getItem("accessToken");
-//   });
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("isLoggedIn", "true");
 
-//   // --------------------------------
-//   // LOADING
-//   // --------------------------------
+    setUser(user);
 
-//   const [loading, setLoading] = useState(true);
+    return response;
+  };
 
-//   // --------------------------------
-//   // LOGIN
-//   // --------------------------------
+  // LOGOUT
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("isLoggedIn");
 
-//   const login = async (email, password) => {
-//     const response = await api.post("/auth/login", {
-//       email,
-//       password,
-//     });
+      setUser(null);
+    }
+  };
 
-//     const { accessToken, user } = response.data.data;
+  // REFRESH TOKEN
+  const refreshToken = async () => {
+    const response = await api.post("/auth/refresh-token");
 
-//     localStorage.setItem(
-//       "accessToken",
-//       accessToken
-//     );
+    const newAccessToken = response.data.accessToken;
 
-//     localStorage.setItem(
-//       "user",
-//       JSON.stringify(user)
-//     );
+    localStorage.setItem("accessToken", newAccessToken);
 
-//     setAccessToken(accessToken);
-//     setUser(user);
+    return response;
+  };
 
-//     return response.data;
-//   };
+  // FORGOT PASSWORD
+  const forgotPassword = async (email) => {
+    const response = await api.post("/auth/forgot-password", {
+      email,
+    });
 
+    return response;
+  };
 
+  // RESET PASSWORD
+  const resetPassword = async (token, newPassword) => {
+    const response = await api.post("/auth/reset-password", {
+      token,
+      newPassword,
+    });
 
-//   const logout = async () => {
-//     try {
-//       await api.post("/auth/logout");
-//     } catch (error) {
-//       console.log("Logout API error:", error);
-//     } finally {
-//       // Remove frontend authentication
-//       localStorage.removeItem("accessToken");
-//       localStorage.removeItem("user");
+    return response;
+  };
 
-//       setAccessToken(null);
-//       setUser(null);
-//     }
-//   };
+  // CHANGE PASSWORD
+  const changePassword = async (currentPassword, newPassword) => {
+    const response = await api.post("/auth/change-password", {
+      currentPassword,
+      newPassword,
+    });
 
-//   const refreshAccessToken = async () => {
-//     try {
-//       const response = await api.post(
-//         "/auth/refresh-token"
-//       );
+    return response;
+  };
 
-//       const newAccessToken =
-//         response.data.accessToken;
+  // REGISTER
+  const register = async (userData) => {
+    const response = await api.post("/auth/register", userData);
 
-//       localStorage.setItem(
-//         "accessToken",
-//         newAccessToken
-//       );
+    return response;
+  };
 
-//       setAccessToken(newAccessToken);
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        login,
+        logout,
+        refreshToken,
+        forgotPassword,
+        resetPassword,
+        changePassword,
+        register,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-//       return newAccessToken;
-//     } catch (error) {
-//       console.log(
-//         "Refresh token failed:",
-//         error
-//       );
-
-//       localStorage.removeItem("accessToken");
-//       localStorage.removeItem("user");
-
-//       setAccessToken(null);
-//       setUser(null);
-
-//       return null;
-//     }
-//   };
-
-//   useEffect(() => {
-//     const checkAuth = async () => {
-//       const token =
-//         localStorage.getItem("accessToken");
-
-//       const savedUser =
-//         localStorage.getItem("user");
-
-//       if (token && savedUser) {
-//         try {
-//           setAccessToken(token);
-//           setUser(JSON.parse(savedUser));
-//         } catch (error) {
-//           localStorage.removeItem(
-//             "accessToken"
-//           );
-
-//           localStorage.removeItem("user");
-
-//           setAccessToken(null);
-//           setUser(null);
-//         }
-//       }
-
-//       setLoading(false);
-//     };
-
-//     checkAuth();
-//   }, []);
-
-//   const isAuthenticated =
-//     Boolean(accessToken) && Boolean(user);
-
-//   return (
-//     <AuthContext.Provider
-//       value={{
-//         user,
-//         accessToken,
-//         loading,
-//         isAuthenticated,
-//         login,
-//         logout,
-//         refreshAccessToken,
-//       }}
-//     >
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-// export const useAuth = () => {
-//   const context = useContext(AuthContext);
-
-//   if (!context) {
-//     throw new Error(
-//       "useAuth must be used inside AuthProvider"
-//     );
-//   }
-
-//   return context;
-// };
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
