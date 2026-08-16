@@ -92,12 +92,7 @@ function Resources() {
     <div className="p-5 space-y-5">
       {/* Header */}
       <div>
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-400">Home</span>
-          <span className="text-gray-300">›</span>
-          <span className="font-semibold text-gray-800">Resource Library</span>
-        </div>
+        
 
         {/* Title */}
         <div className="flex items-center justify-between mt-3">

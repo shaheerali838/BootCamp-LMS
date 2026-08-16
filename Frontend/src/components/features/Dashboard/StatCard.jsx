@@ -7,12 +7,9 @@ function StatCard({ icon, iconBg, iconColor, value, label, path }) {
 
   return (
     <div
-      onClick={() => isClickable && navigate(path)}
-      className={`bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between min-w-0 ${
-        isClickable
-          ? "cursor-pointer hover:shadow-md hover:border-blue-200 transition-all"
-          : ""
-      }`}
+
+      className={"bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between min-w-0 "
+     }
     >
       <div className="min-w-0">
         <p className="text-lg font-semibold text-gray-800">{value}</p>
@@ -27,7 +24,7 @@ function StatCard({ icon, iconBg, iconColor, value, label, path }) {
       >
         {icon}
       </div>
-    </div>
+    </div >
   );
 }
 

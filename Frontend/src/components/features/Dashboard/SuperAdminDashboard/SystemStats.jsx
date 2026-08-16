@@ -43,7 +43,6 @@ function SystemStats() {
       icon: <FiShield size={18} />,
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
-      path: "/superadmin/super-admins",
     },
     {
       value: adminsMentorsCount,
@@ -51,7 +50,6 @@ function SystemStats() {
       icon: <FiUserCheck size={18} />,
       iconBg: "bg-blue-100",
       iconColor: "text-blue-600",
-      path: "/superadmin/admins",
     },
     {
       value: studentsCount,
@@ -59,7 +57,6 @@ function SystemStats() {
       icon: <FiUsers size={18} />,
       iconBg: "bg-emerald-100",
       iconColor: "text-emerald-600",
-      path: "/superadmin/students",
     },
     {
       value: batchesCount,
@@ -67,7 +64,6 @@ function SystemStats() {
       icon: <FiLayers size={18} />,
       iconBg: "bg-amber-100",
       iconColor: "text-amber-600",
-      path: "/superadmin/batches",
     },
     {
       value: teamsCount,
@@ -75,7 +71,6 @@ function SystemStats() {
       icon: <FiGrid size={18} />,
       iconBg: "bg-indigo-100",
       iconColor: "text-indigo-600",
-      path: "/superadmin/teams",
     },
     {
       value: projectsCount,
@@ -83,7 +78,6 @@ function SystemStats() {
       icon: <FiFolder size={18} />,
       iconBg: "bg-cyan-100",
       iconColor: "text-cyan-600",
-      path: "/superadmin/projects",
     },
   ];
 
@@ -97,7 +91,6 @@ function SystemStats() {
           icon={stat.icon}
           iconBg={stat.iconBg}
           iconColor={stat.iconColor}
-          path={stat.path}
         />
       ))}
     </div>

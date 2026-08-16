@@ -75,11 +75,7 @@ function Reports() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span>Home</span>
-            <span>›</span>
-            <span className="font-semibold text-gray-800">Reports</span>
-          </div>
+          
 
           <h1 className="text-xl font-semibold text-gray-900 mt-2">
             System Reports & Analytics

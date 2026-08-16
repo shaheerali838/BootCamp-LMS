@@ -137,11 +137,6 @@ function AttendanceManagement() {
     <div className="pt-6 px-3 pb-3  min-h-screen mx-auto space-y-3">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-gray-400">Home</span>
-          <span className="text-gray-300">›</span>
-          <span className="font-medium text-gray-700">Attendance</span>
-        </div>
 
         <div className="mt-2">
           <h1 className="text-xl font-semibold text-gray-900">
@@ -337,10 +332,10 @@ function AttendanceManagement() {
                     <option value="" disabled hidden>
                       Select Status
                     </option>
-                    <option value="Present">Present</option>
-                    <option value="Late">Late</option>
-                    <option value="Leave">Leave</option>
-                    <option value="Absent">Absent</option>
+                    <option className="bg-green-100 text-green-700 border-green-300 " value="Present">Present</option>
+                    <option className="bg-orange-100 text-orange-700 border-orange-300" value="Late">Late</option>
+                    <option className="bg-blue-100 text-blue-700 border-blue-300" value="Leave">Leave</option>
+                    <option className="bg-red-100 text-red-700 border-red-300" value="Absent">Absent</option>
                   </select>
                 </div>
               </div>

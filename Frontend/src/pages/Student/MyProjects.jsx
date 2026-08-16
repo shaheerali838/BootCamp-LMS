@@ -131,7 +131,6 @@ function MyProjects() {
           <span>›</span>
           <span className="font-semibold text-gray-800">My Projects</span>
         </div>
-
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">

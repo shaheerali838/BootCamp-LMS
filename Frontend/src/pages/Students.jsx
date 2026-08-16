@@ -47,19 +47,7 @@ function Students() {
 
       {/* Page Header */}
       <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-400 text-sm">
-            Home
-          </span>
-
-          <span className="text-gray-300">
-            ›
-          </span>
-
-          <h1 className="text-lg font-semibold text-gray-800">
-            Students
-          </h1>
-        </div>
+       
       </div>
 
       {/* Stats */}

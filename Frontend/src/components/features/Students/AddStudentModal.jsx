@@ -7,7 +7,6 @@ function AddStudentModal({ onClose, onAdd }) {
     rollNo: "",
     email: "",
     phone: "",
-    team: "Team Alpha",
   });
 
   const handleChange = (e) => {
@@ -35,7 +34,7 @@ function AddStudentModal({ onClose, onAdd }) {
       rollNo: formData.rollNo,
       email: formData.email,
       phone: formData.phone,
-      team: formData.team,
+      team: "Unassigned",
       initials: initials.toUpperCase(),
       attendance: 0,
       status: "Active",
@@ -131,25 +130,6 @@ function AddStudentModal({ onClose, onAdd }) {
                 required
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500"
               />
-            </div>
-
-            {/* Team */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Team
-              </label>
-
-              <select
-                name="team"
-                value={formData.team}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-500"
-              >
-                <option>Team Alpha</option>
-                <option>Team Beta</option>
-                <option>Team Gamma</option>
-                <option>Team Delta</option>
-              </select>
             </div>
           </div>
 

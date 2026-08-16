@@ -46,12 +46,6 @@ function Task() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-400">Home</span>
-          <span className="text-gray-300">›</span>
-          <span className="font-semibold text-gray-800">Tasks</span>
-        </div>
 
         {/* Title */}
         <div className="flex items-center justify-between mt-3">
