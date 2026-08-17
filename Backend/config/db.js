@@ -1,20 +1,24 @@
 import mongoose from "mongoose";
 
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    return;
+  }
+
   try {
-    console.log("Connecting to MongoDB...");
-    console.log("MONGO_URI:", process.env.MONGO_URI ? "Set" : "Not Set");
-
     if (process.env.MONGO_URI) {
+      console.log("Connecting to MongoDB...");
       await mongoose.connect(process.env.MONGO_URI);
-
+      isConnected = true;
       console.log("✅ MongoDB Connected");
     } else {
-      console.log("⚠️ MONGO_URI is missing. Skipping MongoDB connection.");
+      console.warn("⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables.");
     }
   } catch (error) {
-    console.log(error.message);
-    process.exit(1);
+    console.error("MongoDB connection error:", error.message);
+    throw error;
   }
 };
 

@@ -18,7 +18,7 @@ function MyTasks() {
     e.preventDefault();
     if (!selectedTask || !submissionUrl) return;
 
-    submitDeliverable(selectedTask.id, {
+    submitDeliverable(selectedTask._id || selectedTask.id, {
       url: submissionUrl,
       notes: submissionNotes,
     });

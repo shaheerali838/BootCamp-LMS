@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import smitLogo from "../../assets/smitLogo.png";
+import smitLogo from "../../assets/smitlogo.png";
 
 import {
   FiGrid,
@@ -185,11 +185,23 @@ const SUPERADMIN_NAV = [
    LoginPages normalises to uppercase, but user object stores
    whatever the DB has.  We just lowercase and strip spaces/_.
    ============================================================ */
-function normaliseRole(rawRole = "") {
-  const r = rawRole.toLowerCase().replace(/[\s_]+/g, "");
+function normaliseRole(user, pathname = "") {
+  if (!user) {
+    if (pathname.startsWith("/student")) return "student";
+    if (pathname.startsWith("/superadmin")) return "superadmin";
+    return "admin";
+  }
+
+  const rawRole = user.role || (user.rollNumber || user.rollNo ? "STUDENT" : "");
+  const r = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+
   if (r === "superadmin") return "superadmin";
   if (r === "student") return "student";
-  return "admin"; // default
+  if (r === "admin") return "admin";
+
+  if (user.rollNumber || user.rollNo || pathname.startsWith("/student")) return "student";
+  if (pathname.startsWith("/superadmin")) return "superadmin";
+  return "admin";
 }
 
 /* ============================================================
@@ -210,7 +222,7 @@ const Sidebar = () => {
 
   // ✅ Real authenticated user role — source of truth
   const { user } = useAuth();
-  const role = normaliseRole(user?.role);
+  const role = normaliseRole(user, pathname);
 
   const meta = ROLE_META[role];
 

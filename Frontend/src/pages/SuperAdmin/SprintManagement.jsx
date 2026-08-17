@@ -12,15 +12,9 @@ import {
 import { useSprints } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 
-// Dummy projects for the filter since ProjectContext isn't imported here yet
-const projects = [
-  { id: 1, title: "LMS Platform Development" },
-  { id: 2, title: "E-Commerce App" },
-];
-
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
-  // Access global projects from TeamProjectContext API
+  // Access dynamic projects from TeamProjectContext
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
