@@ -1,6 +1,12 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
+// Auth Pages
+import LoginPages from "../pages/Auth/LoginPages";
+import ForgotPassword from "../pages/Auth/ForgetPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
+import ChangePassword from "../pages/Auth/ChangePassword";
+
 // Admin Pages
 import Dashboard from "../pages/Dashboard";
 import StudentManagement from "../pages/Students";
