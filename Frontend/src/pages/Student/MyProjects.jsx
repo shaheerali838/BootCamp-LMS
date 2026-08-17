@@ -14,7 +14,13 @@ function MyProjects() {
   const { projects = [], teams = [] } = useTeamProject();
   const { students = [] } = useStudent();
 
-  const studentBatch = students[0]?.batch || "Batch 11";
+  const getBatchName = (b) => {
+    if (!b) return "Batch 11";
+    if (typeof b === "object") return b.batchName || b.name || "Batch 11";
+    return String(b);
+  };
+
+  const studentBatch = getBatchName(students[0]?.batch);
 
   // Calculate project progress from status
   const calculateProgress = (status, customProgress) => {
@@ -36,7 +42,7 @@ function MyProjects() {
   const displayList = projects.map((project) => {
     const team = teams.find(
       (team) =>
-        String(team.id || team._id) === String(project.teamId || project.batch),
+        String(team.id || team._id) === String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch)),
     );
 
     const status = project.status || "In Progress";
@@ -52,7 +58,7 @@ function MyProjects() {
 
       description: project.description || "",
 
-      batch: project.batch || project.category || team?.batch || studentBatch,
+      batch: getBatchName(project.batch || project.category || team?.batch || studentBatch),
 
       status,
 
@@ -126,7 +132,7 @@ function MyProjects() {
       {/* -------------------------------- */}
 
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
           <span>Student Portal</span>
           <span>›</span>
           <span className="font-semibold text-gray-800">My Projects</span>

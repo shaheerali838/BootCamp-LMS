@@ -37,7 +37,8 @@ export const WorkProvider = ({ children }) => {
 
   const fetchTasks = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setTasksLoading(true);
     try {
@@ -45,6 +46,10 @@ export const WorkProvider = ({ children }) => {
       setTasks(res.data.data || []);
       setTasksError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setTasks([]);
+        return;
+      }
       console.error("Failed to fetch tasks:", err);
       setTasksError(err.response?.data?.message || "Failed to fetch tasks");
     } finally {
@@ -117,7 +122,8 @@ export const WorkProvider = ({ children }) => {
 
   const fetchMilestones = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setMilestonesLoading(true);
     try {
@@ -125,6 +131,10 @@ export const WorkProvider = ({ children }) => {
       setMilestones(res.data.data || []);
       setMilestonesError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setMilestones([]);
+        return;
+      }
       console.error("Failed to fetch milestones:", err);
       setMilestonesError(err.response?.data?.message || "Failed to fetch milestones");
     } finally {
@@ -136,13 +146,16 @@ export const WorkProvider = ({ children }) => {
     setMilestonesLoading(true);
     try {
       const payload = {
-        title: newMilestone.title,
-        projectId: newMilestone.projectId,
-        dueDate: newMilestone.dueDate,
+        title: newMilestone.milestoneName || newMilestone.title || "Untitled Milestone",
+        description: newMilestone.description || "",
+        projectId: newMilestone.projectId || undefined,
+        dueDate: newMilestone.dueDate || undefined,
         status: newMilestone.status || "Pending",
       };
       const res = await api.post("/milestones/create-milestone", payload);
-      if (res.data.success) setMilestones((prev) => [res.data.data, ...prev]);
+      if (res.data.success) {
+        setMilestones((prev) => [res.data.data, ...prev]);
+      }
       setMilestonesError(null);
       return res.data;
     } catch (err) {
@@ -157,7 +170,16 @@ export const WorkProvider = ({ children }) => {
   const updateMilestone = async (id, updatedData) => {
     setMilestonesLoading(true);
     try {
-      const res = await api.put(`/milestones/update-milestone/${id}`, updatedData);
+      const payload = {
+        title: updatedData.milestoneName || updatedData.title,
+        description: updatedData.description,
+        projectId: updatedData.projectId,
+        dueDate: updatedData.dueDate,
+        status: updatedData.status,
+      };
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+
+      const res = await api.put(`/milestones/update-milestone/${id}`, payload);
       if (res.data.success) {
         setMilestones((prev) => prev.map((m) => (m._id === id ? res.data.data : m)));
       }
@@ -194,7 +216,8 @@ export const WorkProvider = ({ children }) => {
 
   const fetchSprints = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setSprintsLoading(true);
     try {
@@ -202,6 +225,10 @@ export const WorkProvider = ({ children }) => {
       setSprints(res.data.data || []);
       setSprintsError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setSprints([]);
+        return;
+      }
       console.error("Failed to fetch sprints:", err);
       setSprintsError(err.response?.data?.message || "Failed to fetch sprints");
     } finally {
@@ -265,11 +292,57 @@ export const WorkProvider = ({ children }) => {
     }
   };
 
+  // ── Evaluations ───────────────────────────────────────────
+  const [evaluations, setEvaluations] = useState([]);
+  const [evaluationsLoading, setEvaluationsLoading] = useState(false);
+  const [evaluationsError, setEvaluationsError] = useState(null);
+
+  const fetchEvaluations = async () => {
+    const token = localStorage.getItem("accessToken");
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
+
+    setEvaluationsLoading(true);
+    try {
+      const res = await api.get("/evaluations/get-all-evaluations");
+      setEvaluations(res.data.data || []);
+      setEvaluationsError(null);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setEvaluations([]);
+        return;
+      }
+      console.error("Failed to fetch evaluations:", err);
+      setEvaluationsError(err.response?.data?.message || "Failed to fetch evaluations");
+    } finally {
+      setEvaluationsLoading(false);
+    }
+  };
+
+  const addEvaluation = async (evaluationData) => {
+    setEvaluationsLoading(true);
+    try {
+      const res = await api.post("/evaluations/create-evaluation", evaluationData);
+      if (res.data.success) {
+        setEvaluations((prev) => [res.data.data, ...prev]);
+      }
+      setEvaluationsError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to add evaluation:", err);
+      setEvaluationsError(err.response?.data?.message || "Failed to create evaluation");
+      throw err;
+    } finally {
+      setEvaluationsLoading(false);
+    }
+  };
+
   // ── Bootstrap ─────────────────────────────────────────────
   useEffect(() => {
     fetchTasks();
     fetchMilestones();
     fetchSprints();
+    fetchEvaluations();
   }, []);
 
   // ── Dynamic Reports Calculations ─────────────────────────
@@ -315,6 +388,9 @@ export const WorkProvider = ({ children }) => {
         // Sprints
         sprints, sprintsLoading, sprintsError,
         fetchSprints, addSprint, updateSprint, deleteSprint,
+        // Evaluations
+        evaluations, evaluationsLoading, evaluationsError,
+        fetchEvaluations, addEvaluation,
         // Reports
         attendanceReportData: initialReportData.attendanceReportData,
         taskDistributionData,
@@ -351,6 +427,12 @@ export const useSprints = () => {
   return { sprints, loading: sprintsLoading, error: sprintsError, fetchSprints, addSprint, updateSprint, deleteSprint };
 };
 export const useSprint = useSprints;
+
+export const useEvaluations = () => {
+  const { evaluations, evaluationsLoading, evaluationsError, fetchEvaluations, addEvaluation } = useWork();
+  return { evaluations, loading: evaluationsLoading, error: evaluationsError, fetchEvaluations, addEvaluation };
+};
+export const useEvaluation = useEvaluations;
 
 export const useReports = () => {
   const { attendanceReportData, taskDistributionData, batchPerformanceData, reportSummary } = useWork();

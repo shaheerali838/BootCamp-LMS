@@ -4,23 +4,35 @@ import MyTasks from "../../components/features/Dashboard/StudentDashboard/MyTask
 import MyProjects from "../../components/features/Dashboard/StudentDashboard/MyProjects";
 import Announcements from "../../components/features/Dashboard/StudentDashboard/Announcements";
 import RecentResources from "../../components/features/Dashboard/StudentDashboard/RecentResources";
+import { useAuth } from "../../context/AuthContext";
 
 function StudentDashboard() {
+  const { user } = useAuth();
+  const studentName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Student"
+    : "Student";
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   return (
-    <div className="p-3 space-y-3 mt-5   mx-auto min-h-screen">
+    <div className="p-3 space-y-4 mt-2 mx-auto min-h-screen">
       {/* Top Header */}
       <div>
-       
-        <div className="text-[11px] text-gray-400 font-medium mt-0.5">
-          Wednesday, August 12, 2026
+        <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
+          {today}
         </div>
 
-        <h1 className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2">
-          Welcome back, Sara 👋
+        <h1 className="text-xl font-bold text-gray-900 mt-1 flex items-center gap-2">
+          Welcome back, {studentName} 👋
         </h1>
 
         <p className="text-xs text-gray-500 font-medium mt-0.5">
-          Here's your learning overview today.
+          Here's your live training overview and today's schedule.
         </p>
       </div>
 
@@ -34,7 +46,7 @@ function StudentDashboard() {
         <Announcements />
       </div>
 
-      {/* Row 2: Recent Resources Section (Isolated Row) */}
+      {/* Row 2: Recent Resources Section */}
       <div>
         <RecentResources />
       </div>

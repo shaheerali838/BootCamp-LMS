@@ -23,10 +23,10 @@ const Announcements = () => {
   );
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="w-full bg-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-4 py-8">
 
-        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-6">
+        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 shrink-0 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
               <FaBullhorn size={20} />

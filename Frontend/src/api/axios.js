@@ -8,7 +8,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Optional: Add request interceptor for tokens if AuthContext needs it later
+// Request interceptor for attaching auth bearer token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -19,7 +19,17 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-
-
+// Response interceptor to handle 401 unauthorized gracefully
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear invalid/expired session
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;
