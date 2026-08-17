@@ -7,49 +7,58 @@ import {
   FiFilter,
   FiCheckCircle,
   FiClock,
-  FiTarget
+  FiTarget,
 } from "react-icons/fi";
-import { useMilestones } from "../../context/MilestoneContext";
-// Fixed import path: updated from contextAPI to context directory
+import { useMilestones } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 
-// Dummy projects for the filter since ProjectContext isn't imported here yet
-const projects = [
-  { id: 1, title: "LMS Platform Development" },
-  { id: 2, title: "E-Commerce App" },
-];
-
 function MilestoneManagement() {
-  const { milestones, addMilestone, updateMilestone, deleteMilestone } = useMilestones();
-  // Access global projects from TeamProjectContext API
+  const { milestones, addMilestone, updateMilestone, deleteMilestone } =
+    useMilestones();
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
+  const [search, setSearch] = useState("");
 
   const [formData, setFormData] = useState({
-    projectId: projects[0]?.id || 1,
     title: "",
-    dueDate: new Date().toISOString().split("T")[0],
+    description: "",
+    dueDate: "",
+    projectId: "",
     status: "Pending",
   });
 
+  const getProjectTitle = (projId) => {
+    const p = projects.find((item) => (item._id || item.id) === projId);
+    return p ? (p.projectName || p.name || p.title) : "General Project";
+  };
+
   const filtered = milestones.filter((m) => {
-    if (selectedProjectId === "All") return true;
-    return Number(m.projectId) === Number(selectedProjectId);
+    const matchProject =
+      selectedProjectId === "All" || m.projectId === selectedProjectId;
+    const matchSearch =
+      (m.milestoneName || m.title || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.description || "").toLowerCase().includes(search.toLowerCase());
+    return matchProject && matchSearch;
   });
 
   const totalMilestones = milestones.length;
-  const completedMilestones = milestones.filter((m) => m.status === "Completed").length;
-  const pendingMilestones = milestones.filter((m) => m.status === "Pending" || m.status === "In Progress").length;
+  const completedMilestones = milestones.filter(
+    (m) => m.status === "Completed",
+  ).length;
+  const pendingMilestones = milestones.filter(
+    (m) => m.status === "Pending" || m.status === "In Progress",
+  ).length;
 
   const handleOpenAdd = () => {
     setEditingMilestone(null);
     setFormData({
-      projectId: projects[0]?.id || 1,
       title: "",
+      description: "",
       dueDate: new Date().toISOString().split("T")[0],
+      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
       status: "Pending",
     });
     setShowModal(true);
@@ -58,40 +67,42 @@ function MilestoneManagement() {
   const handleOpenEdit = (milestone) => {
     setEditingMilestone(milestone);
     setFormData({
-      projectId: milestone.projectId,
-      title: milestone.title,
-      dueDate: milestone.dueDate,
-      status: milestone.status,
+      title: milestone.milestoneName || milestone.title || "",
+      description: milestone.description || "",
+      dueDate: milestone.dueDate ? new Date(milestone.dueDate).toISOString().split("T")[0] : "",
+      projectId: milestone.projectId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      status: milestone.status || "Pending",
     });
     setShowModal(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      milestoneName: formData.title,
+    };
+
     if (editingMilestone) {
-      updateMilestone(editingMilestone.id, formData);
+      updateMilestone(editingMilestone._id || editingMilestone.id, payload);
     } else {
-      addMilestone(formData);
+      addMilestone(payload);
     }
     setShowModal(false);
   };
 
-  const getProjectTitle = (pId) => {
-    const proj = projects.find((p) => Number(p.id) === Number(pId));
-    return proj ? proj.title : `Project #${pId}`;
-  };
-
   return (
     <div className="p-4">
-      {/* Page Header placeholder to match Students.jsx */}
-      <div className="mb-5"></div>
-
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">{totalMilestones}</h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Milestones</p>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {totalMilestones}
+            </h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+              Total Milestones
+            </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
             <FiTarget size={23} className="text-blue-600" />
@@ -100,8 +111,12 @@ function MilestoneManagement() {
 
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">{completedMilestones}</h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Completed</p>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {completedMilestones}
+            </h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+              Completed
+            </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
             <FiCheckCircle size={23} className="text-green-600" />
@@ -110,8 +125,12 @@ function MilestoneManagement() {
 
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">{pendingMilestones}</h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Pending / Active</p>
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {pendingMilestones}
+            </h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+              Pending / Active
+            </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
             <FiClock size={23} className="text-amber-500" />
@@ -121,12 +140,14 @@ function MilestoneManagement() {
 
       {/* Table Card */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        
         {/* Search/Filter Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <FiFilter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FiFilter
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <select
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -134,8 +155,8 @@ function MilestoneManagement() {
               >
                 <option value="All">All Projects ({projects.length})</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
+                  <option key={p._id || p.id} value={p._id || p.id}>
+                    {p.projectName || p.name || p.title || "Project"}
                   </option>
                 ))}
               </select>
@@ -144,7 +165,7 @@ function MilestoneManagement() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition cursor-pointer"
           >
             <FiPlus size={17} />
             Create Milestone
@@ -153,7 +174,7 @@ function MilestoneManagement() {
 
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-[800px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-[600px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Milestone Title</span>
             <span>Project</span>
             <span>Due Date & Status</span>
@@ -161,59 +182,64 @@ function MilestoneManagement() {
           </div>
 
           {/* Table Rows */}
-          <div className="divide-y divide-gray-100 min-w-[800px]">
+          <div className="divide-y divide-gray-100 min-w-[600px]">
             {filtered.map((item) => (
-            <div key={item.id} className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition">
-              <div className="col-span-2 text-sm font-medium text-gray-900">{item.title}</div>
-              
-              <div>
-                <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded text-xs">
-                  {getProjectTitle(item.projectId)}
-                </span>
+              <div
+                key={item._id || item.id}
+                className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
+              >
+                <div className="col-span-2 text-sm font-medium text-gray-900">
+                  {item.title || item.milestoneName}
+                </div>
+
+                <div>
+                  <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded text-xs">
+                    {getProjectTitle(item.projectId)}
+                  </span>
+                </div>
+
+                <div>
+                  <div className="text-xs text-gray-800">{item.dueDate}</div>
+                  <span
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
+                      item.status === "Completed"
+                        ? "bg-green-100 text-green-600"
+                        : item.status === "In Progress"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 text-gray-400">
+                  <button
+                    onClick={() => handleOpenEdit(item)}
+                    className="hover:text-blue-600 transition cursor-pointer"
+                    title="Edit"
+                  >
+                    <FiEdit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Delete this milestone?")) {
+                        deleteMilestone(item._id || item.id);
+                      }
+                    }}
+                    className="hover:text-red-600 transition cursor-pointer"
+                    title="Delete"
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                </div>
               </div>
-              
-              <div>
-                <div className="text-xs text-gray-800">{item.dueDate}</div>
-                <span
-                  className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
-                    item.status === "Completed"
-                      ? "bg-green-100 text-green-600"
-                      : item.status === "In Progress"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {item.status}
-                </span>
+            ))}
+            {filtered.length === 0 && (
+              <div className="py-8 text-center text-sm text-gray-500">
+                No milestones found.
               </div>
-              
-              <div className="flex items-center justify-end gap-3 text-gray-400">
-                <button
-                  onClick={() => handleOpenEdit(item)}
-                  className="hover:text-blue-600 transition"
-                  title="Edit"
-                >
-                  <FiEdit2 size={16} />
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm("Delete this milestone?")) {
-                      deleteMilestone(item.id);
-                    }
-                  }}
-                  className="hover:text-red-600 transition"
-                  title="Delete"
-                >
-                  <FiTrash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="py-8 text-center text-sm text-gray-500">
-              No milestones found.
-            </div>
-          )}
+            )}
           </div>
         </div>
       </div>
@@ -232,12 +258,14 @@ function MilestoneManagement() {
                 </label>
                 <select
                   value={formData.projectId}
-                  onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, projectId: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title}
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.projectName || p.name || p.title || "Project"}
                     </option>
                   ))}
                 </select>
@@ -250,8 +278,25 @@ function MilestoneManagement() {
                   type="text"
                   required
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="e.g. UI Wireframes Completion"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  required
+                  rows="2"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder="Details and criteria for this milestone..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
@@ -262,7 +307,9 @@ function MilestoneManagement() {
                 <input
                   type="date"
                   value={formData.dueDate}
-                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, dueDate: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
@@ -272,7 +319,9 @@ function MilestoneManagement() {
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   <option value="Pending">Pending</option>
@@ -284,13 +333,13 @@ function MilestoneManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer"
                 >
                   {editingMilestone ? "Save Changes" : "Create Milestone"}
                 </button>

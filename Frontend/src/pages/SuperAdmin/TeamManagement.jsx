@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiGrid, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
-import { useStudent } from "../../context/StudentContext";
+import { useStudent } from "../../context/AcademicContext";
 
 function TeamManagement() {
   const { students } = useStudent();

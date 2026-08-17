@@ -33,12 +33,12 @@ function QuickStats() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
         {projects.map((project) => (
           <div
-            key={project.id}
-            className="border border-gray-200 rounded-lg p-3 hover:shadow-sm transition"
+            key={project._id || project.id}
+            className="border border-gray-200 rounded-lg p-3 hover:shadow-xs transition"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-gray-800 truncate">
-                {project.name || project.title}
+                {project.projectName || project.name || project.title}
               </h3>
               <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">
                 {project.status || "In Progress"}

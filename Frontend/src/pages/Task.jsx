@@ -3,7 +3,7 @@ import { FiSearch, FiClipboard, FiPlus } from "react-icons/fi";
 
 import TaskCard from "../components/features/Tasks/TaskCard";
 import AssignTaskModal from "../components/features/Tasks/AssignTaskModal";
-import { useTasks } from "../context/TaskContext";
+import { useTasks } from "../context/WorkContext";
 
 function Task() {
   const { tasks, addTask, updateTask } = useTasks();
@@ -88,7 +88,7 @@ function Task() {
       <div className="space-y-4">
         {filteredTasks.map((task) => (
           <TaskCard
-            key={task.id}
+            key={task._id || task.id}
             task={task}
             onAssign={handleOpenAssignModalForCard}
           />

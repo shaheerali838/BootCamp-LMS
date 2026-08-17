@@ -1,18 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { useBatches, useStudents } from "../../../context/AcademicContext";
+import { useAdmins } from "../../../context/SystemContext";
 
 function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
   const edit = initialData || editingTeam;
   const { addTeam, updateTeam } = useTeamProject();
+  const { batches = [] } = useBatches();
+  const { students = [] } = useStudents();
+  const { admins = [] } = useAdmins();
 
   const [formData, setFormData] = useState({
-    name: "",
-    lead: "",
-    description: "",
-    members: [],
+    teamName: "",
+    batchId: "",
+    mentor: "",
+    teamLead: "",
+    status: "active",
   });
 
-  const [memberName, setMemberName] = useState("");
+  // Populate form when editing
+  useEffect(() => {
+    if (edit) {
+      setFormData({
+        teamName: edit.teamName || edit.name || "",
+        batchId: edit.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : ""),
+        mentor: edit.mentor || (admins[0] ? (admins[0]._id || admins[0].id) : ""),
+        teamLead: edit.teamLead || (students[0] ? (students[0]._id || students[0].id) : ""),
+        status: edit.status || "active",
+      });
+    } else {
+      setFormData({
+        teamName: "",
+        batchId: batches[0] ? (batches[0]._id || batches[0].id) : "",
+        mentor: admins[0] ? (admins[0]._id || admins[0].id) : "",
+        teamLead: students[0] ? (students[0]._id || students[0].id) : "",
+        status: "active",
+      });
+    }
+  }, [edit, batches, admins, students]);
 
   const handleChange = (e) => {
     setFormData({
@@ -21,62 +46,22 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
     });
   };
 
-  const addMember = () => {
-    if (!memberName.trim()) return;
-
-    setFormData({
-      ...formData,
-      members: [
-        ...formData.members,
-        {
-          id: Date.now(),
-          name: memberName,
-        },
-      ],
-    });
-
-    setMemberName("");
-  };
-
-  // Populate form when editing
-  React.useEffect(() => {
-    if (edit) {
-      setFormData({
-        name: edit.name || "",
-        lead: edit.lead || "",
-        description: edit.description || "",
-        members: edit.members || [],
-      });
-    }
-  }, [edit]);
-
-  const removeMember = (memberId) => {
-    setFormData({
-      ...formData,
-      members: formData.members.filter(
-        (member) => member.id !== memberId
-      ),
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.teamName.trim()) return;
 
-    if (!formData.name.trim()) return;
+    const payload = {
+      ...formData,
+      batchId: formData.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : undefined),
+      mentor: formData.mentor || (admins[0] ? (admins[0]._id || admins[0].id) : undefined),
+      teamLead: formData.teamLead || (students[0] ? (students[0]._id || students[0].id) : undefined),
+    };
 
     if (edit) {
-      // Editing existing team
-      updateTeam(edit.id, formData);
+      await updateTeam(edit._id || edit.id, payload);
     } else {
-      addTeam(formData);
+      await addTeam(payload);
     }
-
-    setFormData({
-      name: "",
-      lead: "",
-      description: "",
-      members: [],
-    });
 
     closeModal();
   };
@@ -84,115 +69,125 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-5">
-            <h2 className="text-2xl font-bold text-gray-800">
+        <div className="flex items-center justify-between mb-5 border-b border-gray-100 pb-3">
+          <h2 className="text-xl font-bold text-gray-800">
             {edit ? "Edit Team" : "Create Team"}
           </h2>
 
           <button
             type="button"
             onClick={closeModal}
-            className="text-gray-500 hover:text-red-500 text-xl"
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold cursor-pointer"
           >
-            ×
+            ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label className="block text-sm font-semibold text-gray-700">
-            Team Name
-          </label>
-
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter team name"
-            className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 mb-4 outline-none focus:border-[#0476b9]"
-          />
-
-          <label className="block text-sm font-semibold text-gray-700">
-            Team Lead
-          </label>
-
-          <input
-            type="text"
-            name="lead"
-            value={formData.lead}
-            onChange={handleChange}
-            placeholder="Enter team lead"
-            className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 mb-4 outline-none focus:border-[#0476b9]"
-          />
-
-          <label className="block text-sm font-semibold text-gray-700">
-            Description
-          </label>
-
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Enter team description"
-            rows="3"
-            className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 mb-4 outline-none focus:border-[#0476b9]"
-          />
-
-          <label className="block text-sm font-semibold text-gray-700">
-            Add Members
-          </label>
-
-          <div className="flex gap-2 mt-1">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Team Name *
+            </label>
             <input
               type="text"
-              value={memberName}
-              onChange={(e) => setMemberName(e.target.value)}
-              placeholder="Member name"
-              className="flex-1 border border-gray-300 rounded-lg p-2.5 outline-none focus:border-[#0476b9]"
+              name="teamName"
+              value={formData.teamName}
+              onChange={handleChange}
+              placeholder="e.g. Alpha Squad"
+              required
+              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-600"
             />
+          </div>
 
-            <button
-              type="button"
-              onClick={addMember}
-              className="bg-[#0476b9] text-white px-4 rounded-lg"
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Target Batch *
+            </label>
+            <select
+              name="batchId"
+              value={formData.batchId}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-600"
             >
-              Add
-            </button>
+              <option value="">Select Batch</option>
+              {batches.map((b) => (
+                <option key={b._id || b.id} value={b._id || b.id}>
+                  {b.batchName || b.name} ({b.program || "Tech"})
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="mt-3 space-y-2">
-            {formData.members.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between bg-gray-50 p-2 rounded-lg"
-              >
-                <span>{member.name}</span>
-
-                <button
-                  type="button"
-                  onClick={() => removeMember(member.id)}
-                  className="text-red-500 text-sm"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Assigned Mentor *
+            </label>
+            <select
+              name="mentor"
+              value={formData.mentor}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-600"
+            >
+              <option value="">Select Mentor</option>
+              {admins.map((a) => (
+                <option key={a._id || a.id} value={a._id || a.id}>
+                  {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.name} ({a.role || "Mentor"})
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="flex gap-3 mt-6">
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Team Lead (Student) *
+            </label>
+            <select
+              name="teamLead"
+              value={formData.teamLead}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-600"
+            >
+              <option value="">Select Student Team Lead</option>
+              {students.map((s) => (
+                <option key={s._id || s.id} value={s._id || s.id}>
+                  {s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim()} ({s.rollNumber || s.rollNo || "Student"})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2.5 outline-none focus:border-blue-600"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={closeModal}
-              className="flex-1 border border-gray-300 py-2.5 rounded-lg"
+              className="flex-1 border border-gray-300 py-2.5 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 cursor-pointer"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg hover:bg-[#03669f]"
+              className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 cursor-pointer"
             >
-              {initialData ? "Save Changes" : "Create Team"}
+              {edit ? "Save Changes" : "Create Team"}
             </button>
           </div>
         </form>

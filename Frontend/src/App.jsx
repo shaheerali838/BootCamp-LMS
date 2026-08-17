@@ -4,14 +4,9 @@ import { AppProvider } from "./context/AppProvider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
-
 import AppRoutes from "./routes/AppRoutes";
-
 import { Routes, Route, Navigate } from "react-router-dom";
-// Auth component imports
-// AuthLayout is imported from ./components/layout/AuthLayout
 import AuthLayout from "./components/layout/AuthLayout";
-
 import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
 import { FiLoader } from "react-icons/fi";
@@ -40,9 +35,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
-
       <Navbar />
-
       <main
         className={`pt-10 transition-all duration-300 ${
           isOpen ? "ml-70" : "ml-22.5"
@@ -67,11 +60,7 @@ function AppLayout() {
 
       <Route
         path="/*"
-        element={
-          // <ProtectedRoute>
-          <DashboardLayout />
-          // </ProtectedRoute>
-        }
+        element={<DashboardLayout />}
       />
     </Routes>
   );

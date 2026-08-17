@@ -1,4 +1,4 @@
-// Fixed import path: updated from contextAPI to context directory
+import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 function ChangePassword() {
@@ -59,7 +59,7 @@ function ChangePassword() {
       );
 
       setMessage(
-        response.data.message ||
+        response?.data?.message ||
           "Password changed successfully"
       );
 
@@ -142,7 +142,7 @@ function ChangePassword() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5"
+          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5 cursor-pointer"
         >
           {loading ? "Changing..." : "Change Password"}
         </button>

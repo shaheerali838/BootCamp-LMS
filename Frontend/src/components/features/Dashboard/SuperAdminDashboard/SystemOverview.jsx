@@ -1,15 +1,39 @@
 import React, { useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
+import { useStudent } from "../../../../context/AcademicContext";
+import { useTeamProject } from "../../../../context/TeamProjectContext";
+import { useTasks } from "../../../../context/WorkContext";
 
 function SystemOverview() {
+  const { students = [] } = useStudent();
+  const { projects = [] } = useTeamProject();
+  const { tasks = [] } = useTasks();
+
   const [timeframe, setTimeframe] = useState("This Week");
 
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-  // 3 series data points (0-100 normalized range)
-  const studentsSeries = [45, 52, 60, 68, 75, 82, 90];
-  const projectsSeries = [20, 25, 30, 42, 48, 55, 62];
-  const tasksSeries = [35, 48, 52, 65, 70, 78, 88];
+  const studentsCount = students.length;
+  const projectsCount = projects.length;
+  const tasksCount = tasks.length;
+
+  // Generate dynamic progression curves based on live counts
+  const generateSeries = (targetCount, curveFactor = 0.6) => {
+    if (targetCount === 0) return [0, 0, 0, 0, 0, 0, 0];
+    return days.map((_, idx) => {
+      const stepRatio = (idx + 1) / days.length;
+      const progress = curveFactor + (1 - curveFactor) * stepRatio;
+      return Math.round(targetCount * progress);
+    });
+  };
+
+  const studentsSeries = generateSeries(studentsCount, 0.7);
+  const projectsSeries = generateSeries(projectsCount, 0.5);
+  const tasksSeries = generateSeries(tasksCount, 0.4);
+
+  const allValues = [...studentsSeries, ...projectsSeries, ...tasksSeries];
+  const maxVal = Math.max(...allValues, 10);
+  const minVal = 0;
 
   const width = 600;
   const height = 220;
@@ -20,7 +44,7 @@ function SystemOverview() {
     paddingX + (index * (width - paddingX * 2)) / (days.length - 1);
 
   const getY = (val) =>
-    height - paddingY - (val / 100) * (height - paddingY * 2);
+    height - paddingY - (val / maxVal) * (height - paddingY * 2);
 
   const makePoints = (series) =>
     series.map((val, idx) => `${getX(idx)},${getY(val)}`).join(" ");
@@ -59,15 +83,21 @@ function SystemOverview() {
       <div className="flex items-center gap-6 mt-4 text-xs font-medium text-gray-600">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span>Students ({studentsSeries[studentsSeries.length - 1]})</span>
+          <span className="font-semibold text-gray-800">
+            Students ({studentsCount})
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-blue-600" />
-          <span>Projects ({projectsSeries[projectsSeries.length - 1]})</span>
+          <span className="font-semibold text-gray-800">
+            Projects ({projectsCount})
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-purple-500" />
-          <span>Tasks ({tasksSeries[tasksSeries.length - 1]})</span>
+          <span className="font-semibold text-gray-800">
+            Tasks ({tasksCount})
+          </span>
         </div>
       </div>
 
@@ -79,7 +109,8 @@ function SystemOverview() {
           preserveAspectRatio="none"
         >
           {/* Horizontal Grid */}
-          {[0, 25, 50, 75, 100].map((val, idx) => {
+          {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
+            const val = Math.round(maxVal * pct);
             const y = getY(val);
             return (
               <g key={idx}>
@@ -91,6 +122,15 @@ function SystemOverview() {
                   stroke="#f1f5f9"
                   strokeWidth="1"
                 />
+                <text
+                  x={paddingX - 8}
+                  y={y + 3}
+                  textAnchor="end"
+                  fontSize="9"
+                  fill="#94a3b8"
+                >
+                  {val}
+                </text>
               </g>
             );
           })}

@@ -34,9 +34,7 @@ const AuthLayout = () => {
           </p>
 
           <h2 className="text-2xl xl:text-3xl font-bold leading-tight text-blue-900">
-            SMIT Bootcamp for{" "}
-            <span className="text-amber-400 italic">Future</span> IT
-            Professionals.
+            SMIT Bootcamp for Future IT Professionals.
           </h2>
 
           <p className="text-blue-700 text-sm leading-6 py-3 max-w-2xl">
@@ -94,7 +92,7 @@ const AuthLayout = () => {
       </div>
 
       {/* Right Pane: Auth Forms (Outlet) */}
-      <div className="w-full lg:w-1/2 h-screen flex items-center justify-center bg-blue-800/75 px-4 sm:px-6 lg:px-8 py-6 overflow-hidden auth-scrollbar-none">
+      <div className="w-full lg:w-1/2 h-screen flex items-center justify-center bg-[#0476B9] px-4 sm:px-6 lg:px-8 py-6 overflow-hidden auth-scrollbar-none">
         <div className="w-full max-w-md">
           <Outlet />
         </div>

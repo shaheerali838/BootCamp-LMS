@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import img from "/imges/images.jpg?url";
-// Resolved merge conflict: AuthContext is imported from ../../context/AuthContext
 import { useAuth } from "../../context/AuthContext";
 import { FiLoader } from "react-icons/fi";
 
@@ -101,13 +100,50 @@ function LoginPages() {
             </p>
           )}
 
-          <h1 className="font-bold text-3xl text-[#111528]">
-            Welcome back
-          </h1>
+          <h1 className="font-bold text-3xl text-[#111528]">Welcome back</h1>
 
           <p className="text-gray-500 text-xs sm:text-sm leading-5 sm:leading-6 mt-1">
             Kindly provide the Email and password used during SMIT registration.
           </p>
+
+          {/* Quick Demo Credentials */}
+          <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+            <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Quick Fill Credentials:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ email: "superadmin@bootcamp.local", password: "SuperAdmin@123" });
+                  setError({});
+                }}
+                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold rounded-lg transition"
+              >
+                👑 Super Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ email: "shaheer838838@gmail.com", password: "Admin@123" });
+                  setError({});
+                }}
+                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold rounded-lg transition"
+              >
+                🛡️ Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ email: "student001@example.com", password: "Student@123" });
+                  setError({});
+                }}
+                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg transition"
+              >
+                🎓 Student
+              </button>
+            </div>
+          </div>
 
           <div>
             <label

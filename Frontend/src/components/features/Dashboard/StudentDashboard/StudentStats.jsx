@@ -1,30 +1,32 @@
 import React from "react";
 import { FiCheckCircle, FiShare2, FiFolder, FiVolume2 } from "react-icons/fi";
-import { useAttendance } from "../../../../context/AttendanceContext";
-import { useTasks } from "../../../../context/TaskContext";
+import { useAttendance } from "../../../../context/AcademicContext";
+import { useTasks } from "../../../../context/WorkContext";
 import { useTeamProject } from "../../../../context/TeamProjectContext";
-function StudentStats() {
-  const { attendance } = useAttendance();
-  const { tasks } = useTasks();
-  // UPDATED: Pull projects from TeamProjectContext API
-  const { projects = [] } = useTeamProject();
-  
-  const studentRecord = attendance.find(
-    (item) => item.rollNo === "SMIT-1001" || item.id === 1
-  );
+import { useAnnouncement } from "../../../../context/AnnouncementContext";
+import { useAuth } from "../../../../context/AuthContext";
 
-  let attendancePct = 92;
-  if (studentRecord && studentRecord.attendance && studentRecord.attendance.length > 0) {
-    const presentCount = studentRecord.attendance.filter(
+function StudentStats() {
+  const { user } = useAuth();
+  const { getStudentAttendance } = useAttendance();
+  const { tasks = [] } = useTasks();
+  const { projects = [] } = useTeamProject();
+  const { announcements = [] } = useAnnouncement();
+
+  const sid = user?._id || user?.id;
+  const attendanceHistory = sid ? getStudentAttendance(sid) : [];
+
+  let attendancePct = 95;
+  if (attendanceHistory && attendanceHistory.length > 0) {
+    const presentCount = attendanceHistory.filter(
       (a) => a.status === "Present" || a.status === "Late"
     ).length;
-    attendancePct = Math.round((presentCount / studentRecord.attendance.length) * 100);
+    attendancePct = Math.round((presentCount / attendanceHistory.length) * 100);
   }
 
-  const tasksCount = tasks.length || 6;
-  const projectsCount = projects.length || 3;
-  const announcementsCount = 2;
-
+  const tasksCount = tasks.length;
+  const projectsCount = projects.length;
+  const announcementsCount = announcements.length;
 
   const stats = [
     {
@@ -58,18 +60,16 @@ function StudentStats() {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white border border-gray-100 rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] flex items-center justify-between"
+          className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-xs"
         >
           <div>
-            <div className="text-2xl font-bold text-gray-900 tracking-tight">
-              {stat.value}
-            </div>
-            <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mt-1">
+            <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
               {stat.label}
-            </div>
+            </span>
+            <h3 className="text-xl font-bold text-gray-900 mt-1">{stat.value}</h3>
           </div>
           <div
-            className={`w-10 h-10 rounded-full border ${stat.iconBg} flex items-center justify-center shrink-0`}
+            className={`w-10 h-10 rounded-xl border flex items-center justify-center ${stat.iconBg}`}
           >
             {stat.icon}
           </div>

@@ -31,11 +31,13 @@ function TeamManagement() {
     );
 
     const totalLeaders = teams.filter(
-        (team) => team.lead && team.lead.trim() !== ""
+        (team) => (team.lead && String(team.lead).trim() !== "") || team.teamLead
     ).length;
 
+    const getTeamName = (team) => team?.teamName || team?.name || "Untitled Team";
+
     const filteredTeams = teams.filter((team) =>
-        team.name.toLowerCase().includes(search.toLowerCase())
+        getTeamName(team).toLowerCase().includes(search.toLowerCase())
     );
 
     // PAGINATION
@@ -215,7 +217,7 @@ function TeamManagement() {
 
                         {currentTeams.map((team) => (
                             <TeamCard
-                                key={team.id}
+                                key={team._id || team.id}
                                 team={team}
                                 onEdit={handleEdit}
                             />

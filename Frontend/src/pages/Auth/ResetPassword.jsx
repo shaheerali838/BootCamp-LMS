@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// Fixed import path: updated from contextAPI to context directory
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 function ResetPassword() {
@@ -51,7 +51,7 @@ function ResetPassword() {
       );
 
       setMessage(
-        response.data.message ||
+        response?.data?.message ||
           "Password reset successfully"
       );
 
@@ -126,7 +126,7 @@ function ResetPassword() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5"
+          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5 cursor-pointer"
         >
           {loading ? "Resetting..." : "Reset Password"}
         </button>

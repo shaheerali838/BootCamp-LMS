@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { FiCalendar, FiCheckCircle, FiClock, FiXCircle } from "react-icons/fi";
-import { useAttendance } from "../../context/AttendanceContext";
+import { useAttendance } from "../../context/AcademicContext";
 
 function MyAttendance() {
   const { attendance } = useAttendance();

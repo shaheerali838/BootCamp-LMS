@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink } from "react-icons/fi";
-import { useTasks } from "../../context/TaskContext";
+import { useTasks } from "../../context/WorkContext";
 
 function MyTasks() {
   const { tasks, submitDeliverable } = useTasks();
@@ -62,9 +62,9 @@ function MyTasks() {
 
       {/* Tasks List */}
       <div className="space-y-4">
-        {filteredTasks.map((task) => (
+        {filteredTasks.map((task, idx) => (
           <div
-            key={task.id}
+            key={task._id || task.id || idx}
             className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-3"
           >
             <div className="flex items-start justify-between">

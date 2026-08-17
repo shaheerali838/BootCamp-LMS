@@ -1,19 +1,58 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  FiChevronLeft,
-  FiChevronRight,
-} from "react-icons/fi";
-import { useRegistrationLog } from "../../../../context/RegistrationLogContext";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useAdmins } from "../../../../context/SystemContext";
+import { useStudents } from "../../../../context/AcademicContext";
 
 function RecentRegistrations() {
-  const { registrations } = useRegistrationLog();
+  const { admins = [] } = useAdmins();
+  const { students = [] } = useStudents();
   const [page, setPage] = useState(1);
 
-  const itemsPerPage = 4;
+  const getAdminName = (a) =>
+    a.name || `${a.firstName || ""} ${a.lastName || ""}`.trim() || a.email || "Admin";
 
-  const totalPages =
-    Math.ceil(registrations.length / itemsPerPage) || 1;
+  const getStudentName = (s) =>
+    s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+
+  const allRegistrations = [
+    ...admins.map((a) => {
+      const r = (a.role || "").toUpperCase();
+      const roleLabel =
+        r === "SUPER_ADMIN" || r === "SUPERADMIN"
+          ? "Super Admin"
+          : r === "MENTOR"
+          ? "Mentor"
+          : "Admin";
+      return {
+        id: a._id || a.id,
+        name: getAdminName(a),
+        email: a.email,
+        role: roleLabel,
+        date: a.createdAt
+          ? new Date(a.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })
+          : "Recently",
+      };
+    }),
+    ...students.map((s) => ({
+      id: s._id || s.id,
+      name: getStudentName(s),
+      email: s.email,
+      role: "Student",
+      date: s.createdAt
+        ? new Date(s.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+        : "Recently",
+    })),
+  ];
+
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(allRegistrations.length / itemsPerPage) || 1;
 
   useEffect(() => {
     if (page > totalPages) {
@@ -24,7 +63,7 @@ function RecentRegistrations() {
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * itemsPerPage;
 
-  const displayed = registrations.slice(
+  const displayed = allRegistrations.slice(
     startIndex,
     startIndex + itemsPerPage
   );
@@ -85,6 +124,7 @@ function RecentRegistrations() {
                         .map((n) => n[0])
                         .join("")
                         .slice(0, 2)
+                        .toUpperCase()
                     : "U"}
                 </div>
 
@@ -118,46 +158,41 @@ function RecentRegistrations() {
 
           {displayed.length === 0 && (
             <div className="py-6 text-center text-xs text-gray-500">
-              No registrations found.
+              No registered accounts found.
             </div>
           )}
         </div>
       </div>
 
-      {/* Pagination Bar (Always rendered to lock fixed height like Admin dashboard cards) */}
-      <div className="shrink-0 mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-        {/* Previous */}
-        <button
-          type="button"
-          disabled={currentPage === 1}
-          onClick={() =>
-            setPage((prev) => Math.max(prev - 1, 1))
-          }
-          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition"
-        >
-          <FiChevronLeft size={14} />
-          Prev
-        </button>
-
-        {/* Page */}
-        <span className="font-semibold text-gray-700">
-          Page {currentPage} of {totalPages}
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs text-gray-500 mt-auto">
+        <span>
+          Showing {allRegistrations.length > 0 ? startIndex + 1 : 0}-
+          {Math.min(startIndex + itemsPerPage, allRegistrations.length)} of{" "}
+          {allRegistrations.length}
         </span>
 
-        {/* Next */}
-        <button
-          type="button"
-          disabled={currentPage >= totalPages}
-          onClick={() =>
-            setPage((prev) =>
-              Math.min(prev + 1, totalPages)
-            )
-          }
-          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition"
-        >
-          Next
-          <FiChevronRight size={14} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="p-1 rounded border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+          >
+            <FiChevronLeft size={14} />
+          </button>
+
+          <span className="px-2 font-medium text-gray-700">
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="p-1 rounded border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition cursor-pointer"
+          >
+            <FiChevronRight size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );
