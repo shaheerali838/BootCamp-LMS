@@ -91,7 +91,7 @@ function MyProjects() {
 
   const currentProjects = displayList.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   // --------------------------------

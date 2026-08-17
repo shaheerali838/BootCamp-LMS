@@ -20,6 +20,7 @@ const projects = [
 
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
+  // Access global projects from TeamProjectContext API
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");

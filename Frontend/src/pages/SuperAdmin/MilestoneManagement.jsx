@@ -20,6 +20,7 @@ const projects = [
 
 function MilestoneManagement() {
   const { milestones, addMilestone, updateMilestone, deleteMilestone } = useMilestones();
+  // Access global projects from TeamProjectContext API
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
