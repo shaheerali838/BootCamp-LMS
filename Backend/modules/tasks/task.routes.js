@@ -23,7 +23,7 @@ import {
 const router = express.Router();
 
 router.post(
-  "/create",
+  "/create-task",
   authMiddleware,
   requirePermission(PERMISSIONS.CREATE_TASKS),
   createTaskValidation,
@@ -32,14 +32,14 @@ router.post(
 );
 
 router.get(
-  "/",
+  "/get-all-tasks",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TASKS),
   getTasksHandler,
 );
 
 router.get(
-  "/:id",
+  "/get-task/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TASKS),
   isTaskExists,
@@ -47,7 +47,7 @@ router.get(
 );
 
 router.put(
-  "/:id",
+  "/update-task/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.UPDATE_TASKS),
   isTaskExists,
@@ -57,7 +57,7 @@ router.put(
 );
 
 router.delete(
-  "/:id",
+  "/delete-task/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.DELETE_TASKS),
   isTaskExists,
@@ -65,7 +65,7 @@ router.delete(
 );
 
 router.get(
-  "/student/:studentId",
+  "/get-tasks-by-student/:studentId",
   authMiddleware,
   // Must use VIEW_TASKS because VIEW_STUDENTS does not exist in permission.js and will crash the app!
   requirePermission(PERMISSIONS.VIEW_TASKS),
@@ -73,7 +73,7 @@ router.get(
 );
 
 router.get(
-  "/team/:teamId",
+  "/get-tasks-by-team/:teamId",
   authMiddleware,
   // Same here, use VIEW_TASKS
   requirePermission(PERMISSIONS.VIEW_TASKS),
@@ -81,7 +81,7 @@ router.get(
 );
 
 router.get(
-  "/sprint/:sprintId",
+  "/get-tasks-by-sprint/:sprintId",
   authMiddleware,
   // Same here, use VIEW_TASKS
   requirePermission(PERMISSIONS.VIEW_TASKS),

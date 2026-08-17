@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FiFolder, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
-import { useTeamProject } from "../../contextAPI/TeamProjectContext";
+// Fixed import path: updated from contextAPI to context directory
+import { useTeamProject } from "../../context/TeamProjectContext";
 
 function ProjectManagement() {
   const { projects = [], addProject, updateProject, deleteProject } = useTeamProject();
@@ -61,18 +62,15 @@ function ProjectManagement() {
   };
 
   const handleDelete = (id) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
+    // Fixed: Use deleteProject from useTeamProject context
+    deleteProject(id);
   };
 
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <span>SuperAdmin</span>
-          <span>›</span>
-          <span className="font-semibold text-gray-800">Project Management</span>
-        </div>
+        
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">

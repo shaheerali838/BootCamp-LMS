@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "../modules/auth/auth.routes.js";
+import adminRoutes from "../modules/admins/admin.routes.js";
 import studentRoutes from "../modules/students/student.routes.js";
 import teamRoutes from "../modules/teams/team.routes.js";
 import teamMemberRoutes from "../modules/teamMembers/teamMember.routes.js";
@@ -11,11 +12,15 @@ import sprintRoutes from "../modules/sprints/sprint.routes.js";
 import milestoneRoutes from "../modules/milestones/milestone.routes.js";
 import evaluationRoutes from "../modules/evaluations/evaluation.routes.js";
 import reportRoutes from "../modules/reports/report.routes.js";
+import announcementRoutes from "../modules/announcements/announcement.routes.js";
 
 const mainRouter = express.Router();
 
 //auth
 mainRouter.use("/auth", authRoutes);
+
+//admins
+mainRouter.use("/admins", adminRoutes);
 
 //students
 mainRouter.use("/students", studentRoutes);
@@ -40,5 +45,8 @@ mainRouter.use("/batches", batchRoutes);
 
 //task
 mainRouter.use("/tasks", taskRoutes);
+
+//announcements
+mainRouter.use("/announcements", announcementRoutes);
 
 export default mainRouter;

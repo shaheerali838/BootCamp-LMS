@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useAuth } from "../../contextAPI/AuthContext";
+// Fixed import path: updated from contextAPI to context directory
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function ForgotPassword() {

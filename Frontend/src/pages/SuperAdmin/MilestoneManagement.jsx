@@ -1,7 +1,23 @@
 import React, { useState } from "react";
-import { FiCheckSquare, FiPlus, FiTrash2, FiEdit2, FiFilter } from "react-icons/fi";
+import {
+  FiCheckSquare,
+  FiPlus,
+  FiTrash2,
+  FiEdit2,
+  FiFilter,
+  FiCheckCircle,
+  FiClock,
+  FiTarget
+} from "react-icons/fi";
 import { useMilestones } from "../../context/MilestoneContext";
-import { useTeamProject } from "../../contextAPI/TeamProjectContext";
+// Fixed import path: updated from contextAPI to context directory
+import { useTeamProject } from "../../context/TeamProjectContext";
+
+// Dummy projects for the filter since ProjectContext isn't imported here yet
+const projects = [
+  { id: 1, title: "LMS Platform Development" },
+  { id: 2, title: "E-Commerce App" },
+];
 
 function MilestoneManagement() {
   const { milestones, addMilestone, updateMilestone, deleteMilestone } = useMilestones();
@@ -23,6 +39,10 @@ function MilestoneManagement() {
     if (selectedProjectId === "All") return true;
     return Number(m.projectId) === Number(selectedProjectId);
   });
+
+  const totalMilestones = milestones.length;
+  const completedMilestones = milestones.filter((m) => m.status === "Completed").length;
+  const pendingMilestones = milestones.filter((m) => m.status === "Pending" || m.status === "In Progress").length;
 
   const handleOpenAdd = () => {
     setEditingMilestone(null);
@@ -62,85 +82,111 @@ function MilestoneManagement() {
   };
 
   return (
-    <div className="p-5 space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <span>SuperAdmin</span>
-          <span>›</span>
-          <span className="font-semibold text-gray-800">Milestone Management</span>
-        </div>
-        <div className="flex items-center justify-between mt-2">
+    <div className="p-4">
+      {/* Page Header placeholder to match Students.jsx */}
+      <div className="mb-5"></div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FiCheckSquare className="text-blue-600" />
-              Project Milestones
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Track and assign key deliverables per project
-            </p>
+            <h2 className="text-2xl font-semibold text-gray-900">{totalMilestones}</h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Total Milestones</p>
           </div>
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+            <FiTarget size={23} className="text-blue-600" />
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">{completedMilestones}</h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Completed</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+            <FiCheckCircle size={23} className="text-green-600" />
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">{pendingMilestones}</h2>
+            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">Pending / Active</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+            <FiClock size={23} className="text-amber-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Table Card */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        
+        {/* Search/Filter Header */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <FiFilter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <select
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="w-64 pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 cursor-pointer text-gray-700"
+              >
+                <option value="All">All Projects ({projects.length})</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition"
           >
-            <FiPlus size={16} />
+            <FiPlus size={17} />
             Create Milestone
           </button>
         </div>
-      </div>
 
-      {/* Project Filter */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <FiFilter size={16} className="text-blue-600" />
-          <span>Filter by Project:</span>
-        </div>
-        <select
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700 px-3 py-2 rounded-lg outline-none cursor-pointer focus:border-blue-500 max-w-xs"
-        >
-          <option value="All">All Projects ({projects.length})</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="overflow-x-auto">
+          {/* Table Header */}
+          <div className="grid grid-cols-5 min-w-[800px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+            <span className="col-span-2">Milestone Title</span>
+            <span>Project</span>
+            <span>Due Date & Status</span>
+            <span className="text-right">Actions</span>
+          </div>
 
-      {/* Milestones Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <span className="col-span-2">Milestone Title</span>
-          <span>Project</span>
-          <span>Due Date & Status</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {filtered.map((item) => (
-            <div key={item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm">
-              <div className="col-span-2 font-bold text-gray-900">{item.title}</div>
+          {/* Table Rows */}
+          <div className="divide-y divide-gray-100 min-w-[800px]">
+            {filtered.map((item) => (
+            <div key={item.id} className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition">
+              <div className="col-span-2 text-sm font-medium text-gray-900">{item.title}</div>
+              
               <div>
-                <span className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded text-xs">
                   {getProjectTitle(item.projectId)}
                 </span>
               </div>
+              
               <div>
-                <div className="text-xs font-semibold text-gray-800">{item.dueDate}</div>
+                <div className="text-xs text-gray-800">{item.dueDate}</div>
                 <span
-                  className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-0.5 ${
+                  className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
                     item.status === "Completed"
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-green-100 text-green-600"
                       : item.status === "In Progress"
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-gray-100 text-gray-700"
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {item.status}
                 </span>
               </div>
+              
               <div className="flex items-center justify-end gap-3 text-gray-400">
                 <button
                   onClick={() => handleOpenEdit(item)}
@@ -150,7 +196,11 @@ function MilestoneManagement() {
                   <FiEdit2 size={16} />
                 </button>
                 <button
-                  onClick={() => deleteMilestone(item.id)}
+                  onClick={() => {
+                    if (window.confirm("Delete this milestone?")) {
+                      deleteMilestone(item.id);
+                    }
+                  }}
                   className="hover:text-red-600 transition"
                   title="Delete"
                 >
@@ -161,9 +211,10 @@ function MilestoneManagement() {
           ))}
           {filtered.length === 0 && (
             <div className="py-8 text-center text-sm text-gray-500">
-              No milestones found for selected project.
+              No milestones found.
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -239,9 +290,9 @@ function MilestoneManagement() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
                 >
-                  Save Milestone
+                  {editingMilestone ? "Save Changes" : "Create Milestone"}
                 </button>
               </div>
             </form>

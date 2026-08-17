@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contextAPI/AuthContext";
+// Fixed import path: updated from contextAPI to context directory
+import { useAuth } from "../../context/AuthContext";
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();

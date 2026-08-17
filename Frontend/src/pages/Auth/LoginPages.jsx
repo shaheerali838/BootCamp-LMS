@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import img from "../../../public/imges/images.jpg";
-import { useAuth } from "../../contextAPI/AuthContext";
+import img from "/imges/images.jpg?url";
+// Resolved merge conflict: AuthContext is imported from ../../context/AuthContext
+import { useAuth } from "../../context/AuthContext";
+import { FiLoader } from "react-icons/fi";
 
 function LoginPages() {
   const navigate = useNavigate();
-
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ function LoginPages() {
 
   const [error, setError] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,8 +44,7 @@ function LoginPages() {
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password =
-        "Password must be at least 6 characters long";
+      newErrors.password = "Password must be at least 6 characters long";
     }
 
     setError(newErrors);
@@ -53,66 +53,48 @@ function LoginPages() {
       return;
     }
 
+    setIsLoading(true);
     try {
-      setLoading(true);
+      const response = await login(formData.email, formData.password);
 
-      const response = await login(
-        formData.email,
-        formData.password
-      );
+      const userRole = (response.data?.data?.user?.role || response.data?.user?.role || "STUDENT")
+        .toUpperCase()
+        .replace(/[\s_]+/g, "");
 
-      console.log("Login response:", response.data);
-
-      const user = response.data.data.user;
-
-      const role = user.role?.toLowerCase();
-
-      if (role === "superadmin") {
-        navigate("/superadmin/dashboard");
-      } else if (role === "admin") {
-        navigate("/dashboard");
-      } else if (role === "student") {
-        navigate("/student/dashboard");
+      if (userRole === "SUPERADMIN") {
+        navigate("/superadmin/dashboard", { replace: true });
+      } else if (userRole === "ADMIN") {
+        navigate("/dashboard", { replace: true });
       } else {
-        setError({
-          general: "Invalid user role",
-        });
+        navigate("/student/dashboard", { replace: true });
       }
 
       setFormData({
         email: "",
         password: "",
       });
-    } catch (error) {
-      console.log("Login error:", error);
-
+      setError({});
+    } catch (err) {
+      console.error(err);
       setError({
-        general:
-          error.response?.data?.message ||
-          "Invalid email or password",
+        general: err.response?.data?.message || "Invalid email or password",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full flex items-center justify-center">
-      <div className="w-full">
-
-        <div className="w-full flex items-center justify-center mb-4 lg:hidden">
-          <img
-            src={img}
-            alt="SMIT Logo"
-            className="w-40 h-auto object-contain"
-          />
+    <div className="w-full min-h-screen flex items-center justify-center px-2">
+      <div className="w-full max-w-md">
+        <div className="w-full flex items-center py-2 justify-center lg:hidden">
+          <img src={img} alt="SMIT Logo" className="w-30 h-20 object-contain" />
         </div>
 
         <form
           onSubmit={submitForm}
           className="bg-white px-7 py-6 border border-gray-200 rounded-2xl shadow-sm w-full"
         >
-
           {error.general && (
             <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm mb-4">
               {error.general}
@@ -123,9 +105,8 @@ function LoginPages() {
             Welcome back
           </h1>
 
-          <p className="text-gray-500 text-sm leading-6 mt-1">
-            Kindly provide the Email and password used during SMIT
-            registration.
+          <p className="text-gray-500 text-xs sm:text-sm leading-5 sm:leading-6 mt-1">
+            Kindly provide the Email and password used during SMIT registration.
           </p>
 
           <div>
@@ -142,17 +123,17 @@ function LoginPages() {
               id="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoading}
               placeholder="you@school.edu"
-              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${error.email
-                ? "border-red-400"
-                : "border-gray-300 focus:border-[#0476b9]"
-                }`}
+              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${
+                error.email
+                  ? "border-red-400"
+                  : "border-gray-300 focus:border-[#0476b9]"
+              } ${isLoading ? "bg-gray-100" : ""}`}
             />
 
             {error.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {error.email}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{error.email}</p>
             )}
           </div>
 
@@ -165,45 +146,37 @@ function LoginPages() {
             </label>
 
             <div className="relative">
-
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 id="password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
                 placeholder="Enter your password"
-                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${error.password
-                  ? "border-red-400"
-                  : "border-gray-300 focus:border-[#0476b9]"
-                  }`}
+                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${
+                  error.password
+                    ? "border-red-400"
+                    : "border-gray-300 focus:border-[#0476b9]"
+                } ${isLoading ? "bg-gray-100" : ""}`}
               />
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0476b9]"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
-
             </div>
 
             {error.password && (
-              <p className="text-red-500 text-xs mt-1">
-                {error.password}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{error.password}</p>
             )}
           </div>
 
-          <div className="flex p-2 items-center justify-between">
-
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 p-1 sm:p-2 mt-2 items-start sm:items-center justify-between">
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -211,10 +184,7 @@ function LoginPages() {
                 className="accent-[#0476b9]"
               />
 
-              <label
-                htmlFor="remember"
-                className="text-gray-500 text-sm ml-2"
-              >
+              <label htmlFor="remember" className="text-gray-500 text-sm ml-2">
                 Remember me
               </label>
             </div>
@@ -225,17 +195,16 @@ function LoginPages() {
             >
               Forgot Password?
             </NavLink>
-
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="bg-[#0476b9] disabled:opacity-60 cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-4 w-full hover:bg-[#03669f] transition"
+            disabled={isLoading}
+            className="flex items-center justify-center gap-2 bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-3 sm:mt-4 w-full hover:bg-[#03669f] transition disabled:opacity-70"
           >
-            {loading ? "Logging in..." : "Log in"}
+            {isLoading && <FiLoader className="animate-spin" />}
+            Log in
           </button>
-
         </form>
       </div>
     </div>

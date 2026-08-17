@@ -28,7 +28,7 @@ const router = express.Router();
 
 // Create Sprint
 router.post(
-  "/",
+  "/create-sprint",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_SPRINTS),
   createSprintValidation,
@@ -39,7 +39,7 @@ router.post(
 
 // Get All Sprints
 router.get(
-  "/",
+  "/get-all-sprints",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_SPRINTS),
   getAllSprintsHandler,
@@ -47,7 +47,7 @@ router.get(
 
 // Search Sprint
 router.get(
-  "/search",
+  "/search-sprints",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_SPRINTS),
   searchSprintHandler,
@@ -55,7 +55,7 @@ router.get(
 
 // Get Sprints by Milestone
 router.get(
-  "/milestone/:milestoneId",
+  "/get-sprints-by-milestone/:milestoneId",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_SPRINTS),
   getSprintsByMilestoneHandler,
@@ -63,7 +63,7 @@ router.get(
 
 // Get Sprints by Status
 router.get(
-  "/status/:status",
+  "/get-sprints-by-status/:status",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_SPRINTS),
   getSprintsByStatusHandler,
@@ -71,7 +71,7 @@ router.get(
 
 // Get Sprint By ID
 router.get(
-  "/:id",
+  "/get-sprint/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_SPRINTS),
   checkSprintExists,
@@ -80,7 +80,7 @@ router.get(
 
 // Update Sprint
 router.put(
-  "/:id",
+  "/update-sprint/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_SPRINTS),
   updateSprintValidation,
@@ -91,7 +91,7 @@ router.put(
 
 // Delete Sprint
 router.delete(
-  "/:id",
+  "/delete-sprint/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_SPRINTS),
   checkSprintExists,

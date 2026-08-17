@@ -13,7 +13,7 @@ function StudentManagement() {
     rollNo: "",
     email: "",
     phone: "",
-    team: "Team Alpha",
+    team: "Unassigned",
     status: "Active",
   });
 
@@ -21,7 +21,7 @@ function StudentManagement() {
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.rollNo.toLowerCase().includes(search.toLowerCase()) ||
-      s.team.toLowerCase().includes(search.toLowerCase())
+      (s.team || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleOpenAdd = () => {
@@ -31,7 +31,7 @@ function StudentManagement() {
       rollNo: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
       email: "",
       phone: "",
-      team: "Team Alpha",
+      team: "Unassigned",
       status: "Active",
     });
     setShowModal(true);
@@ -44,7 +44,7 @@ function StudentManagement() {
       rollNo: student.rollNo,
       email: student.email,
       phone: student.phone || "",
-      team: student.team,
+      team: student.team || "Unassigned",
       status: student.status,
     });
     setShowModal(true);
@@ -71,11 +71,6 @@ function StudentManagement() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <span>SuperAdmin</span>
-          <span>›</span>
-          <span className="font-semibold text-gray-800">Student Management</span>
-        </div>
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -132,7 +127,7 @@ function StudentManagement() {
                   <div className="text-xs text-gray-400">{item.email}</div>
                 </div>
               </div>
-              <span className="text-xs text-gray-600 font-medium">{item.team}</span>
+              <span className="text-xs text-gray-600 font-medium">{item.team || "Unassigned"}</span>
               <div>
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
@@ -213,18 +208,6 @@ function StudentManagement() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="student@smit.edu"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Assigned Team
-                </label>
-                <input
-                  type="text"
-                  value={formData.team}
-                  onChange={(e) => setFormData({ ...formData, team: e.target.value })}
-                  placeholder="Team Alpha"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-emerald-500"
                 />
               </div>

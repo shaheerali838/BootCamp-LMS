@@ -17,30 +17,30 @@ const router = express.Router();
 
 // Create Report
 router.post(
-  "/",
+  "/create-report",
   createReportValidation,
   validateMiddleware,
   createReportHandler
 );
 
 // Get All Reports
-router.get("/", getAllReportsHandler);
+router.get("/get-all-reports", getAllReportsHandler);
 
 // Get Reports by Type
-router.get("/type/:reportType", getReportsByTypeHandler);
+router.get("/get-reports-by-type/:reportType", getReportsByTypeHandler);
 
 // Get Reports by Date
-router.get("/date/:reportDate", getReportsByDateHandler);
+router.get("/get-reports-by-date/:reportDate", getReportsByDateHandler);
 
 // Get Reports by Generator
-router.get("/generator/:generatedBy", getReportsByGeneratorHandler);
+router.get("/get-reports-by-generator/:generatedBy", getReportsByGeneratorHandler);
 
 // Get Report By ID
-router.get("/:id", checkReportExists, getReportByIdHandler);
+router.get("/get-report/:id", checkReportExists, getReportByIdHandler);
 
 // Update Report
 router.put(
-  "/:id",
+  "/update-report/:id",
   updateReportValidation,
   validateMiddleware,
   checkReportExists,
@@ -48,6 +48,6 @@ router.put(
 );
 
 // Delete Report
-router.delete("/:id", checkReportExists, deleteReportHandler);
+router.delete("/delete-report/:id", checkReportExists, deleteReportHandler);
 
 export default router;

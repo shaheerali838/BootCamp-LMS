@@ -1,88 +1,40 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
-import Student from "../../model/student.model.js";
+import {
+  createStudentService,
+  getStudentsService,
+  getStudentByIdService,
+  getStudentsByBatchService,
+  updateStudentService,
+  updateStudentStatusService,
+  deleteStudentService,
+  findStudentByEmail,
+  findStudentByRollNumber,
+} from "./student.service.js";
 import sendEmail from "../../utils/sendEmail.js";
 
 // ---------- CREATE STUDENT ----------
 export const createStudent = async (req, res) => {
   try {
-    const {
-      rollNumber,
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    } = req.body;
+    const { email, rollNumber, password } = req.body;
 
-    if (
-      !rollNumber ||
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !phoneNumber ||
-      !gender ||
-      !dateOfBirth ||
-      !batchId ||
-      !mentorId
-    ) {
-      return res.status(400).json({
+    const existingStudent = await findStudentByEmail(email);
+    if (existingStudent) {
+      return res.status(409).json({
         success: false,
-        message: "All required student fields must be provided",
+        message: "Email already exists",
       });
     }
 
-    const existingStudent = await Student.findOne({
-      email: email.toLowerCase(),
-    });
-    if (existingStudent) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already exists" });
-    }
-
-    const existingRollNumber = await Student.findOne({
-      rollNumber: rollNumber.trim(),
-    });
+    const existingRollNumber = await findStudentByRollNumber(rollNumber);
     if (existingRollNumber) {
-      return res
-        .status(409)
-        .json({ success: false, message: "Roll number already exists" });
+      return res.status(409).json({
+        success: false,
+        message: "Roll number already exists",
+      });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(batchId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid batch ID" });
-    }
+    const student = await createStudentService(req.body);
 
-    if (!mongoose.Types.ObjectId.isValid(mentorId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid mentor ID" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const student = await Student.create({
-      rollNumber: rollNumber.trim(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.toLowerCase().trim(),
-      password: hashedPassword,
-      phoneNumber: phoneNumber.trim(),
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    });
-
-    // Send the Welcome Email
+    // Send Welcome Email
     try {
       await sendEmail({
         to: student.email,
@@ -98,18 +50,14 @@ export const createStudent = async (req, res) => {
           <p>Please log in and change your password as soon as possible.</p>
         `,
       });
-      console.log("Welcome email sent successfully to", student.email);
     } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
+      console.error("Failed to send welcome email:", emailError.message);
     }
-
-    const studentResponse = student.toObject();
-    delete studentResponse.password;
 
     return res.status(201).json({
       success: true,
       message: "Student created successfully",
-      data: studentResponse,
+      data: student,
     });
   } catch (error) {
     return res.status(500).json({
@@ -125,84 +73,47 @@ export const getStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+    const search = req.query.search || "";
 
-    const { search } = req.query;
-    let query = {};
-
-    if (search) {
-      const searchRegex = new RegExp(search, "i");
-      query = {
-        $or: [
-          { firstName: searchRegex },
-          { lastName: searchRegex },
-          { email: searchRegex },
-          { rollNumber: searchRegex },
-        ],
-      };
-    }
-
-    const totalStudents = await Student.countDocuments(query);
-    const students = await Student.find(query)
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const result = await getStudentsService({ page, limit, search });
 
     return res.status(200).json({
       success: true,
-      data: students,
-      pagination: {
-        totalItems: totalStudents,
-        currentPage: page,
-        totalPages: Math.ceil(totalStudents / limit),
-        pageSize: limit,
-      },
+      data: result.students,
+      pagination: result.pagination,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch students",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch students",
+      error: error.message,
+    });
   }
 };
 
-// ---------- GET STUDENT BY ID ----------
+// ---------- GET SINGLE STUDENT ----------
 export const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid student ID" });
-    }
-
-    const student = await Student.findById(id)
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email");
+    const student = await getStudentByIdService(id);
 
     if (!student) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Student not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
     }
 
-    return res.status(200).json({ success: true, data: student });
+    return res.status(200).json({
+      success: true,
+      data: student,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch student",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch student",
+      error: error.message,
+    });
   }
 };
 
@@ -210,29 +121,19 @@ export const getStudentById = async (req, res) => {
 export const getStudentsByBatch = async (req, res) => {
   try {
     const { batchId } = req.params;
+    const students = await getStudentsByBatchService(batchId);
 
-    if (!mongoose.Types.ObjectId.isValid(batchId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid batch ID" });
-    }
-
-    const students = await Student.find({ batchId })
-      .select("-password")
-      .populate("batchId", "batchName program startDate endDate status")
-      .populate("mentorId", "firstName lastName email");
-
-    return res
-      .status(200)
-      .json({ success: true, count: students.length, data: students });
+    return res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch students by batch",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch students by batch",
+      error: error.message,
+    });
   }
 };
 
@@ -240,89 +141,48 @@ export const getStudentsByBatch = async (req, res) => {
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
+    const { email, rollNumber } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid student ID" });
+    if (email) {
+      const existingEmail = await findStudentByEmail(email, id);
+      if (existingEmail) {
+        return res.status(409).json({
+          success: false,
+          message: "Email already exists",
+        });
+      }
     }
 
-    const student = await Student.findById(id);
-    if (!student) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Student not found" });
+    if (rollNumber) {
+      const existingRoll = await findStudentByRollNumber(rollNumber, id);
+      if (existingRoll) {
+        return res.status(409).json({
+          success: false,
+          message: "Roll number already exists",
+        });
+      }
     }
 
-    const {
-      rollNumber,
-      firstName,
-      lastName,
-      email,
-      password,
-      phoneNumber,
-      gender,
-      dateOfBirth,
-      batchId,
-      mentorId,
-    } = req.body;
+    const updatedStudent = await updateStudentService(id, req.body);
 
-    if (email && email.toLowerCase() !== student.email) {
-      const existingEmail = await Student.findOne({
-        email: email.toLowerCase(),
-        _id: { $ne: id },
-      });
-      if (existingEmail)
-        return res
-          .status(409)
-          .json({ success: false, message: "Email already exists" });
-    }
-
-    if (rollNumber && rollNumber !== student.rollNumber) {
-      const existingRoll = await Student.findOne({
-        rollNumber,
-        _id: { $ne: id },
-      });
-      if (existingRoll)
-        return res
-          .status(409)
-          .json({ success: false, message: "Roll number already exists" });
-    }
-
-    if (rollNumber) student.rollNumber = rollNumber.trim();
-    if (firstName) student.firstName = firstName.trim();
-    if (lastName) student.lastName = lastName.trim();
-    if (email) student.email = email.toLowerCase().trim();
-    if (phoneNumber) student.phoneNumber = phoneNumber.trim();
-    if (gender) student.gender = gender;
-    if (dateOfBirth) student.dateOfBirth = dateOfBirth;
-    if (batchId) student.batchId = batchId;
-    if (mentorId) student.mentorId = mentorId;
-
-    if (password) {
-      student.password = await bcrypt.hash(password, 10);
-    }
-
-    await student.save();
-
-    const studentResponse = student.toObject();
-    delete studentResponse.password;
-
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Student updated successfully",
-        data: studentResponse,
-      });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({
+    if (!updatedStudent) {
+      return res.status(404).json({
         success: false,
-        message: "Failed to update student",
-        error: error.message,
+        message: "Student not found",
       });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Student updated successfully",
+      data: updatedStudent,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update student",
+      error: error.message,
+    });
   }
 };
 
@@ -332,28 +192,14 @@ export const updateStudentStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid student ID" });
+    const student = await updateStudentStatusService(id, status);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
     }
-
-    if (!["active", "inactive"].includes(status)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Status must be active or inactive" });
-    }
-
-    const student = await Student.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true, runValidators: true },
-    ).select("-password");
-
-    if (!student)
-      return res
-        .status(404)
-        .json({ success: false, message: "Student not found" });
 
     return res.status(200).json({
       success: true,
@@ -361,13 +207,11 @@ export const updateStudentStatus = async (req, res) => {
       data: student,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to update student status",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update student status",
+      error: error.message,
+    });
   }
 };
 
@@ -375,31 +219,24 @@ export const updateStudentStatus = async (req, res) => {
 export const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
+    const student = await deleteStudentService(id);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid student ID" });
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
     }
 
-    const student = await Student.findById(id);
-    if (!student)
-      return res
-        .status(404)
-        .json({ success: false, message: "Student not found" });
-
-    await Student.findByIdAndDelete(id);
-
-    return res
-      .status(200)
-      .json({ success: true, message: "Student deleted successfully" });
+    return res.status(200).json({
+      success: true,
+      message: "Student deleted successfully",
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to delete student",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete student",
+      error: error.message,
+    });
   }
 };

@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { FaBullhorn } from "react-icons/fa";
-import { useAnnouncement } from "../../contextAPI/Anouncement";
-import AnnouncementCard from "../../components/Anouncement/AnnouncementCard";
+// Resolved merge conflict: use correct context and feature component imports
+import { useAnnouncement } from "../../context/AnnouncementContext";
+import AnnouncementCard from "../../components/features/Announcements/AnnouncementCard";
 
 const Announcements = () => {
   const { announcements = [] } = useAnnouncement();
 
-  // UPDATED: Pagination logic (6 items per page)
+  // Pagination logic (6 items per page)
   const itemsPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(announcements.length / itemsPerPage);
 
-  const validPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const currentAnnouncements = announcements.slice(
-    (validPage - 1) * itemsPerPage,
-    validPage * itemsPerPage
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="w-full bg-gray-50">
+      <div className="w-full px-4 sm:px-6 lg:px-4 py-8">
 
-        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-6">
+        <div className="w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 shrink-0 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
               <FaBullhorn size={20} />
@@ -34,7 +39,7 @@ const Announcements = () => {
               </h1>
 
               <p className="text-sm text-gray-500">
-                View the latest school announcements from Context API
+                View the latest school announcements
               </p>
             </div>
           </div>
@@ -83,7 +88,7 @@ const Announcements = () => {
                 ))}
               </div>
 
-              {/* UPDATED: Pagination Controls */}
+              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-6">
                   <button
@@ -137,4 +142,4 @@ const Announcements = () => {
   );
 };
 
-export default Announcements;
+export default Announcements;

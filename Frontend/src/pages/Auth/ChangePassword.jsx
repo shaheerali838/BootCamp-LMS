@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useAuth } from "../../contextAPI/AuthContext";
+// Fixed import path: updated from contextAPI to context directory
+import { useAuth } from "../../context/AuthContext";
 
 function ChangePassword() {
   const { changePassword } = useAuth();

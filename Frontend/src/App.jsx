@@ -1,30 +1,38 @@
 import "./App.css";
-import { SidebarProvider, useSidebar } from "./context/SidebarContext";
-import { AttendanceProvider } from "./context/AttendanceContext";
-import { StudentProvider } from "./context/StudentContext";
-import { TaskProvider } from "./context/TaskContext";
-import { TeamProjectProvider } from "./contextAPI/TeamProjectContext";
-import { ResourceProvider } from "./context/ResourceContext";
-import { ReportProvider } from "./context/ReportContext";
-import { AdminProvider } from "./context/AdminContext";
-import { BatchProvider } from "./context/BatchContext";
-import { MilestoneProvider } from "./context/MilestoneContext";
-import { SprintProvider } from "./context/SprintContext";
-import { RegistrationLogProvider } from "./context/RegistrationLogContext";
-import { ActivityLogProvider } from "./context/ActivityLogContext";
-import { AnnouncementProvider } from "./contextAPI/Anouncement";
+import { useSidebar } from "./context/SidebarContext";
+import { AppProvider } from "./context/AppProvider";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Sidebar from "./components/layout/Sidebar";
+import Navbar from "./components/layout/Navbar";
 
-import Sidebar from "./components/Layouts/Sidebar";
-import Navbar from "./components/Layouts/Navbar";
-
-import AppRoutes from "./pages/routes/AppRoutes";
+import AppRoutes from "./routes/AppRoutes";
 
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import AuthLayout from "./components/AuthLayout";
 // Auth component imports
+// AuthLayout is imported from ./components/layout/AuthLayout
+import AuthLayout from "./components/layout/AuthLayout";
+
 import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
+import { FiLoader } from "react-icons/fi";
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <FiLoader className="animate-spin text-amber-600" size={32} />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -36,7 +44,7 @@ function DashboardLayout() {
       <Navbar />
 
       <main
-        className={`pt-16 transition-all duration-300 ${
+        className={`pt-10 transition-all duration-300 ${
           isOpen ? "ml-70" : "ml-22.5"
         }`}
       >
@@ -49,26 +57,21 @@ function DashboardLayout() {
 function AppLayout() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<Navigate to="/login" replace />}
-      />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       <Route element={<AuthLayout />}>
-        <Route
-          path="/login"
-          element={<LoginPages />}
-        />
+        <Route path="/login" element={<LoginPages />} />
       </Route>
 
-      <Route
-        path="/forget-password"
-        element={<ForgetPassword />}
-      />
+      <Route path="/forget-password" element={<ForgetPassword />} />
 
       <Route
         path="/*"
-        element={<DashboardLayout />}
+        element={
+          // <ProtectedRoute>
+          <DashboardLayout />
+          // </ProtectedRoute>
+        }
       />
     </Routes>
   );
@@ -76,36 +79,11 @@ function AppLayout() {
 
 function App() {
   return (
-    <SidebarProvider>
-      <AnnouncementProvider>
-        <AttendanceProvider>
-          <StudentProvider>
-            <TaskProvider>
-                <TeamProjectProvider>
-                  <ResourceProvider>
-                    <ReportProvider>
-                      <AdminProvider>
-                        <BatchProvider>
-                          <MilestoneProvider>
-                            <SprintProvider>
-                              <RegistrationLogProvider>
-                                <ActivityLogProvider>
-                                  <AppLayout />
-                                </ActivityLogProvider>
-                              </RegistrationLogProvider>
-                            </SprintProvider>
-                          </MilestoneProvider>
-                        </BatchProvider>
-                      </AdminProvider>
-                    </ReportProvider>
-                  </ResourceProvider>
-                </TeamProjectProvider>
-              
-            </TaskProvider>
-          </StudentProvider>
-        </AttendanceProvider>
-      </AnnouncementProvider>
-    </SidebarProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppLayout />
+      </AppProvider>
+    </AuthProvider>
   );
 }
 

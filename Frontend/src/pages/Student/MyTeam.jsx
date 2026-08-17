@@ -9,7 +9,7 @@ import {
   FiFolder,
 } from "react-icons/fi";
 
-import { useTeamProject } from "../../contextAPI/TeamProjectContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/StudentContext";
 
 function MyTeam() {
@@ -73,14 +73,13 @@ function MyTeam() {
 
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
           <span>Student Portal</span>
           <span>›</span>
           <span className="font-semibold text-gray-800">
-            My Teams
+            Teams
           </span>
         </div>
-
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">

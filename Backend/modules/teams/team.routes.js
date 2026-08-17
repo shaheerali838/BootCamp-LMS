@@ -21,7 +21,7 @@ const router = express.Router();
 
 // Create Team
 router.post(
-  "/",
+  "/create-team",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   createTeamValidation,
@@ -32,7 +32,7 @@ router.post(
 
 // Get All Teams
 router.get(
-  "/",
+  "/get-all-teams",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TEAMS),
   getAllTeamsHandler,
@@ -40,7 +40,7 @@ router.get(
 
 // Search Team
 router.get(
-  "/search",
+  "/search-teams",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TEAMS),
   searchTeamHandler,
@@ -48,7 +48,7 @@ router.get(
 
 // Get Team By ID
 router.get(
-  "/:id",
+  "/get-team/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.VIEW_TEAMS),
   checkTeamExists,
@@ -57,7 +57,7 @@ router.get(
 
 // Update Team
 router.put(
-  "/:id",
+  "/update-team/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   updateTeamValidation,
@@ -68,7 +68,7 @@ router.put(
 
 // Delete Team
 router.delete(
-  "/:id",
+  "/delete-team/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_TEAMS),
   checkTeamExists,

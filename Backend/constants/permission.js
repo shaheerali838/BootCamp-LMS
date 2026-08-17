@@ -50,6 +50,8 @@ const PERMISSIONS = {
 
   // Announcements
   CREATE_ANNOUNCEMENTS: "create_announcements",
+  UPDATE_ANNOUNCEMENTS: "update_announcements",
+  DELETE_ANNOUNCEMENTS: "delete_announcements",
   VIEW_ANNOUNCEMENTS: "view_announcements",
 
   // Reports
