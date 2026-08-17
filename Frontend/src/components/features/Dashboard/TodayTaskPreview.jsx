@@ -68,7 +68,7 @@ function TodayTaskPreview() {
         <div className="space-y-2 mt-2.5 flex-1 min-h-0 overflow-hidden">
           {displayedTasks.map((task) => (
             <div
-              key={task.id}
+              key={task._id || task.id}
               className="border border-gray-100 rounded-lg p-2 hover:bg-gray-50/50 transition"
             >
               {/* Title + Status */}

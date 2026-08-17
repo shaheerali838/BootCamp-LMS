@@ -3,220 +3,103 @@ import api from "../api/axios";
 
 const AcademicContext = createContext();
 
-const STUDENT_STORAGE_KEY = "lms_students";
-const ATTENDANCE_STORAGE_KEY = "lms_attendance";
-
-const initialStudentData = [
-  {
-    id: 1,
-    rollNo: "SMIT-001",
-    name: "Ayesha Siddiqui",
-    initials: "AS",
-    email: "ayesha@smit.edu",
-    phone: "0300-1111111",
-    team: "Team Alpha",
-    attendance: 92,
-    status: "Active",
-  },
-  {
-    id: 2,
-    rollNo: "SMIT-002",
-    name: "Bilal Ahmed",
-    initials: "BA",
-    email: "bilal@smit.edu",
-    phone: "0300-2222222",
-    team: "Team Beta",
-    attendance: 78,
-    status: "Active",
-  },
-  {
-    id: 3,
-    rollNo: "SMIT-003",
-    name: "Fatima Malik",
-    initials: "FM",
-    email: "fatima@smit.edu",
-    phone: "0300-3333333",
-    team: "Team Alpha",
-    attendance: 96,
-    status: "Active",
-  },
-  {
-    id: 4,
-    rollNo: "SMIT-004",
-    name: "Hamza Khan",
-    initials: "HK",
-    email: "hamza@smit.edu",
-    phone: "0300-4444444",
-    team: "Team Gamma",
-    attendance: 65,
-    status: "At Risk",
-  },
-  {
-    id: 5,
-    rollNo: "SMIT-005",
-    name: "Zara Hussain",
-    initials: "ZH",
-    email: "zara@smit.edu",
-    phone: "0300-5555555",
-    team: "Team Beta",
-    attendance: 88,
-    status: "Active",
-  },
-  {
-    id: 6,
-    rollNo: "SMIT-006",
-    name: "Usman Tariq",
-    initials: "UT",
-    email: "usman@smit.edu",
-    phone: "0300-6666666",
-    team: "Team Delta",
-    attendance: 84,
-    status: "Active",
-  },
-  {
-    id: 7,
-    rollNo: "SMIT-007",
-    name: "Nadia Qureshi",
-    initials: "NQ",
-    email: "nadia@smit.edu",
-    phone: "0300-7777777",
-    team: "Team Gamma",
-    attendance: 91,
-    status: "Active",
-  },
-  {
-    id: 8,
-    rollNo: "SMIT-008",
-    name: "Hassan Raza",
-    initials: "HR",
-    email: "hassan@smit.edu",
-    phone: "0300-8888888",
-    team: "Team Delta",
-    attendance: 69,
-    status: "At Risk",
-  },
-];
-
-const initialAttendanceData = [
-  {
-    studentId: 1,
-    attendance: [
-      {
-        date: "2026-08-11",
-        status: "Present",
-        time: "08:45 AM",
-        checkInTime: "08:45 AM",
-        checkOutTime: "04:30 PM",
-      },
-      {
-        date: "2026-08-10",
-        status: "Present",
-        time: "08:52 AM",
-        checkInTime: "08:52 AM",
-        checkOutTime: "04:30 PM",
-      },
-      {
-        date: "2026-08-09",
-        status: "Late",
-        time: "09:18 AM",
-        checkInTime: "09:18 AM",
-        checkOutTime: "04:35 PM",
-      },
-    ],
-  },
-  {
-    studentId: 2,
-    attendance: [
-      {
-        date: "2026-08-11",
-        status: "Absent",
-        time: "--:--",
-        checkInTime: "--:--",
-        checkOutTime: "--:--",
-      },
-      {
-        date: "2026-08-10",
-        status: "Present",
-        time: "08:48 AM",
-        checkInTime: "08:48 AM",
-        checkOutTime: "04:30 PM",
-      },
-      {
-        date: "2026-08-09",
-        status: "Present",
-        time: "08:55 AM",
-        checkInTime: "08:55 AM",
-        checkOutTime: "04:25 PM",
-      },
-    ],
-  },
-  {
-    studentId: 3,
-    attendance: [
-      {
-        date: "2026-08-11",
-        status: "Present",
-        time: "08:50 AM",
-        checkInTime: "08:50 AM",
-        checkOutTime: "04:30 PM",
-      },
-      {
-        date: "2026-08-10",
-        status: "Present",
-        time: "08:47 AM",
-        checkInTime: "08:47 AM",
-        checkOutTime: "04:30 PM",
-      },
-      {
-        date: "2026-08-09",
-        status: "Present",
-        time: "08:51 AM",
-        checkInTime: "08:51 AM",
-        checkOutTime: "04:30 PM",
-      },
-    ],
-  },
-];
+// ── Static local attendance data (no backend route) ───────
+const initialAttendanceData = [];
 
 export const AcademicProvider = ({ children }) => {
-  // --- Student State ---
-  const [students, setStudents] = useState(() => {
-    const stored = localStorage.getItem(STUDENT_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialStudentData;
-  });
+  // ── Students (API) ─────────────────────────────────────────
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [studentsError, setStudentsError] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem(STUDENT_STORAGE_KEY, JSON.stringify(students));
-  }, [students]);
+  const fetchStudents = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
-  const addStudent = (newStudent) => {
-    setStudents((prev) => [...prev, { ...newStudent, id: Date.now() }]);
+    setStudentsLoading(true);
+    try {
+      const res = await api.get("/students/get-all-students");
+      setStudents(res.data.data || []);
+      setStudentsError(null);
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+      setStudentsError(err.response?.data?.message || "Failed to fetch students");
+    } finally {
+      setStudentsLoading(false);
+    }
   };
 
-  const updateStudent = (id, updatedData) => {
-    setStudents((prev) =>
-      prev.map((student) =>
-        student.id === id ? { ...student, ...updatedData } : student
-      )
-    );
+  const addStudent = async (newStudent) => {
+    setStudentsLoading(true);
+    try {
+      const payload = {
+        firstName: newStudent.firstName || newStudent.name?.split(" ")[0] || "",
+        lastName: newStudent.lastName || newStudent.name?.split(" ").slice(1).join(" ") || "",
+        email: newStudent.email,
+        password: newStudent.password,
+        phoneNumber: newStudent.phone || newStudent.phoneNumber || "",
+        batchId: newStudent.batchId || newStudent.batch || undefined,
+        rollNo: newStudent.rollNo || undefined,
+      };
+      const res = await api.post("/students/create-student", payload);
+      if (res.data.success) setStudents((prev) => [res.data.data, ...prev]);
+      setStudentsError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to add student:", err);
+      setStudentsError(err.response?.data?.message || "Failed to create student");
+      throw err;
+    } finally {
+      setStudentsLoading(false);
+    }
   };
 
-  const deleteStudent = (id) => {
-    setStudents((prev) => prev.filter((student) => student.id !== id));
+  const updateStudent = async (id, updatedData) => {
+    setStudentsLoading(true);
+    try {
+      const res = await api.put(`/students/update-student/${id}`, updatedData);
+      if (res.data.success) {
+        setStudents((prev) => prev.map((s) => (s._id === id ? res.data.data : s)));
+      }
+      setStudentsError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to update student:", err);
+      setStudentsError(err.response?.data?.message || "Failed to update student");
+      throw err;
+    } finally {
+      setStudentsLoading(false);
+    }
   };
 
-  // --- Batch State ---
+  const deleteStudent = async (id) => {
+    setStudentsLoading(true);
+    try {
+      await api.delete(`/students/delete-student/${id}`);
+      setStudents((prev) => prev.filter((s) => s._id !== id));
+      setStudentsError(null);
+    } catch (err) {
+      console.error("Failed to delete student:", err);
+      setStudentsError(err.response?.data?.message || "Failed to delete student");
+      throw err;
+    } finally {
+      setStudentsLoading(false);
+    }
+  };
+
+  // ── Batches (API) ─────────────────────────────────────────
   const [batches, setBatches] = useState([]);
   const [batchesLoading, setBatchesLoading] = useState(false);
   const [batchesError, setBatchesError] = useState(null);
 
   const fetchBatches = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
     setBatchesLoading(true);
     try {
-      const response = await api.get("/batches");
-      if (response.data.success) {
-        setBatches(response.data.batches);
-      }
+      const response = await api.get("/batches/get-all-batches");
+      if (response.data.success) setBatches(response.data.batches || []);
       setBatchesError(null);
     } catch (err) {
       console.error("Failed to fetch batches:", err);
@@ -225,10 +108,6 @@ export const AcademicProvider = ({ children }) => {
       setBatchesLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchBatches();
-  }, []);
 
   const addBatch = async (newBatch) => {
     setBatchesLoading(true);
@@ -240,15 +119,13 @@ export const AcademicProvider = ({ children }) => {
         endDate: newBatch.endDate,
         status: newBatch.status || "active",
       };
-
-      const response = await api.post("/batches", payload);
-      if (response.data.success) {
-        setBatches((prev) => [response.data.batch, ...prev]);
-      }
+      const response = await api.post("/batches/create-batch", payload);
+      if (response.data.success) setBatches((prev) => [response.data.batch, ...prev]);
       setBatchesError(null);
     } catch (err) {
       console.error("Failed to add batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to create batch");
+      throw err;
     } finally {
       setBatchesLoading(false);
     }
@@ -264,17 +141,15 @@ export const AcademicProvider = ({ children }) => {
         endDate: updatedData.endDate,
         status: updatedData.status,
       };
-
-      const response = await api.put(`/batches/${id}`, payload);
+      const response = await api.put(`/batches/update-batch/${id}`, payload);
       if (response.data.success) {
-        setBatches((prev) =>
-          prev.map((b) => (b._id === id ? response.data.batch : b))
-        );
+        setBatches((prev) => prev.map((b) => (b._id === id ? response.data.batch : b)));
       }
       setBatchesError(null);
     } catch (err) {
       console.error("Failed to update batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to update batch");
+      throw err;
     } finally {
       setBatchesLoading(false);
     }
@@ -283,127 +158,65 @@ export const AcademicProvider = ({ children }) => {
   const deleteBatch = async (id) => {
     setBatchesLoading(true);
     try {
-      const response = await api.delete(`/batches/${id}`);
-      if (response.data.success) {
-        setBatches((prev) => prev.filter((b) => b._id !== id));
-      }
+      const response = await api.delete(`/batches/delete-batch/${id}`);
+      if (response.data.success) setBatches((prev) => prev.filter((b) => b._id !== id));
       setBatchesError(null);
     } catch (err) {
       console.error("Failed to delete batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to delete batch");
+      throw err;
     } finally {
       setBatchesLoading(false);
     }
   };
 
-  // --- Attendance State ---
-  const [attendance, setAttendance] = useState(() => {
-    const stored = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialAttendanceData;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance));
-  }, [attendance]);
+  // ── Attendance (local) ─────────────────────────────────────
+  const [attendance, setAttendance] = useState(initialAttendanceData);
 
   const updateAttendance = (studentId, date, status, time, checkOutTime = null) => {
     setAttendance((prev) => {
-      const studentExists = prev.some(
-        (student) => student.studentId === studentId || student.id === studentId
-      );
-
+      const studentExists = prev.some((s) => s.studentId === studentId || s.id === studentId);
       if (!studentExists) {
-        return [
-          ...prev,
-          {
-            studentId,
-            attendance: [
-              {
-                date,
-                status,
-                time: time || "--:--",
-                checkInTime: time || "--:--",
-                checkOutTime: checkOutTime || "--:--",
-              },
-            ],
-          },
-        ];
+        return [...prev, { studentId, attendance: [{ date, status, time: time || "--:--", checkInTime: time || "--:--", checkOutTime: checkOutTime || "--:--" }] }];
       }
-
       return prev.map((student) => {
-        if (student.studentId !== studentId && student.id !== studentId) {
-          return student;
-        }
-
-        const existingAttendance = student.attendance?.find(
-          (item) => item.date === date
-        );
-
-        if (existingAttendance) {
+        if (student.studentId !== studentId && student.id !== studentId) return student;
+        const existing = student.attendance?.find((item) => item.date === date);
+        if (existing) {
           return {
             ...student,
             attendance: student.attendance.map((item) =>
               item.date === date
-                ? {
-                    ...item,
-                    status,
-                    time: time || item.time || "--:--",
-                    checkInTime: time || item.checkInTime || item.time || "--:--",
-                    checkOutTime: checkOutTime !== null ? checkOutTime : item.checkOutTime || "--:--",
-                  }
+                ? { ...item, status, time: time || item.time || "--:--", checkInTime: time || item.checkInTime || "--:--", checkOutTime: checkOutTime !== null ? checkOutTime : item.checkOutTime || "--:--" }
                 : item
             ),
           };
         }
-
-        return {
-          ...student,
-          attendance: [
-            ...(student.attendance || []),
-            {
-              date,
-              status,
-              time: time || "--:--",
-              checkInTime: time || "--:--",
-              checkOutTime: checkOutTime || "--:--",
-            },
-          ],
-        };
+        return { ...student, attendance: [...(student.attendance || []), { date, status, time: time || "--:--", checkInTime: time || "--:--", checkOutTime: checkOutTime || "--:--" }] };
       });
     });
   };
 
-  const getStudentAttendance = (studentId) => {
-    return (
-      attendance.find(
-        (student) => student.studentId === studentId || student.id === studentId
-      )?.attendance || []
-    );
-  };
+  const getStudentAttendance = (studentId) =>
+    attendance.find((s) => s.studentId === studentId || s.id === studentId)?.attendance || [];
+
+  // ── Bootstrap ─────────────────────────────────────────────
+  useEffect(() => {
+    fetchStudents();
+    fetchBatches();
+  }, []);
 
   return (
     <AcademicContext.Provider
       value={{
-        // Student slice
-        students,
-        setStudents,
-        addStudent,
-        updateStudent,
-        deleteStudent,
-        // Batch slice
-        batches,
-        setBatches,
-        batchesLoading,
-        batchesError,
-        fetchBatches,
-        addBatch,
-        updateBatch,
-        deleteBatch,
-        // Attendance slice
-        attendance,
-        setAttendance,
-        updateAttendance,
-        getStudentAttendance,
+        // Students
+        students, studentsLoading, studentsError,
+        setStudents, fetchStudents, addStudent, updateStudent, deleteStudent,
+        // Batches
+        batches, setBatches, batchesLoading, batchesError,
+        fetchBatches, addBatch, updateBatch, deleteBatch,
+        // Attendance (local)
+        attendance, setAttendance, updateAttendance, getStudentAttendance,
       }}
     >
       {children}
@@ -413,34 +226,21 @@ export const AcademicProvider = ({ children }) => {
 
 export const useAcademic = () => {
   const context = useContext(AcademicContext);
-  if (!context) {
-    throw new Error("useAcademic must be used inside AcademicProvider");
-  }
+  if (!context) throw new Error("useAcademic must be used inside AcademicProvider");
   return context;
 };
 
-// Thin exported compatibility wrappers
+// ── Thin compatibility wrappers ───────────────────────────
 export const useStudents = () => {
-  const { students, setStudents, addStudent, updateStudent, deleteStudent } = useAcademic();
-  return { students, setStudents, addStudent, updateStudent, deleteStudent };
+  const { students, studentsLoading, studentsError, setStudents, fetchStudents, addStudent, updateStudent, deleteStudent } = useAcademic();
+  return { students, loading: studentsLoading, error: studentsError, setStudents, fetchStudents, addStudent, updateStudent, deleteStudent };
 };
-
 export const useStudent = useStudents;
 
 export const useBatches = () => {
-  const {
-    batches,
-    setBatches,
-    batchesLoading: loading,
-    batchesError: error,
-    fetchBatches,
-    addBatch,
-    updateBatch,
-    deleteBatch,
-  } = useAcademic();
+  const { batches, setBatches, batchesLoading: loading, batchesError: error, fetchBatches, addBatch, updateBatch, deleteBatch } = useAcademic();
   return { batches, setBatches, loading, error, fetchBatches, addBatch, updateBatch, deleteBatch };
 };
-
 export const useBatch = useBatches;
 
 export const useAttendance = () => {

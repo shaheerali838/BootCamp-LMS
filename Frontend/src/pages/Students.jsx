@@ -18,24 +18,43 @@ function Students() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
+  const getStudentName = (s) =>
+    s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+
+  const getStudentInitials = (s) => {
+    if (s.initials) return s.initials;
+    const n = getStudentName(s);
+    return n
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "ST";
+  };
+
   const filteredStudents = students.filter((student) => {
     const value = search.toLowerCase();
+    const name = getStudentName(student).toLowerCase();
+    const roll = (student.rollNo || "").toLowerCase();
+    const team = (student.team || "").toLowerCase();
+    const email = (student.email || "").toLowerCase();
 
     return (
-      student.name.toLowerCase().includes(value) ||
-      student.rollNo.toLowerCase().includes(value) ||
-      student.team.toLowerCase().includes(value)
+      name.includes(value) ||
+      roll.includes(value) ||
+      team.includes(value) ||
+      email.includes(value)
     );
   });
 
   const totalStudents = students.length;
 
   const activeStudents = students.filter(
-    (student) => student.status === "Active"
+    (student) => (student.status || "").toLowerCase() === "active"
   ).length;
 
   const atRiskStudents = students.filter(
-    (student) => student.status === "At Risk"
+    (student) => (student.status || "").toLowerCase() === "at risk" || (student.attendance && student.attendance < 75)
   ).length;
 
   const handleAddStudent = (newStudent) => {
@@ -44,32 +63,24 @@ function Students() {
 
   return (
     <div className="p-4">
-
       {/* Page Header */}
-      <div className="mb-5">
-       
-      </div>
+      <div className="mb-5"></div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-
         {/* Total */}
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
               {totalStudents}
             </h2>
-
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
               Total Students
             </p>
           </div>
 
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <FiUsers
-              size={23}
-              className="text-blue-600"
-            />
+            <FiUsers size={23} className="text-blue-600" />
           </div>
         </div>
 
@@ -79,17 +90,13 @@ function Students() {
             <h2 className="text-2xl font-semibold text-gray-900">
               {activeStudents}
             </h2>
-
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
               Active
             </p>
           </div>
 
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-            <FiCheckCircle
-              size={23}
-              className="text-green-600"
-            />
+            <FiCheckCircle size={23} className="text-green-600" />
           </div>
         </div>
 
@@ -99,35 +106,27 @@ function Students() {
             <h2 className="text-2xl font-semibold text-gray-900">
               {atRiskStudents}
             </h2>
-
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
               At Risk
             </p>
           </div>
 
           <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <FiAlertTriangle
-              size={23}
-              className="text-red-500"
-            />
+            <FiAlertTriangle size={23} className="text-red-500" />
           </div>
         </div>
-
       </div>
 
       {/* Student Table Card */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-
         {/* Search Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-
           {/* Search */}
           <div className="relative w-80">
             <FiSearch
               size={18}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
-
             <input
               type="text"
               value={search}
@@ -143,154 +142,110 @@ function Students() {
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition"
           >
             <FiPlus size={17} />
-
             Add Student
           </button>
-
         </div>
 
         {/* Table Header */}
         <div className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
-
-          <span>
-            Roll No
-          </span>
-
-          <span>
-            Name
-          </span>
-
-          <span>
-            Team
-          </span>
-
-          <span>
-            Attendance
-          </span>
-
-          <span>
-            Status
-          </span>
-
-          <span>
-            Actions
-          </span>
-
+          <span>Roll No</span>
+          <span>Name</span>
+          <span>Team</span>
+          <span>Attendance</span>
+          <span>Status</span>
+          <span>Actions</span>
         </div>
 
         {/* Table Rows */}
-        {filteredStudents.map((student) => (
-          <div
-            key={student.id}
-            className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
-          >
+        {filteredStudents.map((student) => {
+          const studentName = getStudentName(student);
+          const studentInitials = getStudentInitials(student);
+          const attVal = student.attendance !== undefined ? student.attendance : 90;
+          const isActive = (student.status || "").toLowerCase() === "active";
 
-            {/* Roll No */}
-            <span className="text-xs text-gray-600">
-              {student.rollNo}
-            </span>
-
-            {/* Name */}
-            <div className="flex items-center gap-3">
-
-              <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[11px] font-semibold">
-                {student.initials}
-              </div>
-
-              <span className="text-sm font-medium text-gray-900">
-                {student.name}
+          return (
+            <div
+              key={student._id || student.id}
+              className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
+            >
+              {/* Roll No */}
+              <span className="text-xs text-gray-600">
+                {student.rollNo || "N/A"}
               </span>
 
-            </div>
+              {/* Name */}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[11px] font-semibold">
+                  {studentInitials}
+                </div>
+                <span className="text-sm font-medium text-gray-900">
+                  {studentName}
+                </span>
+              </div>
 
-            {/* Team */}
-            <span className="text-xs text-gray-500">
-              {student.team}
-            </span>
+              {/* Team */}
+              <span className="text-xs text-gray-500">
+                {student.team || "Unassigned"}
+              </span>
 
-            {/* Attendance */}
-            <div className="flex items-center gap-2">
+              {/* Attendance */}
+              <div className="flex items-center gap-2">
+                <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      attVal < 70 ? "bg-red-500" : "bg-green-500"
+                    }`}
+                    style={{
+                      width: `${attVal}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-gray-700">
+                  {attVal}%
+                </span>
+              </div>
 
-              <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-
-                <div
-                  className={`h-full rounded-full ${
-                    student.attendance < 70
-                      ? "bg-red-500"
-                      : "bg-green-500"
+              {/* Status */}
+              <div>
+                <span
+                  className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                    isActive
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-500"
                   }`}
-                  style={{
-                    width: `${student.attendance}%`,
-                  }}
-                />
-
+                >
+                  {student.status || "Active"}
+                </span>
               </div>
 
-              <span className="text-xs text-gray-700">
-                {student.attendance}%
-              </span>
-
+              {/* Actions */}
+              <div className="flex items-center gap-4">
+                {/* View */}
+                <Link
+                  to={`/students/${student._id || student.id}`}
+                  title="View Student Details"
+                  className="text-gray-400 hover:text-blue-600 transition"
+                >
+                  <FiEye size={17} />
+                </Link>
+              </div>
             </div>
+          );
+        })}
 
-            {/* Status */}
-            <div>
-
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                  student.status === "Active"
-                    ? "bg-green-100 text-green-600"
-                    : "bg-red-100 text-red-500"
-                }`}
-              >
-                {student.status}
-              </span>
-
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-4">
-
-              {/* Edit */}
-              <button
-                title="Edit Student"
-                className="text-gray-400 hover:text-blue-600 transition"
-              >
-                <FiEdit2 size={17} />
-              </button>
-
-              {/* View */}
-              <Link
-                to={`/students/${student.id}`}
-                title="View Student"
-                className="text-gray-400 hover:text-blue-600 transition"
-              >
-                <FiEye size={18} />
-              </Link>
-
-            </div>
-
-          </div>
-        ))}
-
-        {/* No Students */}
         {filteredStudents.length === 0 && (
-          <div className="py-8 text-center">
-            <p className="text-gray-500 text-sm">
-              No students found.
-            </p>
+          <div className="py-12 text-center text-gray-400 text-sm">
+            No students found.
           </div>
         )}
-
       </div>
 
       {/* Add Student Modal */}
-      {showModal && (
-        <AddStudentModal
-          onClose={() => setShowModal(false)}
-          onAdd={handleAddStudent}
-        />
-      )}
-
+      <AddStudentModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onAddStudent={handleAddStudent}
+      />
     </div>
   );
 }

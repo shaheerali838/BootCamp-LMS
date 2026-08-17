@@ -1,14 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiX, FiClipboard } from "react-icons/fi";
+import { useStudents } from "../../../context/AcademicContext";
+import { useTeamProject } from "../../../context/TeamProjectContext";
+import { useSprints } from "../../../context/WorkContext";
 
 function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
+  const { students = [] } = useStudents();
+  const { teams = [] } = useTeamProject();
+  const { sprints = [] } = useSprints();
+
   const [formData, setFormData] = useState({
-    title: taskToAssign ? taskToAssign.title : "",
-    description: taskToAssign ? taskToAssign.description : "",
-    assignedTo: taskToAssign?.assignedTo || "Team Alpha",
-    dueDate: taskToAssign?.dueDate || "",
-    priority: taskToAssign?.priority || "Medium",
+    title: "",
+    description: "",
+    sprintId: "",
+    assignedType: "team", // "team" or "student"
+    assignedId: "",
+    dueDate: new Date().toISOString().split("T")[0],
+    priority: "Medium",
+    status: "Pending",
   });
+
+  useEffect(() => {
+    if (taskToAssign) {
+      setFormData({
+        title: taskToAssign.title || "",
+        description: taskToAssign.description || "",
+        sprintId: taskToAssign.sprintId || (sprints[0]?._id || sprints[0]?.id || ""),
+        assignedType: taskToAssign.assignedStudentId ? "student" : "team",
+        assignedId: taskToAssign.assignedStudentId || taskToAssign.assignedTeamId || (teams[0]?._id || teams[0]?.id || ""),
+        dueDate: taskToAssign.dueDate ? new Date(taskToAssign.dueDate).toISOString().split("T")[0] : "",
+        priority: taskToAssign.priority || "Medium",
+        status: taskToAssign.status || "Pending",
+      });
+    } else {
+      setFormData({
+        title: "",
+        description: "",
+        sprintId: sprints[0]?._id || sprints[0]?.id || "",
+        assignedType: "team",
+        assignedId: teams[0]?._id || teams[0]?.id || "",
+        dueDate: new Date().toISOString().split("T")[0],
+        priority: "Medium",
+        status: "Pending",
+      });
+    }
+  }, [taskToAssign, teams, students, sprints]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,33 +57,35 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description || !formData.dueDate) {
+    if (!formData.title.trim() || !formData.description.trim() || !formData.dueDate) {
       alert("Please fill all required fields.");
       return;
     }
 
+    const assignedTeamId = formData.assignedType === "team" ? formData.assignedId : (teams[0]?._id || teams[0]?.id);
+    const assignedStudentId = formData.assignedType === "student" ? formData.assignedId : (students[0]?._id || students[0]?.id);
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      sprintId: formData.sprintId || (sprints[0]?._id || sprints[0]?.id || undefined),
+      assignedTeamId,
+      assignedStudentId,
+      dueDate: formData.dueDate,
+      priority: formData.priority,
+      status: formData.status,
+      assignedDate: new Date().toISOString().split("T")[0],
+      assignedBy: "Admin",
+    };
+
     if (taskToAssign) {
-      // Assigning existing task
       onAssign({
-        id: taskToAssign.id,
+        id: taskToAssign._id || taskToAssign.id,
         ...taskToAssign,
-        ...formData,
-        assignedDate: new Date().toISOString().split("T")[0],
+        ...payload,
       });
     } else {
-      // Creating new task
-      const newTask = {
-        id: Date.now(),
-        title: formData.title,
-        description: formData.description,
-        assignedBy: "Admin User",
-        assignedTo: "Unassigned",
-        assignedDate: new Date().toISOString().split("T")[0],
-        dueDate: formData.dueDate,
-        priority: formData.priority,
-        status: "Pending",
-      };
-      onAssign(newTask);
+      onAssign(payload);
     }
 
     onClose();
@@ -55,166 +93,194 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-              <FiClipboard size={20} />
+            <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+              <FiClipboard size={18} />
             </div>
 
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-base font-bold text-gray-900">
                 {taskToAssign
                   ? `Assign Task: ${taskToAssign.title}`
                   : "Create New Task"}
               </h2>
 
-              <p className="text-sm text-gray-500 mt-1">
-                {taskToAssign
-                  ? "Assign this task to a student or team"
-                  : "Create a new task for your course"}
+              <p className="text-xs text-gray-500">
+                Define task deliverables, priority, and assignees
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 transition"
+            className="text-gray-400 hover:text-gray-700 transition cursor-pointer text-xl font-bold"
           >
-            <FiX size={22} />
+            ✕
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
           {/* Task Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block font-semibold text-gray-700 mb-1">
               Task Title *
             </label>
-
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter task title"
+              placeholder="e.g. Implement User Authentication Flow"
               required
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block font-semibold text-gray-700 mb-1">
               Description *
             </label>
-
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows="4"
-              placeholder="Enter task description"
+              rows="3"
+              placeholder="Provide clear technical objectives and acceptance criteria..."
               required
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm resize-none focus:border-blue-500"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
             />
           </div>
 
-          {/* Conditional Layout: 2 Columns when assigning existing task, Full-width Due Date when creating new task */}
-          {taskToAssign ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Assign To (Only shown when assigning an existing task) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assign To (Team / Student)
-                </label>
-
-                <select
-                  name="assignedTo"
-                  value={formData.assignedTo}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
-                >
-                  <option value="Team Alpha">Team Alpha</option>
-                  <option value="Team Beta">Team Beta</option>
-                  <option value="Team Gamma">Team Gamma</option>
-                  <option value="Team Delta">Team Delta</option>
-                  <option value="All Students">All Students</option>
-                  <option value="Ali Hassan">Ali Hassan</option>
-                  <option value="Sara Bilal">Sara Bilal</option>
-                  <option value="Usman Tariq">Usman Tariq</option>
-                </select>
-              </div>
-
-              {/* Due Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date *
-                </label>
-
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
-                />
-              </div>
-            </div>
-          ) : (
-            /* Due Date Full-Width (When creating new task) */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Target Sprint */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block font-semibold text-gray-700 mb-1">
+                Target Sprint
+              </label>
+              <select
+                name="sprintId"
+                value={formData.sprintId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+              >
+                <option value="">Select Sprint (Optional)</option>
+                {sprints.map((s) => (
+                  <option key={s._id || s.id} value={s._id || s.id}>
+                    {s.sprintName || s.name || "Sprint"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Assignment Type */}
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Assign Target *
+              </label>
+              <div className="flex gap-2 mb-1">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, assignedType: "team", assignedId: teams[0]?._id || teams[0]?.id || "" })}
+                  className={`flex-1 py-1 rounded border text-xs font-semibold ${
+                    formData.assignedType === "team" ? "bg-blue-600 text-white border-blue-600" : "bg-gray-50 text-gray-600"
+                  }`}
+                >
+                  Team
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, assignedType: "student", assignedId: students[0]?._id || students[0]?.id || "" })}
+                  className={`flex-1 py-1 rounded border text-xs font-semibold ${
+                    formData.assignedType === "student" ? "bg-blue-600 text-white border-blue-600" : "bg-gray-50 text-gray-600"
+                  }`}
+                >
+                  Individual Student
+                </button>
+              </div>
+
+              {formData.assignedType === "team" ? (
+                <select
+                  name="assignedId"
+                  value={formData.assignedId}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+                >
+                  {teams.map((t) => (
+                    <option key={t._id || t.id} value={t._id || t.id}>
+                      {t.teamName || t.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  name="assignedId"
+                  value={formData.assignedId}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+                >
+                  {students.map((s) => (
+                    <option key={s._id || s.id} value={s._id || s.id}>
+                      {s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim()} ({s.rollNumber || s.rollNo || "Student"})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Priority */}
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Priority
+              </label>
+              <select
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+              >
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
                 Due Date *
               </label>
-
               <input
                 type="date"
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
               />
             </div>
-          )}
-
-          {/* Priority */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-
-            <select
-              name="priority"
-              value={formData.priority}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
-            >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
           </div>
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-3">
+          {/* Footer Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 cursor-pointer"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow"
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer"
             >
-              {taskToAssign ? "Assign Task" : "Create Task"}
+              {taskToAssign ? "Save Changes" : "Create Task"}
             </button>
           </div>
         </form>

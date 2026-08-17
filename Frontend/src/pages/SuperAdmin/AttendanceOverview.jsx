@@ -88,20 +88,23 @@ function AttendanceOverview() {
               time: "08:45 AM",
             };
 
+            const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || student.email || "Student";
+            const initials = student.initials || studentName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "ST";
+
             return (
               <div
-                key={student.id}
+                key={student._id || student.id}
                 className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <span className="font-semibold text-gray-700 text-xs">
-                  {student.rollNo}
+                  {student.rollNo || "N/A"}
                 </span>
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
-                    {student.initials || "ST"}
+                    {initials}
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900">{student.name}</div>
+                    <div className="font-bold text-gray-900">{studentName}</div>
                     <div className="text-xs text-gray-400">
                       {student.team || "No Team"}
                     </div>

@@ -64,7 +64,7 @@ function Announcements() {
       {/* List (Tightly content-fitted) */}
       <div className="space-y-3">
         {announcements.map((item) => (
-          <div key={item.id} className="flex items-center justify-between gap-2">
+          <div key={item._id || item.id} className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
                 className={`w-7 h-7 rounded-full ${item.avatarBg} font-bold text-[10px] flex items-center justify-center shrink-0`}

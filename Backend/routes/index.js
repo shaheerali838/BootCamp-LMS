@@ -13,6 +13,7 @@ import milestoneRoutes from "../modules/milestones/milestone.routes.js";
 import evaluationRoutes from "../modules/evaluations/evaluation.routes.js";
 import reportRoutes from "../modules/reports/report.routes.js";
 import announcementRoutes from "../modules/announcements/announcement.routes.js";
+import resourceRoutes from "../modules/resources/resource.routes.js";
 
 const mainRouter = express.Router();
 
@@ -48,5 +49,8 @@ mainRouter.use("/tasks", taskRoutes);
 
 //announcements
 mainRouter.use("/announcements", announcementRoutes);
+
+//resources
+mainRouter.use("/resources", resourceRoutes);
 
 export default mainRouter;

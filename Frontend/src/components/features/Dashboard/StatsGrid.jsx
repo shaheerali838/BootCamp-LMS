@@ -8,21 +8,53 @@ import {
   FiClipboard,
 } from "react-icons/fi";
 import StatCard from "./StatCard";
+import { useStudents, useAttendance } from "../../../context/AcademicContext";
+import { useTeamProject } from "../../../context/TeamProjectContext";
+import { useTasks } from "../../../context/WorkContext";
 
-function StatsGrid({ stats }) {
-  const data = stats || [
+function StatsGrid() {
+  const { students = [] } = useStudents();
+  const { getStudentAttendance } = useAttendance();
+  const { teams = [] } = useTeamProject();
+  const { tasks = [] } = useTasks();
+
+  const today = new Date().toISOString().split("T")[0];
+  const totalStudentsCount = students.length;
+
+  let presentToday = 0;
+  let absentToday = 0;
+  let onLeaveToday = 0;
+
+  students.forEach((s) => {
+    const sid = s._id || s.id;
+    const history = getStudentAttendance(sid) || [];
+    const todayRecord = history.find((rec) => rec.date === today);
+    if (todayRecord) {
+      if (todayRecord.status === "Present" || todayRecord.status === "Late") presentToday++;
+      else if (todayRecord.status === "Absent") absentToday++;
+      else if (todayRecord.status === "Leave") onLeaveToday++;
+    }
+  });
+
+  const totalTeamsCount = teams.length;
+  const pendingTasksCount = tasks.filter(
+    (t) => t.status === "Pending" || t.status === "In Progress"
+  ).length;
+
+  const data = [
     {
       id: 1,
       label: "TOTAL STUDENTS",
-      value: "245",
+      value: String(totalStudentsCount),
       icon: <FiUsers size={18} />,
       iconBg: "bg-blue-50",
       iconColor: "text-blue-600",
+      path: "/students",
     },
     {
       id: 2,
       label: "PRESENT TODAY",
-      value: "198/245",
+      value: totalStudentsCount > 0 ? `${presentToday}/${totalStudentsCount}` : "0",
       icon: <FiCheckCircle size={18} />,
       iconBg: "bg-green-50",
       iconColor: "text-green-600",
@@ -31,34 +63,38 @@ function StatsGrid({ stats }) {
     {
       id: 3,
       label: "ABSENT TODAY",
-      value: "28/245",
+      value: totalStudentsCount > 0 ? `${absentToday}/${totalStudentsCount}` : "0",
       icon: <FiXCircle size={18} />,
       iconBg: "bg-red-50",
       iconColor: "text-red-500",
+      path: "/attendance",
     },
     {
       id: 4,
       label: "ON LEAVE",
-      value: "19",
+      value: String(onLeaveToday),
       icon: <FiCalendar size={18} />,
       iconBg: "bg-orange-50",
       iconColor: "text-orange-500",
+      path: "/attendance",
     },
     {
       id: 5,
       label: "TOTAL TEAMS",
-      value: "12",
+      value: String(totalTeamsCount),
       icon: <FiShare2 size={18} />,
       iconBg: "bg-purple-50",
       iconColor: "text-purple-600",
+      path: "/teams",
     },
     {
       id: 6,
       label: "PENDING TASKS",
-      value: "34",
+      value: String(pendingTasksCount),
       icon: <FiClipboard size={18} />,
       iconBg: "bg-yellow-50",
       iconColor: "text-yellow-600",
+      path: "/tasks",
     },
   ];
 

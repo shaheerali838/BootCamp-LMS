@@ -49,7 +49,7 @@ function SprintManagement() {
   const handleOpenAdd = () => {
     setEditingSprint(null);
     setFormData({
-      projectId: projects[0]?.id || 1,
+      projectId: projects[0]?._id || projects[0]?.id || "",
       name: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
@@ -72,10 +72,14 @@ function SprintManagement() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      sprintName: formData.name,
+    };
     if (editingSprint) {
-      updateSprint(editingSprint.id, formData);
+      updateSprint(editingSprint._id || editingSprint.id, payload);
     } else {
-      addSprint(formData);
+      addSprint(payload);
     }
     setShowModal(false);
   };
@@ -152,8 +156,8 @@ function SprintManagement() {
               >
                 <option value="All">All Projects ({projects.length})</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
+                  <option key={p._id || p.id} value={p._id || p.id}>
+                    {p.projectName || p.name || p.title || "Project"}
                   </option>
                 ))}
               </select>
@@ -182,7 +186,7 @@ function SprintManagement() {
           <div className="divide-y divide-gray-100 min-w-200">
             {filtered.map((item) => (
               <div
-                key={item.id}
+                key={item._id || item.id}
                 className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
               >
                 <div className="col-span-2 text-sm font-medium text-gray-900">
@@ -197,13 +201,13 @@ function SprintManagement() {
 
                 <div>
                   <div className="text-xs text-gray-800">
-                    {item.startDate} to {item.endDate || "Ongoing"}
+                    {item.startDate} {item.endDate ? `to ${item.endDate}` : ""}
                   </div>
                   <span
                     className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
-                      item.status === "Completed"
+                      item.status === "Active"
                         ? "bg-green-100 text-green-600"
-                        : item.status === "Active"
+                        : item.status === "Planning"
                           ? "bg-blue-100 text-blue-600"
                           : "bg-gray-100 text-gray-600"
                     }`}
@@ -223,7 +227,7 @@ function SprintManagement() {
                   <button
                     onClick={() => {
                       if (window.confirm("Delete this sprint?")) {
-                        deleteSprint(item.id);
+                        deleteSprint(item._id || item.id);
                       }
                     }}
                     className="hover:text-red-600 transition"
@@ -263,8 +267,8 @@ function SprintManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title}
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.projectName || p.name || p.title || "Project"}
                     </option>
                   ))}
                 </select>

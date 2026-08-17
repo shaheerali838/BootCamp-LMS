@@ -1,129 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import api from "../api/axios";
 
 const WorkContext = createContext();
 
-const TASK_STORAGE_KEY = "lms_tasks";
-const MILESTONE_STORAGE_KEY = "lms_milestones";
-const SPRINT_STORAGE_KEY = "lms_sprints";
-const REPORT_STORAGE_KEY = "lms_reports";
-
-const initialTaskData = [
-  {
-    id: 1,
-    title: "Build Student Dashboard",
-    description:
-      "Create the student dashboard UI with responsive design and reusable components.",
-    assignedBy: "Sir Ahmed",
-    assignedDate: "2026-08-10",
-    dueDate: "2026-08-15",
-    status: "Pending",
-    submission: null,
-  },
-  {
-    id: 2,
-    title: "Attendance Management",
-    description:
-      "Complete the attendance management page with student status and save functionality.",
-    assignedBy: "Sir Bilal",
-    assignedDate: "2026-08-11",
-    dueDate: "2026-08-17",
-    status: "In Progress",
-    submission: null,
-  },
-  {
-    id: 3,
-    title: "Reports Page",
-    description:
-      "Create the reports page with attendance, task reports, student performance and project status.",
-    assignedBy: "Sir Ahmed",
-    assignedDate: "2026-08-11",
-    dueDate: "2026-08-20",
-    status: "Completed",
-    submission: {
-      url: "https://github.com/example/reports-submission",
-      notes: "Completed all reports and charts.",
-      submittedAt: "2026-08-12",
-    },
-  },
-  {
-    id: 4,
-    title: "Team Management",
-    description:
-      "Create team management functionality and display team members.",
-    assignedBy: "Sir Usman",
-    assignedDate: "2026-08-12",
-    dueDate: "2026-08-22",
-    status: "Pending",
-    submission: null,
-  },
-];
-
-const initialMilestoneData = [
-  {
-    id: 1,
-    projectId: 1,
-    title: "UI Wireframes & Architecture",
-    dueDate: "2026-08-15",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    projectId: 1,
-    title: "Authentication & Role Context",
-    dueDate: "2026-08-20",
-    status: "In Progress",
-  },
-  {
-    id: 3,
-    projectId: 2,
-    title: "Database Schema Normalization",
-    dueDate: "2026-08-18",
-    status: "In Progress",
-  },
-  {
-    id: 4,
-    projectId: 3,
-    title: "CRUD API Integration & Testing",
-    dueDate: "2026-08-25",
-    status: "Pending",
-  },
-];
-
-const initialSprintData = [
-  {
-    id: 1,
-    projectId: 1,
-    name: "Sprint 1: Auth & Wireframes",
-    startDate: "2026-08-01",
-    endDate: "2026-08-14",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    projectId: 1,
-    name: "Sprint 2: Team Dashboard & API",
-    startDate: "2026-08-15",
-    endDate: "2026-08-28",
-    status: "Active",
-  },
-  {
-    id: 3,
-    projectId: 2,
-    name: "Sprint 1: Schema Redesign",
-    startDate: "2026-08-10",
-    endDate: "2026-08-24",
-    status: "Active",
-  },
-  {
-    id: 4,
-    projectId: 3,
-    name: "Sprint 1: UI Components",
-    startDate: "2026-08-05",
-    endDate: "2026-08-19",
-    status: "Active",
-  },
-];
-
+// ── Static report data (no backend route) ─────────────────
 const initialReportData = {
   attendanceReportData: [
     { day: "Mon", present: 82, absent: 8, late: 5 },
@@ -146,179 +26,300 @@ const initialReportData = {
     { month: "Jun", value: 198 },
     { month: "Jul", value: 235 },
   ],
-  reportSummary: {
-    taskCompleted: 84,
-    lastUpdated: "Today",
-  },
+  reportSummary: { taskCompleted: 84, lastUpdated: "Today" },
 };
 
 export const WorkProvider = ({ children }) => {
-  // --- Task State ---
-  const [tasks, setTasks] = useState(() => {
-    const stored = localStorage.getItem(TASK_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialTaskData;
-  });
+  // ── Tasks ─────────────────────────────────────────────────
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksError, setTasksError] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+  const fetchTasks = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
-  const addTask = (newTask) => {
-    setTasks((prev) => [
-      ...prev,
-      { ...newTask, id: Date.now(), status: newTask.status || "Pending" },
-    ]);
+    setTasksLoading(true);
+    try {
+      const res = await api.get("/tasks/get-all-tasks");
+      setTasks(res.data.data || []);
+      setTasksError(null);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+      setTasksError(err.response?.data?.message || "Failed to fetch tasks");
+    } finally {
+      setTasksLoading(false);
+    }
   };
 
-  const updateTaskStatus = (id, status) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, status } : task))
-    );
+  const addTask = async (newTask) => {
+    setTasksLoading(true);
+    try {
+      const res = await api.post("/tasks/create-task", newTask);
+      if (res.data.success) setTasks((prev) => [res.data.data, ...prev]);
+      setTasksError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to add task:", err);
+      setTasksError(err.response?.data?.message || "Failed to create task");
+      throw err;
+    } finally {
+      setTasksLoading(false);
+    }
   };
 
-  const submitDeliverable = (id, submissionData) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status: "In Review",
-              submission: { ...submissionData, submittedAt: new Date().toISOString().split("T")[0] },
-            }
-          : task
-      )
-    );
+  const updateTask = async (id, updatedData) => {
+    setTasksLoading(true);
+    try {
+      const res = await api.put(`/tasks/update-task/${id}`, updatedData);
+      if (res.data.success) {
+        setTasks((prev) => prev.map((t) => (t._id === id ? res.data.data : t)));
+      }
+      setTasksError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to update task:", err);
+      setTasksError(err.response?.data?.message || "Failed to update task");
+      throw err;
+    } finally {
+      setTasksLoading(false);
+    }
   };
 
-  const updateTask = (id, updatedData) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, ...updatedData } : task))
-    );
+  const updateTaskStatus = (id, status) => updateTask(id, { status });
+
+  const deleteTask = async (id) => {
+    setTasksLoading(true);
+    try {
+      await api.delete(`/tasks/delete-task/${id}`);
+      setTasks((prev) => prev.filter((t) => t._id !== id));
+      setTasksError(null);
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      setTasksError(err.response?.data?.message || "Failed to delete task");
+      throw err;
+    } finally {
+      setTasksLoading(false);
+    }
   };
 
-  // --- Milestone State ---
-  const [milestones, setMilestones] = useState(() => {
-    const stored = localStorage.getItem(MILESTONE_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialMilestoneData;
-  });
+  const submitDeliverable = async (id, submissionData) => {
+    return updateTask(id, {
+      status: "In Review",
+      submission: { ...submissionData, submittedAt: new Date().toISOString().split("T")[0] },
+    });
+  };
 
-  useEffect(() => {
-    localStorage.setItem(MILESTONE_STORAGE_KEY, JSON.stringify(milestones));
-  }, [milestones]);
+  // ── Milestones ────────────────────────────────────────────
+  const [milestones, setMilestones] = useState([]);
+  const [milestonesLoading, setMilestonesLoading] = useState(false);
+  const [milestonesError, setMilestonesError] = useState(null);
 
-  const addMilestone = (newMilestone) => {
-    setMilestones((prev) => [
-      ...prev,
-      {
-        ...newMilestone,
-        id: Date.now(),
-        projectId: Number(newMilestone.projectId),
+  const fetchMilestones = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    setMilestonesLoading(true);
+    try {
+      const res = await api.get("/milestones/get-all-milestones");
+      setMilestones(res.data.data || []);
+      setMilestonesError(null);
+    } catch (err) {
+      console.error("Failed to fetch milestones:", err);
+      setMilestonesError(err.response?.data?.message || "Failed to fetch milestones");
+    } finally {
+      setMilestonesLoading(false);
+    }
+  };
+
+  const addMilestone = async (newMilestone) => {
+    setMilestonesLoading(true);
+    try {
+      const payload = {
+        title: newMilestone.title,
+        projectId: newMilestone.projectId,
+        dueDate: newMilestone.dueDate,
         status: newMilestone.status || "Pending",
-      },
-    ]);
+      };
+      const res = await api.post("/milestones/create-milestone", payload);
+      if (res.data.success) setMilestones((prev) => [res.data.data, ...prev]);
+      setMilestonesError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to add milestone:", err);
+      setMilestonesError(err.response?.data?.message || "Failed to create milestone");
+      throw err;
+    } finally {
+      setMilestonesLoading(false);
+    }
   };
 
-  const updateMilestone = (id, updatedData) => {
-    setMilestones((prev) =>
-      prev.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              ...updatedData,
-              projectId: updatedData.projectId
-                ? Number(updatedData.projectId)
-                : m.projectId,
-            }
-          : m
-      )
-    );
+  const updateMilestone = async (id, updatedData) => {
+    setMilestonesLoading(true);
+    try {
+      const res = await api.put(`/milestones/update-milestone/${id}`, updatedData);
+      if (res.data.success) {
+        setMilestones((prev) => prev.map((m) => (m._id === id ? res.data.data : m)));
+      }
+      setMilestonesError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to update milestone:", err);
+      setMilestonesError(err.response?.data?.message || "Failed to update milestone");
+      throw err;
+    } finally {
+      setMilestonesLoading(false);
+    }
   };
 
-  const deleteMilestone = (id) => {
-    setMilestones((prev) => prev.filter((m) => m.id !== id));
+  const deleteMilestone = async (id) => {
+    setMilestonesLoading(true);
+    try {
+      await api.delete(`/milestones/delete-milestone/${id}`);
+      setMilestones((prev) => prev.filter((m) => m._id !== id));
+      setMilestonesError(null);
+    } catch (err) {
+      console.error("Failed to delete milestone:", err);
+      setMilestonesError(err.response?.data?.message || "Failed to delete milestone");
+      throw err;
+    } finally {
+      setMilestonesLoading(false);
+    }
   };
 
-  // --- Sprint State ---
-  const [sprints, setSprints] = useState(() => {
-    const stored = localStorage.getItem(SPRINT_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialSprintData;
-  });
+  // ── Sprints ───────────────────────────────────────────────
+  const [sprints, setSprints] = useState([]);
+  const [sprintsLoading, setSprintsLoading] = useState(false);
+  const [sprintsError, setSprintsError] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem(SPRINT_STORAGE_KEY, JSON.stringify(sprints));
-  }, [sprints]);
+  const fetchSprints = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
 
-  const addSprint = (newSprint) => {
-    setSprints((prev) => [
-      ...prev,
-      {
-        ...newSprint,
-        id: Date.now(),
-        projectId: Number(newSprint.projectId),
+    setSprintsLoading(true);
+    try {
+      const res = await api.get("/sprints/get-all-sprints");
+      setSprints(res.data.data || []);
+      setSprintsError(null);
+    } catch (err) {
+      console.error("Failed to fetch sprints:", err);
+      setSprintsError(err.response?.data?.message || "Failed to fetch sprints");
+    } finally {
+      setSprintsLoading(false);
+    }
+  };
+
+  const addSprint = async (newSprint) => {
+    setSprintsLoading(true);
+    try {
+      const payload = {
+        name: newSprint.name,
+        projectId: newSprint.projectId,
+        startDate: newSprint.startDate,
+        endDate: newSprint.endDate || undefined,
         status: newSprint.status || "Active",
-      },
-    ]);
+      };
+      const res = await api.post("/sprints/create-sprint", payload);
+      if (res.data.success) setSprints((prev) => [res.data.data, ...prev]);
+      setSprintsError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to add sprint:", err);
+      setSprintsError(err.response?.data?.message || "Failed to create sprint");
+      throw err;
+    } finally {
+      setSprintsLoading(false);
+    }
   };
 
-  const updateSprint = (id, updatedData) => {
-    setSprints((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              ...updatedData,
-              projectId: updatedData.projectId
-                ? Number(updatedData.projectId)
-                : s.projectId,
-            }
-          : s
-      )
-    );
+  const updateSprint = async (id, updatedData) => {
+    setSprintsLoading(true);
+    try {
+      const res = await api.put(`/sprints/update-sprint/${id}`, updatedData);
+      if (res.data.success) {
+        setSprints((prev) => prev.map((s) => (s._id === id ? res.data.data : s)));
+      }
+      setSprintsError(null);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to update sprint:", err);
+      setSprintsError(err.response?.data?.message || "Failed to update sprint");
+      throw err;
+    } finally {
+      setSprintsLoading(false);
+    }
   };
 
-  const deleteSprint = (id) => {
-    setSprints((prev) => prev.filter((s) => s.id !== id));
+  const deleteSprint = async (id) => {
+    setSprintsLoading(true);
+    try {
+      await api.delete(`/sprints/delete-sprint/${id}`);
+      setSprints((prev) => prev.filter((s) => s._id !== id));
+      setSprintsError(null);
+    } catch (err) {
+      console.error("Failed to delete sprint:", err);
+      setSprintsError(err.response?.data?.message || "Failed to delete sprint");
+      throw err;
+    } finally {
+      setSprintsLoading(false);
+    }
   };
 
-  // --- Report State ---
-  const [reports, setReports] = useState(() => {
-    const stored = localStorage.getItem(REPORT_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : initialReportData;
-  });
-
+  // ── Bootstrap ─────────────────────────────────────────────
   useEffect(() => {
-    localStorage.setItem(REPORT_STORAGE_KEY, JSON.stringify(reports));
-  }, [reports]);
+    fetchTasks();
+    fetchMilestones();
+    fetchSprints();
+  }, []);
+
+  // ── Dynamic Reports Calculations ─────────────────────────
+  const completedTasksCount = tasks.filter(
+    (t) => t.status === "Completed" || t.status === "In Review"
+  ).length;
+  const taskCompletionPercentage =
+    tasks.length > 0 ? Math.round((completedTasksCount / tasks.length) * 100) : 0;
+
+  const lowPriorityTasks = tasks.filter((t) => t.priority === "Low").length;
+  const mediumPriorityTasks = tasks.filter((t) => t.priority === "Medium").length;
+  const highPriorityTasks = tasks.filter((t) => t.priority === "High").length;
+  const pendingTasks = tasks.filter(
+    (t) => t.status === "Pending" || t.status === "In Progress"
+  ).length;
+
+  const dynamicTaskDistributionData = [
+    { label: "Completed", value: completedTasksCount },
+    { label: "In Progress / Pending", value: pendingTasks },
+    { label: "High Priority", value: highPriorityTasks },
+    { label: "Med Priority", value: mediumPriorityTasks },
+  ].filter((item) => item.value > 0);
+
+  const taskDistributionData =
+    dynamicTaskDistributionData.length > 0
+      ? dynamicTaskDistributionData
+      : initialReportData.taskDistributionData;
+
+  const reportSummary = {
+    taskCompleted: taskCompletionPercentage,
+    lastUpdated: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  };
 
   return (
     <WorkContext.Provider
       value={{
-        // Task slice
-        tasks,
-        setTasks,
-        addTask,
-        updateTaskStatus,
-        submitDeliverable,
-        updateTask,
-        // Milestone slice
-        milestones,
-        setMilestones,
-        addMilestone,
-        updateMilestone,
-        deleteMilestone,
-        // Sprint slice
-        sprints,
-        setSprints,
-        addSprint,
-        updateSprint,
-        deleteSprint,
-        // Report slice
-        reports,
-        setReports,
-        attendanceReportData: reports.attendanceReportData || initialReportData.attendanceReportData,
-        taskDistributionData: reports.taskDistributionData || initialReportData.taskDistributionData,
-        batchPerformanceData: reports.batchPerformanceData || initialReportData.batchPerformanceData,
-        reportSummary: reports.reportSummary || initialReportData.reportSummary,
+        // Tasks
+        tasks, tasksLoading, tasksError,
+        fetchTasks, addTask, updateTask, updateTaskStatus, deleteTask, submitDeliverable,
+        // Milestones
+        milestones, milestonesLoading, milestonesError,
+        fetchMilestones, addMilestone, updateMilestone, deleteMilestone,
+        // Sprints
+        sprints, sprintsLoading, sprintsError,
+        fetchSprints, addSprint, updateSprint, deleteSprint,
+        // Reports
+        attendanceReportData: initialReportData.attendanceReportData,
+        taskDistributionData,
+        batchPerformanceData: initialReportData.batchPerformanceData,
+        reportSummary,
       }}
     >
       {children}
@@ -328,44 +329,31 @@ export const WorkProvider = ({ children }) => {
 
 export const useWork = () => {
   const context = useContext(WorkContext);
-  if (!context) {
-    throw new Error("useWork must be used inside WorkProvider");
-  }
+  if (!context) throw new Error("useWork must be used inside WorkProvider");
   return context;
 };
 
-// Thin exported compatibility wrappers
+// ── Thin compatibility wrappers ───────────────────────────
 export const useTasks = () => {
-  const { tasks, setTasks, addTask, updateTaskStatus, submitDeliverable, updateTask } = useWork();
-  return { tasks, setTasks, addTask, updateTaskStatus, submitDeliverable, updateTask };
+  const { tasks, tasksLoading, tasksError, fetchTasks, addTask, updateTask, updateTaskStatus, deleteTask, submitDeliverable } = useWork();
+  return { tasks, loading: tasksLoading, error: tasksError, fetchTasks, addTask, updateTask, updateTaskStatus, deleteTask, submitDeliverable };
 };
-
 export const useTask = useTasks;
 
 export const useMilestones = () => {
-  const { milestones, setMilestones, addMilestone, updateMilestone, deleteMilestone } = useWork();
-  return { milestones, setMilestones, addMilestone, updateMilestone, deleteMilestone };
+  const { milestones, milestonesLoading, milestonesError, fetchMilestones, addMilestone, updateMilestone, deleteMilestone } = useWork();
+  return { milestones, loading: milestonesLoading, error: milestonesError, fetchMilestones, addMilestone, updateMilestone, deleteMilestone };
 };
-
 export const useMilestone = useMilestones;
 
 export const useSprints = () => {
-  const { sprints, setSprints, addSprint, updateSprint, deleteSprint } = useWork();
-  return { sprints, setSprints, addSprint, updateSprint, deleteSprint };
+  const { sprints, sprintsLoading, sprintsError, fetchSprints, addSprint, updateSprint, deleteSprint } = useWork();
+  return { sprints, loading: sprintsLoading, error: sprintsError, fetchSprints, addSprint, updateSprint, deleteSprint };
 };
-
 export const useSprint = useSprints;
 
 export const useReports = () => {
-  const {
-    reports,
-    setReports,
-    attendanceReportData,
-    taskDistributionData,
-    batchPerformanceData,
-    reportSummary,
-  } = useWork();
-  return { reports, setReports, attendanceReportData, taskDistributionData, batchPerformanceData, reportSummary };
+  const { attendanceReportData, taskDistributionData, batchPerformanceData, reportSummary } = useWork();
+  return { attendanceReportData, taskDistributionData, batchPerformanceData, reportSummary };
 };
-
 export const useReport = useReports;

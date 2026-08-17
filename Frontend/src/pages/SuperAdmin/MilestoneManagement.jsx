@@ -27,17 +27,28 @@ function MilestoneManagement() {
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
+  const [search, setSearch] = useState("");
 
   const [formData, setFormData] = useState({
-    projectId: projects[0]?.id || 1,
     title: "",
-    dueDate: new Date().toISOString().split("T")[0],
+    description: "",
+    dueDate: "",
+    projectId: "",
     status: "Pending",
   });
 
+  const getProjectTitle = (projId) => {
+    const p = projects.find((item) => (item._id || item.id) === projId);
+    return p ? (p.projectName || p.name || p.title) : "General Project";
+  };
+
   const filtered = milestones.filter((m) => {
-    if (selectedProjectId === "All") return true;
-    return Number(m.projectId) === Number(selectedProjectId);
+    const matchProject =
+      selectedProjectId === "All" || m.projectId === selectedProjectId;
+    const matchSearch =
+      (m.milestoneName || m.title || "").toLowerCase().includes(search.toLowerCase()) ||
+      (m.description || "").toLowerCase().includes(search.toLowerCase());
+    return matchProject && matchSearch;
   });
 
   const totalMilestones = milestones.length;
@@ -51,9 +62,10 @@ function MilestoneManagement() {
   const handleOpenAdd = () => {
     setEditingMilestone(null);
     setFormData({
-      projectId: projects[0]?.id || 1,
       title: "",
+      description: "",
       dueDate: new Date().toISOString().split("T")[0],
+      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
       status: "Pending",
     });
     setShowModal(true);
@@ -62,27 +74,28 @@ function MilestoneManagement() {
   const handleOpenEdit = (milestone) => {
     setEditingMilestone(milestone);
     setFormData({
-      projectId: milestone.projectId,
-      title: milestone.title,
-      dueDate: milestone.dueDate,
-      status: milestone.status,
+      title: milestone.milestoneName || milestone.title || "",
+      description: milestone.description || "",
+      dueDate: milestone.dueDate ? new Date(milestone.dueDate).toISOString().split("T")[0] : "",
+      projectId: milestone.projectId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      status: milestone.status || "Pending",
     });
     setShowModal(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      milestoneName: formData.title,
+    };
+
     if (editingMilestone) {
-      updateMilestone(editingMilestone.id, formData);
+      updateMilestone(editingMilestone._id || editingMilestone.id, payload);
     } else {
-      addMilestone(formData);
+      addMilestone(payload);
     }
     setShowModal(false);
-  };
-
-  const getProjectTitle = (pId) => {
-    const proj = projects.find((p) => Number(p.id) === Number(pId));
-    return proj ? proj.title : `Project #${pId}`;
   };
 
   return (
@@ -152,8 +165,8 @@ function MilestoneManagement() {
               >
                 <option value="All">All Projects ({projects.length})</option>
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.title}
+                  <option key={p._id || p.id} value={p._id || p.id}>
+                    {p.projectName || p.name || p.title || "Project"}
                   </option>
                 ))}
               </select>
@@ -182,7 +195,7 @@ function MilestoneManagement() {
           <div className="divide-y divide-gray-100 min-w-200">
             {filtered.map((item) => (
               <div
-                key={item.id}
+                key={item._id || item.id}
                 className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
               >
                 <div className="col-span-2 text-sm font-medium text-gray-900">
@@ -221,7 +234,7 @@ function MilestoneManagement() {
                   <button
                     onClick={() => {
                       if (window.confirm("Delete this milestone?")) {
-                        deleteMilestone(item.id);
+                        deleteMilestone(item._id || item.id);
                       }
                     }}
                     className="hover:text-red-600 transition"
@@ -261,8 +274,8 @@ function MilestoneManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title}
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.projectName || p.name || p.title || "Project"}
                     </option>
                   ))}
                 </select>
@@ -279,6 +292,21 @@ function MilestoneManagement() {
                     setFormData({ ...formData, title: e.target.value })
                   }
                   placeholder="e.g. UI Wireframes Completion"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  required
+                  rows="2"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder="Details and criteria for this milestone..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>

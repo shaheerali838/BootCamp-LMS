@@ -3,198 +3,125 @@ import {
   FiCheckCircle,
   FiClock,
   FiAlertCircle,
+  FiFolder,
 } from "react-icons/fi";
+import { useTeamProject } from "../../../context/TeamProjectContext";
 
 function ProjectStatus() {
-  const projects = [
-    {
-      id: 1,
-      name: "LMS Dashboard",
-      team: "Team Alpha",
-      progress: 90,
-      status: "Completed",
-    },
-    {
-      id: 2,
-      name: "E-Commerce App",
-      team: "Team Beta",
-      progress: 72,
-      status: "In Progress",
-    },
-    {
-      id: 3,
-      name: "Attendance System",
-      team: "Team Gamma",
-      progress: 55,
-      status: "In Progress",
-    },
-    {
-      id: 4,
-      name: "Portfolio Website",
-      team: "Team Delta",
-      progress: 35,
-      status: "Delayed",
-    },
-  ];
+  const { projects = [], teams = [] } = useTeamProject();
+
+  const totalProjects = projects.length;
+  const completedProjects = projects.filter(
+    (p) => (p.status || "").toLowerCase() === "completed"
+  ).length;
+  const inProgressProjects = projects.filter(
+    (p) => (p.status || "").toLowerCase() === "in progress" || (p.status || "").toLowerCase() === "pending"
+  ).length;
 
   const getStatusStyle = (status) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-600";
-
-      case "In Progress":
-        return "bg-blue-100 text-blue-600";
-
-      case "Delayed":
-        return "bg-red-100 text-red-500";
-
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
+    const s = (status || "").toLowerCase();
+    if (s === "completed") return "bg-emerald-100 text-emerald-700";
+    if (s === "in progress") return "bg-blue-100 text-blue-700";
+    if (s === "delayed" || s === "overdue") return "bg-red-100 text-red-700";
+    return "bg-gray-100 text-gray-700";
   };
 
   return (
-    <div className="space-y-5">
-
+    <div className="space-y-5 p-5">
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-
-          <div className="flex items-center gap-3">
-
-            <div className="w-11 h-11 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-              <FiCheckCircle size={21} />
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Completed
-              </p>
-
-              <h2 className="text-2xl font-semibold">
-                1
-              </h2>
-            </div>
-
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase">
+              Total Projects
+            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mt-1">
+              {totalProjects}
+            </h2>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+            <FiFolder size={18} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-
-          <div className="flex items-center gap-3">
-
-            <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-              <FiClock size={21} />
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                In Progress
-              </p>
-
-              <h2 className="text-2xl font-semibold">
-                2
-              </h2>
-            </div>
-
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase">
+              Completed
+            </p>
+            <h2 className="text-2xl font-bold text-emerald-600 mt-1">
+              {completedProjects}
+            </h2>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <FiCheckCircle size={18} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-
-          <div className="flex items-center gap-3">
-
-            <div className="w-11 h-11 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
-              <FiAlertCircle size={21} />
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Delayed
-              </p>
-
-              <h2 className="text-2xl font-semibold">
-                1
-              </h2>
-            </div>
-
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase">
+              In Progress / Active
+            </p>
+            <h2 className="text-2xl font-bold text-blue-600 mt-1">
+              {inProgressProjects}
+            </h2>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+            <FiClock size={18} />
           </div>
         </div>
-
       </div>
 
-      {/* Projects */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      {/* Projects Table */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+        <h2 className="text-base font-bold text-gray-800 mb-1">
+          Capstone Project Tracking
+        </h2>
+        <p className="text-xs text-gray-500 mb-5">
+          Milestone and deadline progress across registered project teams
+        </p>
 
-        <div className="px-5 py-5 border-b border-gray-200">
+        <div className="space-y-4">
+          {projects.map((project) => {
+            const title = project.projectName || project.name || project.title || "Project";
+            const progress = (project.status || "").toLowerCase() === "completed" ? 100 : (project.progress || 60);
 
-          <h2 className="text-lg font-semibold text-gray-800">
-            Project Status
-          </h2>
+            return (
+              <div
+                key={project._id || project.id}
+                className="border border-gray-100 rounded-xl p-4 hover:bg-gray-50/50 transition"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 text-xs">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">
+                      {title}
+                    </h3>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {project.description || "Active Capstone Module"}
+                    </p>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full font-semibold text-[10px] self-start sm:self-auto capitalize ${getStatusStyle(project.status)}`}>
+                    {project.status || "In Progress"}
+                  </span>
+                </div>
 
-          <p className="text-sm text-gray-500 mt-1">
-            Current progress of team projects
-          </p>
-
-        </div>
-
-        <div className="grid grid-cols-[1.8fr_1.3fr_2fr_1fr] px-5 py-4 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
-
-          <span>Project</span>
-
-          <span>Team</span>
-
-          <span>Progress</span>
-
-          <span>Status</span>
-
-        </div>
-
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className="grid grid-cols-[1.8fr_1.3fr_2fr_1fr] items-center px-5 py-5 border-t border-gray-100"
-          >
-
-            <span className="text-sm font-medium text-gray-800">
-              {project.name}
-            </span>
-
-            <span className="text-sm text-gray-500">
-              {project.team}
-            </span>
-
-            <div className="flex items-center gap-3">
-
-              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-
-                <div
-                  className="h-full bg-blue-500 rounded-full"
-                  style={{
-                    width: `${project.progress}%`,
-                  }}
-                />
-
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mt-3">
+                  <div
+                    className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
               </div>
+            );
+          })}
 
-              <span className="text-sm text-gray-600">
-                {project.progress}%
-              </span>
-
+          {projects.length === 0 && (
+            <div className="py-8 text-center text-xs text-gray-400">
+              No projects found.
             </div>
-
-            <span
-              className={`inline-flex w-fit px-3 py-1.5 rounded-full text-xs font-medium ${getStatusStyle(
-                project.status
-              )}`}
-            >
-              {project.status}
-            </span>
-
-          </div>
-        ))}
-
+          )}
+        </div>
       </div>
     </div>
   );

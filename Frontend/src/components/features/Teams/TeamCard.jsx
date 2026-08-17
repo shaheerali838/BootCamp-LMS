@@ -15,7 +15,9 @@ function TeamCard({ team, onEdit }) {
         deleteTeam,
     } = useTeamProject();
 
-    const teamProjects = getTeamProjects(team.id);
+    const teamId = team._id || team.id;
+    const teamName = team.teamName || team.name || "Untitled Team";
+    const teamProjects = getTeamProjects(teamId);
 
     const completed = teamProjects.filter(
         (project) => project.status === "Completed"
@@ -29,65 +31,68 @@ function TeamCard({ team, onEdit }) {
         (project) => project.status === "Pending"
     ).length;
 
+    const members = team.members || [];
+    const teamLeadName =
+        team.teamLead?.name ||
+        (team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : null) ||
+        team.lead ||
+        null;
+
     const handleDelete = () => {
         const confirmDelete = window.confirm(
-            `Are you sure you want to delete ${team.name}?`
+            `Are you sure you want to delete ${teamName}?`
         );
 
         if (confirmDelete) {
-            deleteTeam(team.id);
+            deleteTeam(teamId);
         }
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition  w-full">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs hover:shadow-md transition w-full">
+            <div className="flex items-center justify-between">
+                <div className="w-full">
+                    <h2 className="text-xl font-bold text-gray-800 truncate">
+                        {teamName}
+                    </h2>
 
-           <div className="flex items-center justify-between">
-    <div className="w-full">
+                    <p className="text-gray-500 text-sm mt-4">
+                        Description
+                    </p>
 
-        <h2 className="text-xl font-bold text-gray-800 truncate">
-            {team.name}
-        </h2>
+                    <div className="w-full h-20 border border-gray-300 rounded-md p-2 mt-1">
+                        <p className="h-full w-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
+                            {team?.description || "No description available"}
+                        </p>
+                    </div>
 
-        <p className="text-gray-500 text-sm mt-4">
-            Description
-        </p>
-
-        <div className="w-full h-20 border border-gray-300 rounded-md p-2 mt-1">
-            <p className="h-full w-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
-                {team?.description || "No description available"}
-            </p>
-        </div>
-
-        {team.lead && (
-            <p className="text-gray-500 text-xs mt-2">
-                Lead:{" "}
-                <span className="font-semibold text-gray-700">
-                    {team.lead}
-                </span>
-            </p>
-        )}
-
-    </div>
-</div>
+                    {teamLeadName && (
+                        <p className="text-gray-500 text-xs mt-2">
+                            Lead:{" "}
+                            <span className="font-semibold text-gray-700">
+                                {teamLeadName}
+                            </span>
+                        </p>
+                    )}
+                </div>
+            </div>
 
             <p className="text-gray-500 text-sm py-2">
-                Members: {team.members.length}
+                Members: {members.length}
             </p>
 
             <div className="flex -space-x-2">
-                {team.members.slice(0, 4).map((member) => (
+                {members.slice(0, 4).map((member, idx) => (
                     <div
-                        key={member.id}
+                        key={member._id || member.id || idx}
                         className="w-9 h-9 rounded-full bg-[#0476b9] text-white flex items-center justify-center text-sm font-semibold border-2 border-white"
                     >
-                        {getInitial(member.name)}
+                        {getInitial(member.name || member.firstName)}
                     </div>
                 ))}
             </div>
 
             <div className="grid grid-cols-3 gap-2 mt-5">
-
                 <div className="bg-green-50 rounded-lg p-2 text-center">
                     <p className="text-green-600 font-bold">
                         {completed}
@@ -114,15 +119,13 @@ function TeamCard({ team, onEdit }) {
                         Pending
                     </p>
                 </div>
-
             </div>
 
             <div className="flex gap-2 mt-5">
-
                 <button
                     type="button"
-                    onClick={() => navigate(`/teams/${team.id}`)}
-                    className="flex-1 border border-[#0476b9] text-[#0476b9] py-2 rounded-lg hover:bg-[#0476b9] hover:text-white transition"
+                    onClick={() => navigate(`/teams/${teamId}`)}
+                    className="flex-1 border border-[#0476b9] text-[#0476b9] py-2 rounded-lg hover:bg-[#0476b9] hover:text-white transition cursor-pointer"
                 >
                     View Details
                 </button>
@@ -131,7 +134,7 @@ function TeamCard({ team, onEdit }) {
                     type="button"
                     onClick={() => onEdit(team)}
                     title="Edit Team"
-                    className="w-11 h-10 flex items-center justify-center border border-gray-300 text-gray-600 rounded-lg hover:bg-[#0476b9] hover:text-white hover:border-[#0476b9] transition"
+                    className="w-11 h-10 flex items-center justify-center border border-gray-300 text-gray-600 rounded-lg hover:bg-[#0476b9] hover:text-white hover:border-[#0476b9] transition cursor-pointer"
                 >
                     <FiEdit2 size={18} />
                 </button>
@@ -140,13 +143,11 @@ function TeamCard({ team, onEdit }) {
                     type="button"
                     onClick={handleDelete}
                     title="Delete Team"
-                    className="w-11 h-10 flex items-center justify-center border border-red-300 text-red-500 rounded-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition"
+                    className="w-11 h-10 flex items-center justify-center border border-red-300 text-red-500 rounded-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition cursor-pointer"
                 >
                     <FiTrash2 size={18} />
                 </button>
-
             </div>
-
         </div>
     );
 }

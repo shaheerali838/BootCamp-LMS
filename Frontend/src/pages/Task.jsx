@@ -88,7 +88,7 @@ function Task() {
       <div className="space-y-4">
         {filteredTasks.map((task) => (
           <TaskCard
-            key={task.id}
+            key={task._id || task.id}
             task={task}
             onAssign={handleOpenAssignModalForCard}
           />
