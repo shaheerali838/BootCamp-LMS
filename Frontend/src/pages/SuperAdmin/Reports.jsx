@@ -1,6 +1,6 @@
 import React from "react";
 import { FiBarChart2, FiPieChart, FiTrendingUp } from "react-icons/fi";
-import { useReports } from "../../context/ReportContext";
+import { useReports } from "../../context/WorkContext";
 import BatchPerformance from "../../components/features/Reports/BatchPerformance";
 import TaskDistribution from "../../components/features/Reports/TaskDistribution";
 

@@ -9,7 +9,8 @@ import {
   FiClock,
   FiTarget
 } from "react-icons/fi";
-import { useMilestones } from "../../context/MilestoneContext";
+import { useMilestones } from "../../context/WorkContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
 
 // Dummy projects for the filter since ProjectContext isn't imported here yet
 const projects = [
@@ -19,6 +20,7 @@ const projects = [
 
 function MilestoneManagement() {
   const { milestones, addMilestone, updateMilestone, deleteMilestone } = useMilestones();
+  const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);

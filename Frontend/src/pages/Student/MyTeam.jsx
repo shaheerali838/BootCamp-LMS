@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 
 import { useTeamProject } from "../../context/TeamProjectContext";
-import { useStudent } from "../../context/StudentContext";
+import { useStudent } from "../../context/AcademicContext";
 
 function MyTeam() {
   // CHANGED: Get projects from Context API

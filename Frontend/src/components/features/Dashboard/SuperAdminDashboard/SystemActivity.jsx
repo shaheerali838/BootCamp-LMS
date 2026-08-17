@@ -6,7 +6,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import { useActivityLog } from "../../../../context/ActivityLogContext";
+import { useActivityLog } from "../../../../context/SystemContext";
 
 function SystemActivity() {
   const { activities } = useActivityLog();

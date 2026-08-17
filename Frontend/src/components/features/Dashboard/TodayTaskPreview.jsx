@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { useTasks } from "../../../context/TaskContext";
+import { useTasks } from "../../../context/WorkContext";
 
 function TodayTaskPreview() {
   const { tasks } = useTasks();

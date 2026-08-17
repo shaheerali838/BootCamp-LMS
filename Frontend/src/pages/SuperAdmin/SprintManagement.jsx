@@ -9,7 +9,8 @@ import {
   FiRefreshCw,
   FiActivity
 } from "react-icons/fi";
-import { useSprints } from "../../context/SprintContext";
+import { useSprints } from "../../context/WorkContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
 
 // Dummy projects for the filter since ProjectContext isn't imported here yet
 const projects = [
@@ -19,6 +20,7 @@ const projects = [
 
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
+  const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
   const [showModal, setShowModal] = useState(false);

@@ -10,7 +10,7 @@ import {
   FiPlus,
 } from "react-icons/fi";
 
-import { useStudent } from "../context/StudentContext";
+import { useStudent } from "../context/AcademicContext";
 import AddStudentModal from "../components/features/Students/AddStudentModal";
 
 function Students() {

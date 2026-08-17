@@ -4,7 +4,7 @@ import AttendanceReport from "../components/features/Reports/AttendanceReport";
 import TaskReport from "../components/features/Reports/TaskReport";
 import StudentPerformance from "../components/features/Reports/StudentPerformance";
 import ProjectStatus from "../components/features/Reports/ProjectStatus";
-import { useReports } from "../context/ReportContext";
+import { useReports } from "../context/WorkContext";
 
 function Reports() {
   const [activeTab, setActiveTab] = useState("attendance");

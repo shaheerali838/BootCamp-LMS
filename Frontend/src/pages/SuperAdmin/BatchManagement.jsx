@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   FiSearch,
   FiEdit2,
@@ -10,7 +10,7 @@ import {
   FiAlertCircle,
   FiArchive,
 } from "react-icons/fi";
-import { useBatches } from "../../context/BatchContext";
+import { useBatches } from "../../context/AcademicContext";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } = useBatches();

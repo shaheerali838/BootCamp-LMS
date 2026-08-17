@@ -1,8 +1,7 @@
 import React from "react";
 import { FiBarChart2, FiCheckCircle, FiAward, FiTrendingUp } from "react-icons/fi";
-import { useAttendance } from "../../context/AttendanceContext";
-import { useTasks } from "../../context/TaskContext";
-import { useReports } from "../../context/ReportContext";
+import { useAttendance } from "../../context/AcademicContext";
+import { useTasks, useReports } from "../../context/WorkContext";
 
 function Reports() {
   const { attendance } = useAttendance();

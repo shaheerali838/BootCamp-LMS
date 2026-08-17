@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiFileText } from "react-icons/fi";
-import { useResources } from "../../../../context/ResourceContext";
+import { useResources } from "../../../../context/SystemContext";
 
 function RecentResources() {
   const { resources } = useResources();

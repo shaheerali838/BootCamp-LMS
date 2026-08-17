@@ -8,7 +8,7 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 
-import { useStudent } from "../../../context/StudentContext";
+import { useStudent } from "../../../context/AcademicContext";
 
 function StudentDetails() {
   const { id } = useParams();
