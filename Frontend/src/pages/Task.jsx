@@ -50,7 +50,7 @@ function Task() {
         {/* Title */}
         <div className="flex items-center justify-between mt-3">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
             <p className="text-sm text-gray-500 mt-1">
               Create and manage tasks assigned to students
             </p>

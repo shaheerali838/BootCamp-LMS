@@ -82,7 +82,7 @@ function BatchManagement() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 mt-5">
       {error && (
         <div className="mb-5 bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm">
           <FiAlertCircle size={18} />
