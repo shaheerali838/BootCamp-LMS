@@ -11,7 +11,12 @@ export const AnnouncementProvider = ({ children }) => {
   // ── FETCH ──────────────────────────────────────────────────
   const fetchAnnouncements = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth =
+      typeof window !== "undefined" &&
+      (window.location.pathname === "/login" ||
+        window.location.pathname.startsWith("/auth") ||
+        window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setLoading(true);
     try {
@@ -19,6 +24,10 @@ export const AnnouncementProvider = ({ children }) => {
       setAnnouncements(res.data.data || []);
       setError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setAnnouncements([]);
+        return;
+      }
       console.error("Failed to fetch announcements:", err);
       setError(err.response?.data?.message || "Failed to fetch announcements");
     } finally {
@@ -56,10 +65,13 @@ export const AnnouncementProvider = ({ children }) => {
   const updateAnnouncement = async (id, updatedData) => {
     setLoading(true);
     try {
-      const res = await api.put(`/announcements/update-announcement/${id}`, updatedData);
+      const res = await api.put(
+        `/announcements/update-announcement/${id}`,
+        updatedData,
+      );
       if (res.data.success) {
         setAnnouncements((prev) =>
-          prev.map((a) => (a._id === id ? res.data.data : a))
+          prev.map((a) => (a._id === id ? res.data.data : a)),
         );
       }
       setError(null);

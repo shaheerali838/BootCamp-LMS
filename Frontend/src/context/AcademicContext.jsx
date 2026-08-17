@@ -14,7 +14,13 @@ export const AcademicProvider = ({ children }) => {
 
   const fetchStudents = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const rawUser = localStorage.getItem("user");
+    let userObj = null;
+    try { userObj = JSON.parse(rawUser); } catch {}
+    const role = (userObj?.role || "").toUpperCase();
+
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth || role === "STUDENT") return;
 
     setStudentsLoading(true);
     try {
@@ -22,6 +28,10 @@ export const AcademicProvider = ({ children }) => {
       setStudents(res.data.data || []);
       setStudentsError(null);
     } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setStudents([]);
+        return;
+      }
       console.error("Failed to fetch students:", err);
       setStudentsError(err.response?.data?.message || "Failed to fetch students");
     } finally {
@@ -35,11 +45,15 @@ export const AcademicProvider = ({ children }) => {
       const payload = {
         firstName: newStudent.firstName || newStudent.name?.split(" ")[0] || "",
         lastName: newStudent.lastName || newStudent.name?.split(" ").slice(1).join(" ") || "",
-        email: newStudent.email,
-        password: newStudent.password,
-        phoneNumber: newStudent.phone || newStudent.phoneNumber || "",
-        batchId: newStudent.batchId || newStudent.batch || undefined,
-        rollNo: newStudent.rollNo || undefined,
+        rollNumber: newStudent.rollNumber || newStudent.rollNo || `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
+        email: (newStudent.email || "").toLowerCase().trim(),
+        password: newStudent.password || "Student@123",
+        phoneNumber: newStudent.phoneNumber || newStudent.phone || "",
+        gender: (newStudent.gender || "male").toLowerCase(),
+        dateOfBirth: newStudent.dateOfBirth || "2002-01-01",
+        batchId: newStudent.batchId || newStudent.batch,
+        mentorId: newStudent.mentorId || newStudent.mentor,
+        status: newStudent.status || "active",
       };
       const res = await api.post("/students/create-student", payload);
       if (res.data.success) setStudents((prev) => [res.data.data, ...prev]);
@@ -57,7 +71,24 @@ export const AcademicProvider = ({ children }) => {
   const updateStudent = async (id, updatedData) => {
     setStudentsLoading(true);
     try {
-      const res = await api.put(`/students/update-student/${id}`, updatedData);
+      const payload = {
+        firstName: updatedData.firstName || updatedData.name?.split(" ")[0],
+        lastName: updatedData.lastName || updatedData.name?.split(" ").slice(1).join(" "),
+        rollNumber: updatedData.rollNumber || updatedData.rollNo,
+        email: updatedData.email ? updatedData.email.toLowerCase().trim() : undefined,
+        phoneNumber: updatedData.phoneNumber || updatedData.phone,
+        gender: updatedData.gender ? updatedData.gender.toLowerCase() : undefined,
+        dateOfBirth: updatedData.dateOfBirth,
+        batchId: updatedData.batchId || updatedData.batch,
+        mentorId: updatedData.mentorId || updatedData.mentor,
+        status: updatedData.status,
+      };
+      if (updatedData.password) {
+        payload.password = updatedData.password;
+      }
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+
+      const res = await api.put(`/students/update-student/${id}`, payload);
       if (res.data.success) {
         setStudents((prev) => prev.map((s) => (s._id === id ? res.data.data : s)));
       }
@@ -94,7 +125,13 @@ export const AcademicProvider = ({ children }) => {
 
   const fetchBatches = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const rawUser = localStorage.getItem("user");
+    let userObj = null;
+    try { userObj = JSON.parse(rawUser); } catch {}
+    const role = (userObj?.role || "").toUpperCase();
+
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth || role === "STUDENT") return;
 
     setBatchesLoading(true);
     try {
@@ -102,6 +139,10 @@ export const AcademicProvider = ({ children }) => {
       if (response.data.success) setBatches(response.data.batches || []);
       setBatchesError(null);
     } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setBatches([]);
+        return;
+      }
       console.error("Failed to fetch batches:", err);
       setBatchesError(err.response?.data?.message || "Failed to fetch batches");
     } finally {

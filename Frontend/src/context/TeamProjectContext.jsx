@@ -11,7 +11,8 @@ export const TeamProjectProvider = ({ children }) => {
 
   const fetchTeams = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setTeamsLoading(true);
     try {
@@ -19,6 +20,10 @@ export const TeamProjectProvider = ({ children }) => {
       setTeams(res.data.data || []);
       setTeamsError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setTeams([]);
+        return;
+      }
       console.error("Failed to fetch teams:", err);
       setTeamsError(err.response?.data?.message || "Failed to fetch teams");
     } finally {
@@ -100,7 +105,8 @@ export const TeamProjectProvider = ({ children }) => {
 
   const fetchProjects = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setProjectsLoading(true);
     try {
@@ -108,6 +114,10 @@ export const TeamProjectProvider = ({ children }) => {
       setProjects(res.data.data || []);
       setProjectsError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setProjects([]);
+        return;
+      }
       console.error("Failed to fetch projects:", err);
       setProjectsError(err.response?.data?.message || "Failed to fetch projects");
     } finally {

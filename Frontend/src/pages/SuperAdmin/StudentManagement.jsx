@@ -4,9 +4,15 @@ import { useStudent, useBatches } from "../../context/AcademicContext";
 import { useAdmins } from "../../context/SystemContext";
 
 function StudentManagement() {
-  const { students, addStudent, updateStudent, deleteStudent } = useStudent();
-  const { batches = [] } = useBatches();
-  const { admins = [] } = useAdmins();
+  const { students, fetchStudents, addStudent, updateStudent, deleteStudent } = useStudent();
+  const { batches = [], fetchBatches } = useBatches();
+  const { admins = [], fetchAdmins } = useAdmins();
+
+  React.useEffect(() => {
+    if (fetchStudents) fetchStudents();
+    if (fetchBatches) fetchBatches();
+    if (fetchAdmins) fetchAdmins();
+  }, []);
 
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);

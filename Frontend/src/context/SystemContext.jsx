@@ -32,7 +32,8 @@ export const SystemProvider = ({ children }) => {
   const fetchAdmins = async () => {
     const token = localStorage.getItem("accessToken");
     const rawUser = localStorage.getItem("user");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     // Only SUPER_ADMIN has authority to fetch admin records
     let userObj = null;
@@ -47,6 +48,10 @@ export const SystemProvider = ({ children }) => {
       setAdmins(res.data.data || []);
       setAdminsError(null);
     } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setAdmins([]);
+        return;
+      }
       console.error("Failed to fetch admins:", err);
       setAdminsError(err.response?.data?.message || "Failed to fetch admins");
     } finally {
@@ -134,7 +139,8 @@ export const SystemProvider = ({ children }) => {
 
   const fetchResources = async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return;
+    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
+    if (!token || isAuth) return;
 
     setResourcesLoading(true);
     try {
@@ -146,6 +152,11 @@ export const SystemProvider = ({ children }) => {
       setCategories(catRes.data.data || []);
       setResourcesError(null);
     } catch (err) {
+      if (err.response?.status === 401) {
+        setResources([]);
+        setCategories([]);
+        return;
+      }
       console.error("Failed to fetch resources:", err);
       setResourcesError(err.response?.data?.message || "Failed to fetch resources");
     } finally {

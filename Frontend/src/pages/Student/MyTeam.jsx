@@ -17,7 +17,13 @@ function MyTeam() {
   const { teams = [], projects = [] } = useTeamProject();
   const { students = [] } = useStudent();
 
-  const studentBatch = students[0]?.batch || "Batch 11";
+  const getBatchName = (b) => {
+    if (!b) return "Batch 11";
+    if (typeof b === "object") return b.batchName || b.name || "Batch 11";
+    return String(b);
+  };
+
+  const studentBatch = getBatchName(students[0]?.batch);
 
   // ADDED: Store selected team for details modal
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -38,7 +44,7 @@ function MyTeam() {
   const getTeamProject = (team) => {
     return projects.find(
       (project) =>
-        String(project.teamId || project.batch) ===
+        String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch)) ===
         String(team._id || team.id)
     );
   };
@@ -73,11 +79,11 @@ function MyTeam() {
 
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
           <span>Student Portal</span>
           <span>›</span>
           <span className="font-semibold text-gray-800">
-            My Teams
+            Teams
           </span>
         </div>
         <div className="flex items-center justify-between mt-2">
@@ -147,7 +153,7 @@ function MyTeam() {
                     </div>
 
                     <span className="text-xs bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full border border-purple-100 font-semibold">
-                      {team.batch || studentBatch}
+                      {getBatchName(team.batch || studentBatch)}
                     </span>
                   </div>
 

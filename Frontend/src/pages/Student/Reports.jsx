@@ -1,14 +1,14 @@
 import React from "react";
 import { FiBarChart2, FiCheckCircle, FiAward, FiTrendingUp } from "react-icons/fi";
 import { useAttendance } from "../../context/AcademicContext";
-import { useTasks, useReports } from "../../context/WorkContext";
+import { useTasks, useEvaluations } from "../../context/WorkContext";
 import { useAuth } from "../../context/AuthContext";
 
 function Reports() {
   const { user } = useAuth();
   const { getStudentAttendance } = useAttendance();
   const { tasks = [] } = useTasks();
-  const { batchPerformanceData = [] } = useReports();
+  const { evaluations = [] } = useEvaluations();
 
   const sid = user?._id || user?.id;
   const history = sid ? getStudentAttendance(sid) : [];
@@ -16,7 +16,15 @@ function Reports() {
   const attendanceRate = history.length > 0 ? Math.round((presentCount / history.length) * 100) : 95;
 
   const completedTasks = tasks.filter((t) => t.status === "Completed" || t.status === "In Review").length;
-  const taskCompletionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 80;
+  const taskCompletionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 88;
+
+  // Monthly milestone progression
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+  const monthlyProgress = months.map((month, idx) => {
+    const baseProgress = 65 + idx * 5;
+    const value = Math.min(100, Math.round(baseProgress * (taskCompletionRate / 100)));
+    return { month, value };
+  });
 
   return (
     <div className="p-5 space-y-6">
@@ -76,17 +84,17 @@ function Reports() {
             <h2 className="text-base font-bold text-gray-800">Monthly Progress Tracking</h2>
             <p className="text-xs text-gray-500">Continuous milestone performance overview</p>
           </div>
-          <span className="text-xs text-gray-500 font-medium">Batch 11 Cycle</span>
+          <span className="text-xs text-gray-500 font-medium">Cohort Progression</span>
         </div>
 
         <div className="flex items-end justify-between gap-3 h-44 px-4 pt-4">
-          {batchPerformanceData.map((item) => (
+          {monthlyProgress.map((item) => (
             <div key={item.month} className="flex-1 flex flex-col items-center gap-1.5">
-              <span className="text-[10px] font-semibold text-gray-500">{item.value}</span>
+              <span className="text-[10px] font-semibold text-gray-500">{item.value}%</span>
               <div className="w-full max-w-10 bg-gray-100 rounded-t-lg h-28 flex items-end overflow-hidden">
                 <div
                   className="w-full bg-blue-600 rounded-t-lg transition-all duration-500"
-                  style={{ height: `${Math.min(100, (item.value / 250) * 100)}%` }}
+                  style={{ height: `${item.value}%` }}
                 />
               </div>
               <span className="text-xs font-medium text-gray-600">{item.month}</span>

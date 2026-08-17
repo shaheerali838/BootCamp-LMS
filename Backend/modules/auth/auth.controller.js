@@ -28,17 +28,45 @@ export const login = async (req, res) => {
     // First, search for Admin or Super Admin
     let user = await Admin.findOne({ email: emailAddress }).select("+password");
 
-    // If not found, search for Student
-    if (!user) {
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        // Check if there is also a Student account with this email and matching password
+        const studentUser = await Student.findOne({ email: emailAddress }).select("+password");
+        if (studentUser) {
+          const studentMatch = await bcrypt.compare(password, studentUser.password);
+          if (studentMatch) {
+            user = studentUser;
+          } else {
+            return res.status(401).json({
+              success: false,
+              message: "Invalid email or password",
+            });
+          }
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid email or password",
+          });
+        }
+      }
+    } else {
+      // If not Admin, search for Student
       user = await Student.findOne({ email: emailAddress }).select("+password");
-    }
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
 
-    // User does not exist
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
     }
 
     // Check account status
@@ -46,16 +74,6 @@ export const login = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "User account is inactive",
-      });
-    }
-
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
       });
     }
 
