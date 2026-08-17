@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAuth } from "../../contextAPI/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 function ChangePassword() {
   const { changePassword } = useAuth();
