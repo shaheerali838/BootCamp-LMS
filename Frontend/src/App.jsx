@@ -66,9 +66,9 @@ function AppLayout() {
       <Route
         path="/*"
         element={
-          // <ProtectedRoute>
-          <DashboardLayout />
-          // </ProtectedRoute>
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
         }
       />
     </Routes>
