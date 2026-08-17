@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import smitLogo from "../../assets/smitLogo.png";
+import smitLogo from "../../assets/smitlogo.png";
 
 import {
   FiGrid,
