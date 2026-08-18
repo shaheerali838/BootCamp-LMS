@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import api from "../api/axios";
 import { useAuth } from "./AuthContext";
 
@@ -17,9 +23,15 @@ export const AcademicProvider = ({ children }) => {
 
   const fetchStudents = useCallback(async () => {
     const token = accessToken || localStorage.getItem("accessToken");
-    const rawUser = user || (() => {
-      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-    })();
+    const rawUser =
+      user ||
+      (() => {
+        try {
+          return JSON.parse(localStorage.getItem("user"));
+        } catch {
+          return null;
+        }
+      })();
     const role = (rawUser?.role || "").toUpperCase();
 
     if (!token || role === "STUDENT") {
@@ -38,7 +50,9 @@ export const AcademicProvider = ({ children }) => {
         return;
       }
       console.error("Failed to fetch students:", err);
-      setStudentsError(err.response?.data?.message || "Failed to fetch students");
+      setStudentsError(
+        err.response?.data?.message || "Failed to fetch students",
+      );
     } finally {
       setStudentsLoading(false);
     }
@@ -49,8 +63,14 @@ export const AcademicProvider = ({ children }) => {
     try {
       const payload = {
         firstName: newStudent.firstName || newStudent.name?.split(" ")[0] || "",
-        lastName: newStudent.lastName || newStudent.name?.split(" ").slice(1).join(" ") || "",
-        rollNumber: newStudent.rollNumber || newStudent.rollNo || `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
+        lastName:
+          newStudent.lastName ||
+          newStudent.name?.split(" ").slice(1).join(" ") ||
+          "",
+        rollNumber:
+          newStudent.rollNumber ||
+          newStudent.rollNo ||
+          `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
         email: (newStudent.email || "").toLowerCase().trim(),
         password: newStudent.password || "Student@123",
         phoneNumber: newStudent.phoneNumber || newStudent.phone || "",
@@ -67,7 +87,9 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to add student:", err);
-      setStudentsError(err.response?.data?.message || "Failed to create student");
+      setStudentsError(
+        err.response?.data?.message || "Failed to create student",
+      );
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -79,11 +101,17 @@ export const AcademicProvider = ({ children }) => {
     try {
       const payload = {
         firstName: updatedData.firstName || updatedData.name?.split(" ")[0],
-        lastName: updatedData.lastName || updatedData.name?.split(" ").slice(1).join(" "),
+        lastName:
+          updatedData.lastName ||
+          updatedData.name?.split(" ").slice(1).join(" "),
         rollNumber: updatedData.rollNumber || updatedData.rollNo,
-        email: updatedData.email ? updatedData.email.toLowerCase().trim() : undefined,
+        email: updatedData.email
+          ? updatedData.email.toLowerCase().trim()
+          : undefined,
         phoneNumber: updatedData.phoneNumber || updatedData.phone,
-        gender: updatedData.gender ? updatedData.gender.toLowerCase() : undefined,
+        gender: updatedData.gender
+          ? updatedData.gender.toLowerCase()
+          : undefined,
         dateOfBirth: updatedData.dateOfBirth,
         batchId: updatedData.batchId || updatedData.batch,
         mentorId: updatedData.mentorId || updatedData.mentor,
@@ -92,7 +120,9 @@ export const AcademicProvider = ({ children }) => {
       if (updatedData.password) {
         payload.password = updatedData.password;
       }
-      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+      Object.keys(payload).forEach(
+        (k) => payload[k] === undefined && delete payload[k],
+      );
 
       const res = await api.put(`/students/update-student/${id}`, payload);
       // Invalidate and refetch authoritative student list from database
@@ -101,7 +131,9 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to update student:", err);
-      setStudentsError(err.response?.data?.message || "Failed to update student");
+      setStudentsError(
+        err.response?.data?.message || "Failed to update student",
+      );
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -117,7 +149,9 @@ export const AcademicProvider = ({ children }) => {
       setStudentsError(null);
     } catch (err) {
       console.error("Failed to delete student:", err);
-      setStudentsError(err.response?.data?.message || "Failed to delete student");
+      setStudentsError(
+        err.response?.data?.message || "Failed to delete student",
+      );
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -131,9 +165,15 @@ export const AcademicProvider = ({ children }) => {
 
   const fetchBatches = useCallback(async () => {
     const token = accessToken || localStorage.getItem("accessToken");
-    const rawUser = user || (() => {
-      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-    })();
+    const rawUser =
+      user ||
+      (() => {
+        try {
+          return JSON.parse(localStorage.getItem("user"));
+        } catch {
+          return null;
+        }
+      })();
     const role = (rawUser?.role || "").toUpperCase();
 
     if (!token || role === "STUDENT") {
@@ -226,32 +266,77 @@ export const AcademicProvider = ({ children }) => {
   // ── Attendance (local) ─────────────────────────────────────
   const [attendance, setAttendance] = useState(initialAttendanceData);
 
-  const updateAttendance = (studentId, date, status, time, checkOutTime = null) => {
+  const updateAttendance = (
+    studentId,
+    date,
+    status,
+    time,
+    checkOutTime = null,
+  ) => {
     setAttendance((prev) => {
-      const studentExists = prev.some((s) => s.studentId === studentId || s.id === studentId);
+      const studentExists = prev.some(
+        (s) => s.studentId === studentId || s.id === studentId,
+      );
       if (!studentExists) {
-        return [...prev, { studentId, attendance: [{ date, status, time: time || "--:--", checkInTime: time || "--:--", checkOutTime: checkOutTime || "--:--" }] }];
+        return [
+          ...prev,
+          {
+            studentId,
+            attendance: [
+              {
+                date,
+                status,
+                time: time || "--:--",
+                checkInTime: time || "--:--",
+                checkOutTime: checkOutTime || "--:--",
+              },
+            ],
+          },
+        ];
       }
       return prev.map((student) => {
-        if (student.studentId !== studentId && student.id !== studentId) return student;
+        if (student.studentId !== studentId && student.id !== studentId)
+          return student;
         const existing = student.attendance?.find((item) => item.date === date);
         if (existing) {
           return {
             ...student,
             attendance: student.attendance.map((item) =>
               item.date === date
-                ? { ...item, status, time: time || item.time || "--:--", checkInTime: time || item.checkInTime || "--:--", checkOutTime: checkOutTime !== null ? checkOutTime : item.checkOutTime || "--:--" }
-                : item
+                ? {
+                    ...item,
+                    status,
+                    time: time || item.time || "--:--",
+                    checkInTime: time || item.checkInTime || "--:--",
+                    checkOutTime:
+                      checkOutTime !== null
+                        ? checkOutTime
+                        : item.checkOutTime || "--:--",
+                  }
+                : item,
             ),
           };
         }
-        return { ...student, attendance: [...(student.attendance || []), { date, status, time: time || "--:--", checkInTime: time || "--:--", checkOutTime: checkOutTime || "--:--" }] };
+        return {
+          ...student,
+          attendance: [
+            ...(student.attendance || []),
+            {
+              date,
+              status,
+              time: time || "--:--",
+              checkInTime: time || "--:--",
+              checkOutTime: checkOutTime || "--:--",
+            },
+          ],
+        };
       });
     });
   };
 
   const getStudentAttendance = (studentId) =>
-    attendance.find((s) => s.studentId === studentId || s.id === studentId)?.attendance || [];
+    attendance.find((s) => s.studentId === studentId || s.id === studentId)
+      ?.attendance || [];
 
   // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
@@ -268,13 +353,28 @@ export const AcademicProvider = ({ children }) => {
     <AcademicContext.Provider
       value={{
         // Students
-        students, studentsLoading, studentsError,
-        setStudents, fetchStudents, addStudent, updateStudent, deleteStudent,
+        students,
+        studentsLoading,
+        studentsError,
+        setStudents,
+        fetchStudents,
+        addStudent,
+        updateStudent,
+        deleteStudent,
         // Batches
-        batches, setBatches, batchesLoading, batchesError,
-        fetchBatches, addBatch, updateBatch, deleteBatch,
+        batches,
+        setBatches,
+        batchesLoading,
+        batchesError,
+        fetchBatches,
+        addBatch,
+        updateBatch,
+        deleteBatch,
         // Attendance (local)
-        attendance, setAttendance, updateAttendance, getStudentAttendance,
+        attendance,
+        setAttendance,
+        updateAttendance,
+        getStudentAttendance,
       }}
     >
       {children}
@@ -284,24 +384,62 @@ export const AcademicProvider = ({ children }) => {
 
 export const useAcademic = () => {
   const context = useContext(AcademicContext);
-  if (!context) throw new Error("useAcademic must be used inside AcademicProvider");
+  if (!context)
+    throw new Error("useAcademic must be used inside AcademicProvider");
   return context;
 };
 
 // ── Thin compatibility wrappers ───────────────────────────
 export const useStudents = () => {
-  const { students, studentsLoading, studentsError, setStudents, fetchStudents, addStudent, updateStudent, deleteStudent } = useAcademic();
-  return { students, loading: studentsLoading, error: studentsError, setStudents, fetchStudents, addStudent, updateStudent, deleteStudent };
+  const {
+    students,
+    studentsLoading,
+    studentsError,
+    setStudents,
+    fetchStudents,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+  } = useAcademic();
+  return {
+    students,
+    loading: studentsLoading,
+    error: studentsError,
+    setStudents,
+    fetchStudents,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+  };
 };
 export const useStudent = useStudents;
 
 export const useBatches = () => {
-  const { batches, setBatches, batchesLoading: loading, batchesError: error, fetchBatches, addBatch, updateBatch, deleteBatch } = useAcademic();
-  return { batches, setBatches, loading, error, fetchBatches, addBatch, updateBatch, deleteBatch };
+  const {
+    batches,
+    setBatches,
+    batchesLoading: loading,
+    batchesError: error,
+    fetchBatches,
+    addBatch,
+    updateBatch,
+    deleteBatch,
+  } = useAcademic();
+  return {
+    batches,
+    setBatches,
+    loading,
+    error,
+    fetchBatches,
+    addBatch,
+    updateBatch,
+    deleteBatch,
+  };
 };
 export const useBatch = useBatches;
 
 export const useAttendance = () => {
-  const { attendance, setAttendance, updateAttendance, getStudentAttendance } = useAcademic();
+  const { attendance, setAttendance, updateAttendance, getStudentAttendance } =
+    useAcademic();
   return { attendance, setAttendance, updateAttendance, getStudentAttendance };
 };

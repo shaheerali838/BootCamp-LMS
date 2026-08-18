@@ -19,7 +19,14 @@ function ProjectManagement() {
     projects,
     addProject,
     updateProject,
+    fetchTeams,
+    fetchProjects,
   } = useTeamProject();
+
+  useEffect(() => {
+    if (fetchTeams) fetchTeams();
+    if (fetchProjects) fetchProjects();
+  }, [fetchTeams, fetchProjects]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -836,7 +843,7 @@ function ProjectManagement() {
                         team.id
                       }
                     >
-                      {team.name}
+                      {team.teamName || team.name || `Team ${team._id || team.id}`}
                     </option>
 
                   )

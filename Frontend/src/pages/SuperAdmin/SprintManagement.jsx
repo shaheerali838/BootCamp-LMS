@@ -209,7 +209,7 @@ function SprintManagement() {
                 className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
               >
                 <div className="col-span-2 text-sm font-medium text-gray-900">
-                  {item.name}
+                  {item.sprintName || item.name || item.title || "Sprint"}
                 </div>
 
                 <div>

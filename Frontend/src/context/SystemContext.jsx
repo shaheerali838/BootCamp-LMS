@@ -32,15 +32,22 @@ export const SystemProvider = ({ children }) => {
 
   const fetchAdmins = useCallback(async () => {
     const token = accessToken || localStorage.getItem("accessToken");
-    const rawUser = user || (() => {
-      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
-    })();
+    let rawUser = user;
+    if (!rawUser) {
+      try {
+        rawUser = JSON.parse(localStorage.getItem("user"));
+      } catch {
+        rawUser = null;
+      }
+    }
 
-    if (!token) return;
+    if (!token || !rawUser) return;
 
     // Only SUPER_ADMIN has authority to fetch full admin management records
-    const role = (rawUser?.role || "").toUpperCase();
-    const isSuperAdmin = role === "SUPER_ADMIN" || role === "SUPERADMIN" || role === "SUPER ADMIN";
+    const normalizedRole = (rawUser.role || "")
+      .toUpperCase()
+      .replace(/[\s_]+/g, "");
+    const isSuperAdmin = normalizedRole === "SUPERADMIN";
     if (!isSuperAdmin) {
       setAdmins([]);
       return;

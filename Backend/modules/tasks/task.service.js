@@ -22,7 +22,7 @@ const getTasksBySprintId = async (sprintId) => {
 };
 
 const updateTask = async (id, task) => {
-  return await Task.findByIdAndUpdate(id, task, { new: true });
+  return await Task.findByIdAndUpdate(id, task, { returnDocument: "after" });
 };
 
 const deleteTask = async (id) => {

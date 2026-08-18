@@ -104,7 +104,7 @@ function AttendanceManagement() {
 
     return students.filter((student) => {
       const name = getStudentName(student).toLowerCase();
-      const rollNo = (student.rollNo || "").toLowerCase();
+      const rollNo = (student.rollNumber || student.rollNo || "").toLowerCase();
       const team = (student.team || "").toLowerCase();
 
       return (
@@ -265,7 +265,7 @@ function AttendanceManagement() {
               >
                 {/* Roll Number */}
                 <span className="font-semibold text-gray-700">
-                  {student.rollNo || "N/A"}
+                  {student.rollNumber || student.rollNo || "N/A"}
                 </span>
 
                 {/* Student & Team */}
