@@ -9,11 +9,13 @@ export const requirePermission = (permission) => {
       });
     }
 
-    const userRole = req.user.role
-      ? req.user.role.toUpperCase()
-      : "";
+    const rawRole = (req.user.role || "").toUpperCase().replace(/[\s_]+/g, "");
+    let userRole = req.user.role ? req.user.role.toUpperCase() : "";
+    if (rawRole === "SUPERADMIN" || rawRole === "SUPERADMIN") userRole = "SUPER_ADMIN";
+    else if (rawRole === "ADMIN") userRole = "ADMIN";
+    else if (rawRole === "STUDENT") userRole = "STUDENT";
 
-    const userPermissions = ROLE_PERMISSIONS[userRole];
+    const userPermissions = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS[req.user.role?.toUpperCase()];
 
     if (!userPermissions) {
       return res.status(403).json({

@@ -21,7 +21,10 @@ const Announcement = () => {
 
   const handleSubmit = (data) => {
     if (editingAnnouncement) {
-      updateAnnouncement(editingAnnouncement.id, data);
+      updateAnnouncement(
+        editingAnnouncement._id || editingAnnouncement.id,
+        data,
+      );
     } else {
       addAnnouncement(data);
     }
@@ -142,12 +145,14 @@ const Announcement = () => {
             </div>
           ) : (
             <div className="w-full flex flex-col gap-4">
-              {announcements.map((announcement) => (
+              {announcements.map((announcement, idx) => (
                 <AnnouncementCard
-                  key={announcement.id}
+                  key={announcement._id || announcement.id || idx}
                   announcement={announcement}
                   onEdit={handleEdit}
-                  onDelete={handleDelete}
+                  onDelete={() =>
+                    handleDelete(announcement._id || announcement.id)
+                  }
                 />
               ))}
             </div>

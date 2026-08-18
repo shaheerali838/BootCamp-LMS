@@ -25,7 +25,7 @@ const getReportById = async (id) => {
 // Update Report
 const updateReport = async (id, data) => {
   return await Report.findByIdAndUpdate(id, data, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   }).populate("generatedBy", "firstName lastName email");
 };

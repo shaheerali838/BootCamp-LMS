@@ -171,7 +171,7 @@ export const updateStudentStatusService = async (id, status) => {
   return await Student.findByIdAndUpdate(
     id,
     { status },
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   ).select("-password");
 };
 

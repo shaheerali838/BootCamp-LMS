@@ -53,9 +53,9 @@ const AnnouncementCard = ({
 
                 <button
                   onClick={() =>
-                    onDelete(announcement.id)
+                    onDelete(announcement._id || announcement.id)
                   }
-                  className="w-9 h-9 flex items-center justify-center rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition"
+                  className="w-9 h-9 flex items-center justify-center rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition cursor-pointer"
                   title="Delete announcement"
                 >
                   <FaTrash size={14} />

@@ -1,17 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers } from "react-icons/fi";
 import { useStudent, useAttendance } from "../../context/AcademicContext";
 
 function AttendanceOverview() {
-  const { students } = useStudent();
-  const { attendance } = useAttendance();
+  const { students = [], fetchStudents } = useStudent();
+  const { attendance = [] } = useAttendance();
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (fetchStudents) fetchStudents();
+  }, [fetchStudents]);
 
   const filteredStudents = useMemo(() => {
     const value = search.toLowerCase();
     return students.filter((student) => {
-      const name = student.name || "";
-      const rollNo = student.rollNo || "";
+      const name = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
+      const rollNo = student.rollNumber || student.rollNo || "";
       const team = student.team || "";
 
       return (
@@ -24,7 +28,7 @@ function AttendanceOverview() {
 
   const getStudentHistory = (studentId) => {
     const record = attendance.find(
-      (item) => item.id === studentId || item.studentId === studentId
+      (item) => item.id === studentId || item.studentId === studentId || item._id === studentId
     );
     return record ? record.attendance || [] : [];
   };
@@ -33,7 +37,6 @@ function AttendanceOverview() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-       
         <div className="flex items-center justify-between mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -74,7 +77,8 @@ function AttendanceOverview() {
         </div>
         <div className="divide-y divide-gray-100">
           {filteredStudents.map((student) => {
-            const history = getStudentHistory(student.id);
+            const sid = student._id || student.id;
+            const history = getStudentHistory(sid);
             const presentCount = history.filter(
               (a) => a.status === "Present" || a.status === "Late"
             ).length;
@@ -93,11 +97,11 @@ function AttendanceOverview() {
 
             return (
               <div
-                key={student._id || student.id}
+                key={sid}
                 className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <span className="font-semibold text-gray-700 text-xs">
-                  {student.rollNo || "N/A"}
+                  {student.rollNumber || student.rollNo || "N/A"}
                 </span>
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
@@ -119,30 +123,44 @@ function AttendanceOverview() {
                       latest.status === "Present"
                         ? "bg-emerald-100 text-emerald-700"
                         : latest.status === "Late"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-red-100 text-red-700"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-red-100 text-red-700"
                     }`}
                   >
                     {latest.status}
                   </span>
                 </div>
-                <div className="flex items-center justify-end gap-2">
-                  <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="text-right">
+                  <span
+                    className={`font-bold text-sm ${
+                      pct >= 85
+                        ? "text-emerald-600"
+                        : pct >= 70
+                          ? "text-amber-600"
+                          : "text-red-600"
+                    }`}
+                  >
+                    {pct}%
+                  </span>
+                  <div className="w-24 bg-gray-200 h-1.5 rounded-full ml-auto mt-1 overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        pct < 75 ? "bg-red-500" : "bg-emerald-500"
+                        pct >= 85
+                          ? "bg-emerald-500"
+                          : pct >= 70
+                            ? "bg-amber-500"
+                            : "bg-red-500"
                       }`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-gray-800">{pct}%</span>
                 </div>
               </div>
             );
           })}
           {filteredStudents.length === 0 && (
             <div className="py-8 text-center text-sm text-gray-500">
-              No student records found.
+              No students found matching your criteria.
             </div>
           )}
         </div>
