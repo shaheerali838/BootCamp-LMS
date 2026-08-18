@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 const WorkContext = createContext();
 
@@ -30,15 +31,16 @@ const initialReportData = {
 };
 
 export const WorkProvider = ({ children }) => {
+  const { accessToken } = useAuth();
+
   // ── Tasks ─────────────────────────────────────────────────
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tasksError, setTasksError] = useState(null);
 
-  const fetchTasks = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchTasks = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setTasksLoading(true);
     try {
@@ -55,13 +57,14 @@ export const WorkProvider = ({ children }) => {
     } finally {
       setTasksLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addTask = async (newTask) => {
     setTasksLoading(true);
     try {
       const res = await api.post("/tasks/create-task", newTask);
-      if (res.data.success) setTasks((prev) => [res.data.data, ...prev]);
+      // Invalidate & refetch
+      await fetchTasks();
       setTasksError(null);
       return res.data;
     } catch (err) {
@@ -77,9 +80,8 @@ export const WorkProvider = ({ children }) => {
     setTasksLoading(true);
     try {
       const res = await api.put(`/tasks/update-task/${id}`, updatedData);
-      if (res.data.success) {
-        setTasks((prev) => prev.map((t) => (t._id === id ? res.data.data : t)));
-      }
+      // Invalidate & refetch
+      await fetchTasks();
       setTasksError(null);
       return res.data;
     } catch (err) {
@@ -97,7 +99,8 @@ export const WorkProvider = ({ children }) => {
     setTasksLoading(true);
     try {
       await api.delete(`/tasks/delete-task/${id}`);
-      setTasks((prev) => prev.filter((t) => t._id !== id));
+      // Invalidate & refetch
+      await fetchTasks();
       setTasksError(null);
     } catch (err) {
       console.error("Failed to delete task:", err);
@@ -120,10 +123,9 @@ export const WorkProvider = ({ children }) => {
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [milestonesError, setMilestonesError] = useState(null);
 
-  const fetchMilestones = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchMilestones = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setMilestonesLoading(true);
     try {
@@ -140,7 +142,7 @@ export const WorkProvider = ({ children }) => {
     } finally {
       setMilestonesLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addMilestone = async (newMilestone) => {
     setMilestonesLoading(true);
@@ -153,9 +155,8 @@ export const WorkProvider = ({ children }) => {
         status: newMilestone.status || "Pending",
       };
       const res = await api.post("/milestones/create-milestone", payload);
-      if (res.data.success) {
-        setMilestones((prev) => [res.data.data, ...prev]);
-      }
+      // Invalidate & refetch
+      await fetchMilestones();
       setMilestonesError(null);
       return res.data;
     } catch (err) {
@@ -180,9 +181,8 @@ export const WorkProvider = ({ children }) => {
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
       const res = await api.put(`/milestones/update-milestone/${id}`, payload);
-      if (res.data.success) {
-        setMilestones((prev) => prev.map((m) => (m._id === id ? res.data.data : m)));
-      }
+      // Invalidate & refetch
+      await fetchMilestones();
       setMilestonesError(null);
       return res.data;
     } catch (err) {
@@ -198,7 +198,8 @@ export const WorkProvider = ({ children }) => {
     setMilestonesLoading(true);
     try {
       await api.delete(`/milestones/delete-milestone/${id}`);
-      setMilestones((prev) => prev.filter((m) => m._id !== id));
+      // Invalidate & refetch
+      await fetchMilestones();
       setMilestonesError(null);
     } catch (err) {
       console.error("Failed to delete milestone:", err);
@@ -214,10 +215,9 @@ export const WorkProvider = ({ children }) => {
   const [sprintsLoading, setSprintsLoading] = useState(false);
   const [sprintsError, setSprintsError] = useState(null);
 
-  const fetchSprints = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchSprints = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setSprintsLoading(true);
     try {
@@ -234,7 +234,7 @@ export const WorkProvider = ({ children }) => {
     } finally {
       setSprintsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addSprint = async (newSprint) => {
     setSprintsLoading(true);
@@ -247,7 +247,8 @@ export const WorkProvider = ({ children }) => {
         status: newSprint.status || "Active",
       };
       const res = await api.post("/sprints/create-sprint", payload);
-      if (res.data.success) setSprints((prev) => [res.data.data, ...prev]);
+      // Invalidate & refetch
+      await fetchSprints();
       setSprintsError(null);
       return res.data;
     } catch (err) {
@@ -263,9 +264,8 @@ export const WorkProvider = ({ children }) => {
     setSprintsLoading(true);
     try {
       const res = await api.put(`/sprints/update-sprint/${id}`, updatedData);
-      if (res.data.success) {
-        setSprints((prev) => prev.map((s) => (s._id === id ? res.data.data : s)));
-      }
+      // Invalidate & refetch
+      await fetchSprints();
       setSprintsError(null);
       return res.data;
     } catch (err) {
@@ -281,7 +281,8 @@ export const WorkProvider = ({ children }) => {
     setSprintsLoading(true);
     try {
       await api.delete(`/sprints/delete-sprint/${id}`);
-      setSprints((prev) => prev.filter((s) => s._id !== id));
+      // Invalidate & refetch
+      await fetchSprints();
       setSprintsError(null);
     } catch (err) {
       console.error("Failed to delete sprint:", err);
@@ -297,10 +298,9 @@ export const WorkProvider = ({ children }) => {
   const [evaluationsLoading, setEvaluationsLoading] = useState(false);
   const [evaluationsError, setEvaluationsError] = useState(null);
 
-  const fetchEvaluations = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchEvaluations = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setEvaluationsLoading(true);
     try {
@@ -317,15 +317,14 @@ export const WorkProvider = ({ children }) => {
     } finally {
       setEvaluationsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addEvaluation = async (evaluationData) => {
     setEvaluationsLoading(true);
     try {
       const res = await api.post("/evaluations/create-evaluation", evaluationData);
-      if (res.data.success) {
-        setEvaluations((prev) => [res.data.data, ...prev]);
-      }
+      // Invalidate & refetch
+      await fetchEvaluations();
       setEvaluationsError(null);
       return res.data;
     } catch (err) {
@@ -337,13 +336,20 @@ export const WorkProvider = ({ children }) => {
     }
   };
 
-  // ── Bootstrap ─────────────────────────────────────────────
+  // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
-    fetchTasks();
-    fetchMilestones();
-    fetchSprints();
-    fetchEvaluations();
-  }, []);
+    if (accessToken) {
+      fetchTasks();
+      fetchMilestones();
+      fetchSprints();
+      fetchEvaluations();
+    } else {
+      setTasks([]);
+      setMilestones([]);
+      setSprints([]);
+      setEvaluations([]);
+    }
+  }, [accessToken, fetchTasks, fetchMilestones, fetchSprints, fetchEvaluations]);
 
   // ── Dynamic Reports Calculations ─────────────────────────
   const completedTasksCount = tasks.filter(

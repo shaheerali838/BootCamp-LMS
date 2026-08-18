@@ -1,11 +1,18 @@
-import React, { useState } from "react";
-import { FiX } from "react-icons/fi";
+import React, { useState, useEffect, useMemo } from "react";
+import { FiX, FiAlertCircle } from "react-icons/fi";
 import { useBatches } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
 
 function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
   const { batches = [] } = useBatches();
-  const { admins = [] } = useAdmins();
+  const { mentors = [], admins = [], fetchMentors } = useAdmins();
+
+  const availableMentors = useMemo(() => {
+    return (mentors.length > 0 ? mentors : admins).filter((m) => {
+      const r = (m.role || "").toUpperCase().replace(/[\s_]+/g, "");
+      return r !== "SUPERADMIN";
+    });
+  }, [mentors, admins]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -21,6 +28,31 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
     status: "active",
   });
 
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setError("");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "Student@123",
+        phoneNumber: "",
+        rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
+        gender: "male",
+        dateOfBirth: "2002-01-01",
+        batchId: batches[0] ? batches[0]._id || batches[0].id : "",
+        mentorId: availableMentors[0]
+          ? availableMentors[0]._id || availableMentors[0].id
+          : "",
+        status: "active",
+      });
+      if (fetchMentors) fetchMentors();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -29,29 +61,82 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
       ...prev,
       [name]: value,
     }));
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const selectedBatchId = formData.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : undefined);
-    const selectedMentorId = formData.mentorId || (admins[0] ? (admins[0]._id || admins[0].id) : undefined);
+    if (!formData.firstName.trim()) {
+      setError("First Name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last Name is required.");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
+    if (!formData.phoneNumber.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    if (!formData.rollNumber.trim()) {
+      setError("Roll number is required.");
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (!formData.dateOfBirth) {
+      setError("Date of Birth is required.");
+      return;
+    }
+    if (!formData.batchId) {
+      setError(
+        "Please select a Batch. If no batches exist, create one in Batch Management first.",
+      );
+      return;
+    }
+    if (!formData.mentorId) {
+      setError(
+        "Please select an Assigned Mentor. If no mentors exist, add one in Admin Management first.",
+      );
+      return;
+    }
 
     const payload = {
       ...formData,
-      batchId: selectedBatchId,
-      mentorId: selectedMentorId,
-      name: `${formData.firstName} ${formData.lastName}`.trim(),
-      rollNo: formData.rollNumber,
-      phone: formData.phoneNumber,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phoneNumber: formData.phoneNumber.trim(),
+      rollNumber: formData.rollNumber.trim(),
+      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+      rollNo: formData.rollNumber.trim(),
+      phone: formData.phoneNumber.trim(),
     };
 
     const addFn = onAdd || onAddStudent;
     if (addFn) {
-      addFn(payload);
+      try {
+        setSubmitting(true);
+        await addFn(payload);
+        onClose();
+      } catch (err) {
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to add student. Please check input values.",
+        );
+      } finally {
+        setSubmitting(false);
+      }
     }
-
-    onClose();
   };
 
   return (
@@ -73,7 +158,17 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 text-xs">
+        <form
+          onSubmit={handleSubmit}
+          className="overflow-y-auto p-6 space-y-4 text-xs"
+        >
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs">
+              <FiAlertCircle size={16} className="shrink-0 text-red-500" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* First Name */}
             <div>
@@ -212,6 +307,7 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
                 name="batchId"
                 value={formData.batchId}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
               >
                 <option value="">Select Batch</option>
@@ -221,6 +317,11 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
                   </option>
                 ))}
               </select>
+              {batches.length === 0 && (
+                <p className="text-amber-600 text-[11px] mt-1">
+                  ⚠️ No batches found. Create a batch first.
+                </p>
+              )}
             </div>
 
             {/* Mentor */}
@@ -232,15 +333,23 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
                 name="mentorId"
                 value={formData.mentorId}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
               >
                 <option value="">Select Mentor</option>
-                {admins.map((a) => (
+                {availableMentors.map((a) => (
                   <option key={a._id || a.id} value={a._id || a.id}>
-                    {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.name} ({a.role || "Mentor"})
+                    {a.firstName
+                      ? `${a.firstName} ${a.lastName || ""}`
+                      : a.name}
                   </option>
                 ))}
               </select>
+              {availableMentors.length === 0 && (
+                <p className="text-amber-600 text-[11px] mt-1">
+                  ⚠️ No mentors found. Add an admin/mentor first.
+                </p>
+              )}
             </div>
           </div>
 
@@ -249,6 +358,7 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
             <button
               type="button"
               onClick={onClose}
+              disabled={submitting}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition cursor-pointer"
             >
               Cancel
@@ -256,9 +366,10 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
 
             <button
               type="submit"
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer"
+              disabled={submitting}
+              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50"
             >
-              Enroll Student
+              {submitting ? "Enrolling..." : "Enroll Student"}
             </button>
           </div>
         </form>

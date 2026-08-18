@@ -13,10 +13,16 @@ import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useTasks } from "../../../context/WorkContext";
 
 function StatsGrid() {
-  const { students = [] } = useStudents();
+  const { students = [], fetchStudents } = useStudents();
   const { getStudentAttendance } = useAttendance();
-  const { teams = [] } = useTeamProject();
-  const { tasks = [] } = useTasks();
+  const { teams = [], fetchTeams } = useTeamProject();
+  const { tasks = [], fetchTasks } = useTasks();
+
+  React.useEffect(() => {
+    if (fetchStudents) fetchStudents();
+    if (fetchTeams) fetchTeams();
+    if (fetchTasks) fetchTasks();
+  }, [fetchStudents, fetchTeams, fetchTasks]);
 
   const today = new Date().toISOString().split("T")[0];
   const totalStudentsCount = students.length;

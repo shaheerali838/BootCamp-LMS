@@ -46,19 +46,31 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
     }
   }, [taskToAssign, teams, students, sprints]);
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setError("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.dueDate) {
-      alert("Please fill all required fields.");
+    if (!formData.title.trim()) {
+      setError("Task Title is required.");
+      return;
+    }
+    if (!formData.description.trim()) {
+      setError("Task Description is required.");
+      return;
+    }
+    if (!formData.dueDate) {
+      setError("Due Date is required.");
       return;
     }
 
@@ -66,8 +78,8 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
     const assignedStudentId = formData.assignedType === "student" ? formData.assignedId : (students[0]?._id || students[0]?.id);
 
     const payload = {
-      title: formData.title,
-      description: formData.description,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
       sprintId: formData.sprintId || (sprints[0]?._id || sprints[0]?.id || undefined),
       assignedTeamId,
       assignedStudentId,
@@ -78,17 +90,20 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
       assignedBy: "Admin",
     };
 
-    if (taskToAssign) {
-      onAssign({
-        id: taskToAssign._id || taskToAssign.id,
-        ...taskToAssign,
-        ...payload,
-      });
-    } else {
-      onAssign(payload);
+    try {
+      if (taskToAssign) {
+        onAssign({
+          id: taskToAssign._id || taskToAssign.id,
+          ...taskToAssign,
+          ...payload,
+        });
+      } else {
+        onAssign(payload);
+      }
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to assign task.");
     }
-
-    onClose();
   };
 
   return (
@@ -125,6 +140,12 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
           {/* Task Title */}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">

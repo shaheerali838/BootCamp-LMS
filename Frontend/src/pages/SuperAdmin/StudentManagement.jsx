@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FiUsers, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
 import { useStudent, useBatches } from "../../context/AcademicContext";
 import { useAdmins } from "../../context/SystemContext";
@@ -6,13 +6,21 @@ import { useAdmins } from "../../context/SystemContext";
 function StudentManagement() {
   const { students, fetchStudents, addStudent, updateStudent, deleteStudent } = useStudent();
   const { batches = [], fetchBatches } = useBatches();
-  const { admins = [], fetchAdmins } = useAdmins();
+  const { admins = [], mentors = [], fetchAdmins, fetchMentors } = useAdmins();
+
+  const availableMentors = useMemo(() => {
+    return (mentors.length > 0 ? mentors : admins).filter((m) => {
+      const r = (m.role || "").toUpperCase().replace(/[\s_]+/g, "");
+      return r !== "SUPERADMIN";
+    });
+  }, [mentors, admins]);
 
   React.useEffect(() => {
     if (fetchStudents) fetchStudents();
     if (fetchBatches) fetchBatches();
     if (fetchAdmins) fetchAdmins();
-  }, []);
+    if (fetchMentors) fetchMentors();
+  }, [fetchStudents, fetchBatches, fetchAdmins, fetchMentors]);
 
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -54,8 +62,12 @@ function StudentManagement() {
     return name.includes(q) || roll.includes(q) || email.includes(q);
   });
 
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const handleOpenAdd = () => {
     setEditingStudent(null);
+    setError("");
     setFormData({
       firstName: "",
       lastName: "",
@@ -66,7 +78,7 @@ function StudentManagement() {
       gender: "male",
       dateOfBirth: "2002-01-01",
       batchId: batches[0] ? (batches[0]._id || batches[0].id) : "",
-      mentorId: admins[0] ? (admins[0]._id || admins[0].id) : "",
+      mentorId: availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : "",
       status: "active",
     });
     setShowModal(true);
@@ -74,6 +86,7 @@ function StudentManagement() {
 
   const handleOpenEdit = (student) => {
     setEditingStudent(student);
+    setError("");
     const nameParts = (student.name || "").split(" ");
     setFormData({
       firstName: student.firstName || nameParts[0] || "",
@@ -85,31 +98,78 @@ function StudentManagement() {
       gender: student.gender || "male",
       dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().split("T")[0] : "2002-01-01",
       batchId: student.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : ""),
-      mentorId: student.mentorId || (admins[0] ? (admins[0]._id || admins[0].id) : ""),
+      mentorId: student.mentorId || (availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : ""),
       status: student.status || "active",
     });
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!formData.firstName.trim()) {
+      setError("First Name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last Name is required.");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
+    if (!formData.rollNumber.trim()) {
+      setError("Roll number is required.");
+      return;
+    }
+    if (!formData.phoneNumber.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    if (!formData.dateOfBirth) {
+      setError("Date of birth is required.");
+      return;
+    }
+    if (!formData.batchId) {
+      setError("Please select a Batch. If no batches exist, create one first.");
+      return;
+    }
+    if (!formData.mentorId) {
+      setError("Please select an Assigned Mentor. If no mentors exist, add one first.");
+      return;
+    }
+
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
     const initials = getStudentInitials({ name: fullName });
 
     const payload = {
       ...formData,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phoneNumber: formData.phoneNumber.trim(),
+      rollNumber: formData.rollNumber.trim(),
       name: fullName,
-      rollNo: formData.rollNumber,
-      phone: formData.phoneNumber,
+      rollNo: formData.rollNumber.trim(),
+      phone: formData.phoneNumber.trim(),
       initials,
     };
 
-    if (editingStudent) {
-      updateStudent(editingStudent._id || editingStudent.id, payload);
-    } else {
-      addStudent(payload);
+    try {
+      setSubmitting(true);
+      if (editingStudent) {
+        await updateStudent(editingStudent._id || editingStudent.id, payload);
+      } else {
+        await addStudent(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to save student.");
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
   };
 
   return (
@@ -238,6 +298,13 @@ function StudentManagement() {
             </div>
 
             <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 text-xs">
+              {error && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold text-gray-700 mb-1">
@@ -364,7 +431,7 @@ function StudentManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
                   >
                     <option value="">Select Mentor</option>
-                    {admins.map((a) => (
+                    {availableMentors.map((a) => (
                       <option key={a._id || a.id} value={a._id || a.id}>
                         {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.name}
                       </option>
@@ -397,9 +464,10 @@ function StudentManagement() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs cursor-pointer"
+                  disabled={submitting}
+                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs cursor-pointer disabled:opacity-50"
                 >
-                  Save Student
+                  {submitting ? "Saving..." : "Save Student"}
                 </button>
               </div>
             </form>

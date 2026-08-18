@@ -10,12 +10,18 @@ function UploadResourceModal({ onClose, onUpload }) {
   const [fileType, setFileType] = useState("PDF");
   const [category, setCategory] = useState(categories[0]?._id || "React");
   const [file, setFile] = useState(null);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!title.trim() || !description.trim()) {
-      alert("Please provide a title and description.");
+    if (!title.trim()) {
+      setError("Resource Title is required.");
+      return;
+    }
+    if (!description.trim()) {
+      setError("Resource Description is required.");
       return;
     }
 
@@ -27,10 +33,14 @@ function UploadResourceModal({ onClose, onUpload }) {
       file: file ? file.name : "document.pdf",
     };
 
-    if (onUpload) {
-      onUpload(payload);
+    try {
+      if (onUpload) {
+        onUpload(payload);
+      }
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to upload resource.");
     }
-    onClose();
   };
 
   return (
@@ -58,6 +68,12 @@ function UploadResourceModal({ onClose, onUpload }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">
               Resource Title *

@@ -4,6 +4,7 @@ const PERMISSIONS = {
   MANAGE_ADMINS: "manage_admins",
   MANAGE_STUDENTS: "manage_students",
   MANAGE_BATCHES: "manage_batches",
+  VIEW_MENTORS: "view_mentors",
 
   // Teams
   MANAGE_TEAMS: "manage_teams",

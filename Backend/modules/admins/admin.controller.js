@@ -3,6 +3,40 @@ import Admin from "../../model/admin.model.js";
 import mongoose from "mongoose";
 import ROLES from "../../constants/roles.js";
 
+// ---------- GET ELIGIBLE MENTORS ----------
+export const getEligibleMentors = async (req, res) => {
+  try {
+    // Return only active admin/mentor accounts (excluding Super Admins)
+    const superAdminRoles = [
+      ROLES.SUPER_ADMIN,
+      "SUPER_ADMIN",
+      "super_admin",
+      "Super Admin",
+      "SUPERADMIN",
+      "superadmin",
+    ];
+
+    const mentors = await Admin.find({
+      status: "active",
+      role: { $nin: superAdminRoles },
+    })
+      .select("_id firstName lastName email role status phoneNumber")
+      .sort({ firstName: 1, lastName: 1 });
+
+    return res.status(200).json({
+      success: true,
+      count: mentors.length,
+      data: mentors,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch mentors",
+      error: error.message,
+    });
+  }
+};
+
 // ---------- CREATE ADMIN ----------
 export const createAdmin = async (req, res) => {
   try {

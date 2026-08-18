@@ -14,9 +14,13 @@ import { useStudent } from "../context/AcademicContext";
 import AddStudentModal from "../components/features/Students/AddStudentModal";
 
 function Students() {
-  const { students, addStudent } = useStudent();
+  const { students, fetchStudents, addStudent } = useStudent();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  React.useEffect(() => {
+    if (fetchStudents) fetchStudents();
+  }, [fetchStudents]);
 
   const getStudentName = (s) =>
     s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";

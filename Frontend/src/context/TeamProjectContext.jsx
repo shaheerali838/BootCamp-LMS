@@ -1,18 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 const TeamProjectContext = createContext();
 
 export const TeamProjectProvider = ({ children }) => {
+  const { accessToken } = useAuth();
+
   // ── Teams ─────────────────────────────────────────────────
   const [teams, setTeams] = useState([]);
   const [teamsLoading, setTeamsLoading] = useState(false);
   const [teamsError, setTeamsError] = useState(null);
 
-  const fetchTeams = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchTeams = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setTeamsLoading(true);
     try {
@@ -29,7 +31,7 @@ export const TeamProjectProvider = ({ children }) => {
     } finally {
       setTeamsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addTeam = async (team) => {
     setTeamsLoading(true);
@@ -42,9 +44,8 @@ export const TeamProjectProvider = ({ children }) => {
         status: team.status || "active",
       };
       const res = await api.post("/teams/create-team", payload);
-      if (res.data.success) {
-        setTeams((prev) => [res.data.data, ...prev]);
-      }
+      // Invalidate & refetch authoritative list
+      await fetchTeams();
       setTeamsError(null);
       return res.data;
     } catch (err) {
@@ -67,11 +68,8 @@ export const TeamProjectProvider = ({ children }) => {
         status: updatedTeam.status || "active",
       };
       const res = await api.put(`/teams/update-team/${id}`, payload);
-      if (res.data.success) {
-        setTeams((prev) =>
-          prev.map((t) => (t._id === id ? res.data.data : t))
-        );
-      }
+      // Invalidate & refetch authoritative list
+      await fetchTeams();
       setTeamsError(null);
       return res.data;
     } catch (err) {
@@ -87,7 +85,8 @@ export const TeamProjectProvider = ({ children }) => {
     setTeamsLoading(true);
     try {
       await api.delete(`/teams/delete-team/${id}`);
-      setTeams((prev) => prev.filter((t) => t._id !== id));
+      // Invalidate & refetch authoritative list
+      await fetchTeams();
       setTeamsError(null);
     } catch (err) {
       console.error("Failed to delete team:", err);
@@ -103,10 +102,9 @@ export const TeamProjectProvider = ({ children }) => {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState(null);
 
-  const fetchProjects = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchProjects = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setProjectsLoading(true);
     try {
@@ -123,7 +121,7 @@ export const TeamProjectProvider = ({ children }) => {
     } finally {
       setProjectsLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addProject = async (project) => {
     setProjectsLoading(true);
@@ -137,9 +135,8 @@ export const TeamProjectProvider = ({ children }) => {
         status: project.status || "Pending",
       };
       const res = await api.post("/projects/create-project", payload);
-      if (res.data.success) {
-        setProjects((prev) => [res.data.data, ...prev]);
-      }
+      // Invalidate & refetch
+      await fetchProjects();
       setProjectsError(null);
       return res.data;
     } catch (err) {
@@ -155,11 +152,8 @@ export const TeamProjectProvider = ({ children }) => {
     setProjectsLoading(true);
     try {
       const res = await api.put(`/projects/update-project/${id}`, updatedProject);
-      if (res.data.success) {
-        setProjects((prev) =>
-          prev.map((p) => (p._id === id ? res.data.data : p))
-        );
-      }
+      // Invalidate & refetch
+      await fetchProjects();
       setProjectsError(null);
       return res.data;
     } catch (err) {
@@ -179,7 +173,8 @@ export const TeamProjectProvider = ({ children }) => {
     setProjectsLoading(true);
     try {
       await api.delete(`/projects/delete-project/${id}`);
-      setProjects((prev) => prev.filter((p) => p._id !== id));
+      // Invalidate & refetch
+      await fetchProjects();
       setProjectsError(null);
     } catch (err) {
       console.error("Failed to delete project:", err);
@@ -193,11 +188,16 @@ export const TeamProjectProvider = ({ children }) => {
   const getTeamProjects = (teamId) =>
     projects.filter((p) => String(p.teamId) === String(teamId));
 
-  // ── Bootstrap ─────────────────────────────────────────────
+  // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
-    fetchTeams();
-    fetchProjects();
-  }, []);
+    if (accessToken) {
+      fetchTeams();
+      fetchProjects();
+    } else {
+      setTeams([]);
+      setProjects([]);
+    }
+  }, [accessToken, fetchTeams, fetchProjects]);
 
   return (
     <TeamProjectContext.Provider

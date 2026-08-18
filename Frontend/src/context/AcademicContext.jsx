@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 const AcademicContext = createContext();
 
@@ -7,20 +8,24 @@ const AcademicContext = createContext();
 const initialAttendanceData = [];
 
 export const AcademicProvider = ({ children }) => {
+  const { accessToken, user } = useAuth();
+
   // ── Students (API) ─────────────────────────────────────────
   const [students, setStudents] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState(null);
 
-  const fetchStudents = async () => {
-    const token = localStorage.getItem("accessToken");
-    const rawUser = localStorage.getItem("user");
-    let userObj = null;
-    try { userObj = JSON.parse(rawUser); } catch {}
-    const role = (userObj?.role || "").toUpperCase();
+  const fetchStudents = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    const rawUser = user || (() => {
+      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+    })();
+    const role = (rawUser?.role || "").toUpperCase();
 
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth || role === "STUDENT") return;
+    if (!token || role === "STUDENT") {
+      if (role === "STUDENT") setStudents([]);
+      return;
+    }
 
     setStudentsLoading(true);
     try {
@@ -37,7 +42,7 @@ export const AcademicProvider = ({ children }) => {
     } finally {
       setStudentsLoading(false);
     }
-  };
+  }, [accessToken, user]);
 
   const addStudent = async (newStudent) => {
     setStudentsLoading(true);
@@ -56,7 +61,8 @@ export const AcademicProvider = ({ children }) => {
         status: newStudent.status || "active",
       };
       const res = await api.post("/students/create-student", payload);
-      if (res.data.success) setStudents((prev) => [res.data.data, ...prev]);
+      // Invalidate and refetch authoritative student list from database
+      await fetchStudents();
       setStudentsError(null);
       return res.data;
     } catch (err) {
@@ -89,9 +95,8 @@ export const AcademicProvider = ({ children }) => {
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
       const res = await api.put(`/students/update-student/${id}`, payload);
-      if (res.data.success) {
-        setStudents((prev) => prev.map((s) => (s._id === id ? res.data.data : s)));
-      }
+      // Invalidate and refetch authoritative student list from database
+      await fetchStudents();
       setStudentsError(null);
       return res.data;
     } catch (err) {
@@ -107,7 +112,8 @@ export const AcademicProvider = ({ children }) => {
     setStudentsLoading(true);
     try {
       await api.delete(`/students/delete-student/${id}`);
-      setStudents((prev) => prev.filter((s) => s._id !== id));
+      // Invalidate and refetch authoritative student list from database
+      await fetchStudents();
       setStudentsError(null);
     } catch (err) {
       console.error("Failed to delete student:", err);
@@ -123,15 +129,17 @@ export const AcademicProvider = ({ children }) => {
   const [batchesLoading, setBatchesLoading] = useState(false);
   const [batchesError, setBatchesError] = useState(null);
 
-  const fetchBatches = async () => {
-    const token = localStorage.getItem("accessToken");
-    const rawUser = localStorage.getItem("user");
-    let userObj = null;
-    try { userObj = JSON.parse(rawUser); } catch {}
-    const role = (userObj?.role || "").toUpperCase();
+  const fetchBatches = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    const rawUser = user || (() => {
+      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+    })();
+    const role = (rawUser?.role || "").toUpperCase();
 
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth || role === "STUDENT") return;
+    if (!token || role === "STUDENT") {
+      if (role === "STUDENT") setBatches([]);
+      return;
+    }
 
     setBatchesLoading(true);
     try {
@@ -148,7 +156,7 @@ export const AcademicProvider = ({ children }) => {
     } finally {
       setBatchesLoading(false);
     }
-  };
+  }, [accessToken, user]);
 
   const addBatch = async (newBatch) => {
     setBatchesLoading(true);
@@ -161,8 +169,10 @@ export const AcademicProvider = ({ children }) => {
         status: newBatch.status || "active",
       };
       const response = await api.post("/batches/create-batch", payload);
-      if (response.data.success) setBatches((prev) => [response.data.batch, ...prev]);
+      // Invalidate and refetch authoritative batch list from database
+      await fetchBatches();
       setBatchesError(null);
+      return response.data;
     } catch (err) {
       console.error("Failed to add batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to create batch");
@@ -183,10 +193,10 @@ export const AcademicProvider = ({ children }) => {
         status: updatedData.status,
       };
       const response = await api.put(`/batches/update-batch/${id}`, payload);
-      if (response.data.success) {
-        setBatches((prev) => prev.map((b) => (b._id === id ? response.data.batch : b)));
-      }
+      // Invalidate and refetch authoritative batch list from database
+      await fetchBatches();
       setBatchesError(null);
+      return response.data;
     } catch (err) {
       console.error("Failed to update batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to update batch");
@@ -200,8 +210,10 @@ export const AcademicProvider = ({ children }) => {
     setBatchesLoading(true);
     try {
       const response = await api.delete(`/batches/delete-batch/${id}`);
-      if (response.data.success) setBatches((prev) => prev.filter((b) => b._id !== id));
+      // Invalidate and refetch authoritative batch list from database
+      await fetchBatches();
       setBatchesError(null);
+      return response.data;
     } catch (err) {
       console.error("Failed to delete batch:", err);
       setBatchesError(err.response?.data?.message || "Failed to delete batch");
@@ -241,11 +253,16 @@ export const AcademicProvider = ({ children }) => {
   const getStudentAttendance = (studentId) =>
     attendance.find((s) => s.studentId === studentId || s.id === studentId)?.attendance || [];
 
-  // ── Bootstrap ─────────────────────────────────────────────
+  // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
-    fetchStudents();
-    fetchBatches();
-  }, []);
+    if (accessToken) {
+      fetchStudents();
+      fetchBatches();
+    } else {
+      setStudents([]);
+      setBatches([]);
+    }
+  }, [accessToken, fetchStudents, fetchBatches]);
 
   return (
     <AcademicContext.Provider

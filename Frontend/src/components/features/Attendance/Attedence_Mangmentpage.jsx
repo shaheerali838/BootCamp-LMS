@@ -11,8 +11,12 @@ import {
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
 
 function AttendanceManagement() {
-  const { students = [] } = useStudents();
+  const { students = [], fetchStudents } = useStudents();
   const { updateAttendance, getStudentAttendance } = useAttendance();
+
+  React.useEffect(() => {
+    if (fetchStudents) fetchStudents();
+  }, [fetchStudents]);
 
   const [search, setSearch] = useState("");
   const [draftAttendance, setDraftAttendance] = useState({});
