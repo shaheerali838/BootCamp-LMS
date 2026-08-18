@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { FiX, FiAlertCircle } from "react-icons/fi";
+import { FiX, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
 import { useBatches } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
 
-function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
+function AddStudentModal({
+  isOpen,
+  onClose,
+  onAdd,
+  onAddStudent,
+  editingStudent = null,
+}) {
   const { batches = [] } = useBatches();
   const { mentors = [], admins = [], fetchMentors } = useAdmins();
 
@@ -14,6 +20,7 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
     });
   }, [mentors, admins]);
 
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -34,24 +41,60 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
   useEffect(() => {
     if (isOpen) {
       setError("");
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "Student@123",
-        phoneNumber: "",
-        rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
-        gender: "male",
-        dateOfBirth: "2002-01-01",
-        batchId: batches[0] ? batches[0]._id || batches[0].id : "",
-        mentorId: availableMentors[0]
-          ? availableMentors[0]._id || availableMentors[0].id
-          : "",
-        status: "active",
-      });
+      setShowPassword(false);
+      if (editingStudent) {
+        const nameParts = (editingStudent.name || "").split(" ");
+        setFormData({
+          firstName:
+            editingStudent.firstName || nameParts[0] || "",
+          lastName:
+            editingStudent.lastName ||
+            nameParts.slice(1).join(" ") ||
+            "",
+          email: editingStudent.email || "",
+          password: "",
+          phoneNumber:
+            editingStudent.phoneNumber || editingStudent.phone || "",
+          rollNumber:
+            editingStudent.rollNumber || editingStudent.rollNo || "",
+          gender: (editingStudent.gender || "male").toLowerCase(),
+          dateOfBirth: editingStudent.dateOfBirth
+            ? new Date(editingStudent.dateOfBirth).toISOString().split("T")[0]
+            : "2002-01-01",
+          batchId:
+            editingStudent.batchId ||
+            editingStudent.batch?._id ||
+            editingStudent.batch ||
+            (batches[0] ? batches[0]._id || batches[0].id : ""),
+          mentorId:
+            editingStudent.mentorId ||
+            editingStudent.mentor?._id ||
+            editingStudent.mentor ||
+            (availableMentors[0]
+              ? availableMentors[0]._id || availableMentors[0].id
+              : ""),
+          status: editingStudent.status || "active",
+        });
+      } else {
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "Student@123",
+          phoneNumber: "",
+          rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
+          gender: "male",
+          dateOfBirth: "2002-01-01",
+          batchId: batches[0] ? batches[0]._id || batches[0].id : "",
+          mentorId: availableMentors[0]
+            ? availableMentors[0]._id || availableMentors[0].id
+            : "",
+          status: "active",
+        });
+      }
       if (fetchMentors) fetchMentors();
     }
-  }, [isOpen]);
+  }, [isOpen, editingStudent, batches, availableMentors]);
 
   if (!isOpen) return null;
 
@@ -88,7 +131,11 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
       setError("Roll number is required.");
       return;
     }
-    if (!formData.password || formData.password.length < 6) {
+    if (!editingStudent && (!formData.password || formData.password.length < 6)) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (editingStudent && formData.password && formData.password.length < 6) {
       setError("Password must be at least 6 characters.");
       return;
     }
@@ -109,6 +156,14 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
       return;
     }
 
+    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+    const initials = fullName
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "ST";
+
     const payload = {
       ...formData,
       firstName: formData.firstName.trim(),
@@ -116,10 +171,15 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
       email: formData.email.trim().toLowerCase(),
       phoneNumber: formData.phoneNumber.trim(),
       rollNumber: formData.rollNumber.trim(),
-      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+      name: fullName,
       rollNo: formData.rollNumber.trim(),
       phone: formData.phoneNumber.trim(),
+      initials,
     };
+
+    if (editingStudent && !formData.password) {
+      delete payload.password;
+    }
 
     const addFn = onAdd || onAddStudent;
     if (addFn) {
@@ -131,7 +191,7 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         setError(
           err?.response?.data?.message ||
             err?.message ||
-            "Failed to add student. Please check input values.",
+            "Failed to save student. Please check input values.",
         );
       } finally {
         setSubmitting(false);
@@ -145,7 +205,7 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">
-            Enroll New Student
+            {editingStudent ? "Edit Student Account" : "Enroll New Student"}
           </h2>
 
           <button
@@ -237,17 +297,28 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
             {/* Password */}
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
-                Password *
+                Password {editingStudent ? "(Leave blank to keep unchanged)" : "*"}
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                minLength={6}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required={!editingStudent}
+                  minLength={6}
+                  placeholder={editingStudent ? "Leave blank to keep current password" : "e.g. Student@123"}
+                  className="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              </div>
             </div>
 
             {/* Phone Number */}
@@ -351,6 +422,22 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
                 </p>
               )}
             </div>
+
+            {/* Account Status */}
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Account Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
           {/* Footer */}
@@ -369,7 +456,13 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
               disabled={submitting}
               className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50"
             >
-              {submitting ? "Enrolling..." : "Enroll Student"}
+              {submitting
+                ? editingStudent
+                  ? "Updating..."
+                  : "Enrolling..."
+                : editingStudent
+                ? "Update Student"
+                : "Enroll Student"}
             </button>
           </div>
         </form>
