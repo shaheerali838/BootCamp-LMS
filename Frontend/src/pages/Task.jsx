@@ -6,10 +6,14 @@ import AssignTaskModal from "../components/features/Tasks/AssignTaskModal";
 import { useTasks } from "../context/WorkContext";
 
 function Task() {
-  const { tasks, addTask, updateTask } = useTasks();
+  const { tasks, fetchTasks, addTask, updateTask } = useTasks();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [taskToAssign, setTaskToAssign] = useState(null);
+
+  React.useEffect(() => {
+    if (fetchTasks) fetchTasks();
+  }, [fetchTasks]);
 
   const filteredTasks = useMemo(() => {
     const value = search.toLowerCase();

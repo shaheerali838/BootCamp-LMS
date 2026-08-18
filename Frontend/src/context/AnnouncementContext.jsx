@@ -1,22 +1,19 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 const AnnouncementContext = createContext(null);
 
 export const AnnouncementProvider = ({ children }) => {
+  const { accessToken } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ── FETCH ──────────────────────────────────────────────────
-  const fetchAnnouncements = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth =
-      typeof window !== "undefined" &&
-      (window.location.pathname === "/login" ||
-        window.location.pathname.startsWith("/auth") ||
-        window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchAnnouncements = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setLoading(true);
     try {
@@ -33,11 +30,16 @@ export const AnnouncementProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessToken]);
 
+  // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
-    fetchAnnouncements();
-  }, []);
+    if (accessToken) {
+      fetchAnnouncements();
+    } else {
+      setAnnouncements([]);
+    }
+  }, [accessToken, fetchAnnouncements]);
 
   // ── ADD ────────────────────────────────────────────────────
   const addAnnouncement = async (announcement) => {
@@ -47,9 +49,8 @@ export const AnnouncementProvider = ({ children }) => {
         title: announcement.title,
         description: announcement.description,
       });
-      if (res.data.success) {
-        setAnnouncements((prev) => [res.data.data, ...prev]);
-      }
+      // Invalidate & refetch
+      await fetchAnnouncements();
       setError(null);
       return res.data;
     } catch (err) {
@@ -69,11 +70,8 @@ export const AnnouncementProvider = ({ children }) => {
         `/announcements/update-announcement/${id}`,
         updatedData,
       );
-      if (res.data.success) {
-        setAnnouncements((prev) =>
-          prev.map((a) => (a._id === id ? res.data.data : a)),
-        );
-      }
+      // Invalidate & refetch
+      await fetchAnnouncements();
       setError(null);
       return res.data;
     } catch (err) {
@@ -90,7 +88,8 @@ export const AnnouncementProvider = ({ children }) => {
     setLoading(true);
     try {
       await api.delete(`/announcements/delete-announcement/${id}`);
-      setAnnouncements((prev) => prev.filter((a) => a._id !== id));
+      // Invalidate & refetch
+      await fetchAnnouncements();
       setError(null);
     } catch (err) {
       console.error("Failed to delete announcement:", err);

@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiX, FiAlertCircle } from "react-icons/fi";
 import { useBatches } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
 
 function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
   const { batches = [] } = useBatches();
-  const { admins = [] } = useAdmins();
+  const { mentors = [], admins = [], fetchMentors } = useAdmins();
+
+  const availableMentors = useMemo(() => {
+    return (mentors.length > 0 ? mentors : admins).filter((m) => {
+      const r = (m.role || "").toUpperCase().replace(/[\s_]+/g, "");
+      return r !== "SUPERADMIN";
+    });
+  }, [mentors, admins]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -36,12 +43,15 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
         gender: "male",
         dateOfBirth: "2002-01-01",
-        batchId: batches[0] ? (batches[0]._id || batches[0].id) : "",
-        mentorId: admins[0] ? (admins[0]._id || admins[0].id) : "",
+        batchId: batches[0] ? batches[0]._id || batches[0].id : "",
+        mentorId: availableMentors[0]
+          ? availableMentors[0]._id || availableMentors[0].id
+          : "",
         status: "active",
       });
+      if (fetchMentors) fetchMentors();
     }
-  }, [isOpen, batches, admins]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -87,11 +97,15 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
       return;
     }
     if (!formData.batchId) {
-      setError("Please select a Batch. If no batches exist, create one in Batch Management first.");
+      setError(
+        "Please select a Batch. If no batches exist, create one in Batch Management first.",
+      );
       return;
     }
     if (!formData.mentorId) {
-      setError("Please select an Assigned Mentor. If no mentors exist, add one in Admin Management first.");
+      setError(
+        "Please select an Assigned Mentor. If no mentors exist, add one in Admin Management first.",
+      );
       return;
     }
 
@@ -114,7 +128,11 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         await addFn(payload);
         onClose();
       } catch (err) {
-        setError(err?.response?.data?.message || err?.message || "Failed to add student. Please check input values.");
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to add student. Please check input values.",
+        );
       } finally {
         setSubmitting(false);
       }
@@ -140,7 +158,10 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 text-xs">
+        <form
+          onSubmit={handleSubmit}
+          className="overflow-y-auto p-6 space-y-4 text-xs"
+        >
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs">
               <FiAlertCircle size={16} className="shrink-0 text-red-500" />
@@ -316,13 +337,15 @@ function AddStudentModal({ isOpen, onClose, onAdd, onAddStudent }) {
                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
               >
                 <option value="">Select Mentor</option>
-                {admins.map((a) => (
+                {availableMentors.map((a) => (
                   <option key={a._id || a.id} value={a._id || a.id}>
-                    {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.name} ({a.role || "Mentor"})
+                    {a.firstName
+                      ? `${a.firstName} ${a.lastName || ""}`
+                      : a.name}
                   </option>
                 ))}
               </select>
-              {admins.length === 0 && (
+              {availableMentors.length === 0 && (
                 <p className="text-amber-600 text-[11px] mt-1">
                   ⚠️ No mentors found. Add an admin/mentor first.
                 </p>
