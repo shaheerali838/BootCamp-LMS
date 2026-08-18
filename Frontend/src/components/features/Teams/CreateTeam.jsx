@@ -39,31 +39,55 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
     }
   }, [edit, batches, admins, students]);
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.teamName.trim()) return;
+    setError("");
+
+    if (!formData.teamName.trim()) {
+      setError("Team Name is required.");
+      return;
+    }
+    if (!formData.batchId) {
+      setError("Please select a Target Batch. If none exist, create a Batch first.");
+      return;
+    }
+    if (!formData.mentor) {
+      setError("Please select an Assigned Mentor. If none exist, add one first.");
+      return;
+    }
+    if (!formData.teamLead) {
+      setError("Please select a Student Team Lead. If none exist, enroll a Student first.");
+      return;
+    }
 
     const payload = {
       ...formData,
-      batchId: formData.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : undefined),
-      mentor: formData.mentor || (admins[0] ? (admins[0]._id || admins[0].id) : undefined),
-      teamLead: formData.teamLead || (students[0] ? (students[0]._id || students[0].id) : undefined),
+      teamName: formData.teamName.trim(),
+      batchId: formData.batchId,
+      mentor: formData.mentor,
+      teamLead: formData.teamLead,
     };
 
-    if (edit) {
-      await updateTeam(edit._id || edit.id, payload);
-    } else {
-      await addTeam(payload);
+    try {
+      if (edit) {
+        await updateTeam(edit._id || edit.id, payload);
+      } else {
+        await addTeam(payload);
+      }
+      closeModal();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to save team.");
     }
-
-    closeModal();
   };
 
   return (
@@ -84,6 +108,12 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          {error && (
+            <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">
               Team Name *

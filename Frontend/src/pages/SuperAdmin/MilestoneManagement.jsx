@@ -53,8 +53,11 @@ function MilestoneManagement() {
     (m) => m.status === "Pending" || m.status === "In Progress",
   ).length;
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingMilestone(null);
+    setModalError("");
     setFormData({
       title: "",
       description: "",
@@ -67,6 +70,7 @@ function MilestoneManagement() {
 
   const handleOpenEdit = (milestone) => {
     setEditingMilestone(milestone);
+    setModalError("");
     setFormData({
       title: milestone.milestoneName || milestone.title || "",
       description: milestone.description || "",
@@ -77,19 +81,40 @@ function MilestoneManagement() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError("");
+
+    if (!formData.title.trim()) {
+      setModalError("Milestone Title is required.");
+      return;
+    }
+    if (!formData.description.trim()) {
+      setModalError("Description is required.");
+      return;
+    }
+    if (!formData.projectId) {
+      setModalError("Please select a Target Project. If none exist, create a Project first.");
+      return;
+    }
+
     const payload = {
       ...formData,
-      milestoneName: formData.title,
+      title: formData.title.trim(),
+      milestoneName: formData.title.trim(),
+      description: formData.description.trim(),
     };
 
-    if (editingMilestone) {
-      updateMilestone(editingMilestone._id || editingMilestone.id, payload);
-    } else {
-      addMilestone(payload);
+    try {
+      if (editingMilestone) {
+        await updateMilestone(editingMilestone._id || editingMilestone.id, payload);
+      } else {
+        await addMilestone(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save milestone.");
     }
-    setShowModal(false);
   };
 
   return (
@@ -256,6 +281,12 @@ function MilestoneManagement() {
               {editingMilestone ? "Edit Milestone" : "Create Milestone"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Target Project *

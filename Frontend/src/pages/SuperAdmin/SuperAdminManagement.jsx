@@ -46,8 +46,11 @@ function SuperAdminManagement() {
     return name.includes(q) || email.includes(q);
   });
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingAdmin(null);
+    setModalError("");
     setFormData({
       firstName: "",
       lastName: "",
@@ -62,6 +65,7 @@ function SuperAdminManagement() {
 
   const handleOpenEdit = (admin) => {
     setEditingAdmin(admin);
+    setModalError("");
     const nameParts = (admin.name || "").split(" ");
     setFormData({
       firstName: admin.firstName || nameParts[0] || "",
@@ -75,22 +79,53 @@ function SuperAdminManagement() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError("");
+
+    if (!formData.firstName.trim()) {
+      setModalError("First Name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setModalError("Last Name is required.");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setModalError("Email is required.");
+      return;
+    }
+    if (!formData.phoneNumber.trim()) {
+      setModalError("Phone Number is required.");
+      return;
+    }
+    if (!editingAdmin && (!formData.password || formData.password.length < 6)) {
+      setModalError("Password must be at least 6 characters.");
+      return;
+    }
+
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
     const payload = {
       ...formData,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phoneNumber: formData.phoneNumber.trim(),
       name: fullName,
-      phone: formData.phoneNumber,
+      phone: formData.phoneNumber.trim(),
     };
 
-    if (editingAdmin) {
-      updateAdmin(editingAdmin._id || editingAdmin.id, payload);
-    } else {
-      addAdmin(payload);
+    try {
+      if (editingAdmin) {
+        await updateAdmin(editingAdmin._id || editingAdmin.id, payload);
+      } else {
+        await addAdmin(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save super admin.");
     }
-    setShowModal(false);
   };
 
   return (
@@ -219,9 +254,15 @@ function SuperAdminManagement() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl">
             <h2 className="text-lg font-bold text-gray-900 mb-4">
-              {editingAdmin ? "Edit Super Admin" : "Add New Super Admin"}
+              {editingAdmin ? "Edit Super Admin" : "Add Super Admin"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 mb-1">

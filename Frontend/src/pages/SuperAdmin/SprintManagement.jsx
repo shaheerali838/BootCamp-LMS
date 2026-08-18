@@ -40,10 +40,13 @@ function SprintManagement() {
     (s) => s.status === "Completed",
   ).length;
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingSprint(null);
+    setModalError("");
     setFormData({
-      projectId: projects[0]?._id || projects[0]?.id || "",
+      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
       name: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
@@ -54,28 +57,50 @@ function SprintManagement() {
 
   const handleOpenEdit = (sprint) => {
     setEditingSprint(sprint);
+    setModalError("");
     setFormData({
-      projectId: sprint.projectId,
-      name: sprint.name,
-      startDate: sprint.startDate,
-      endDate: sprint.endDate,
-      status: sprint.status,
+      projectId: sprint.projectId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      name: sprint.sprintName || sprint.name || "",
+      startDate: sprint.startDate ? new Date(sprint.startDate).toISOString().split("T")[0] : "",
+      endDate: sprint.endDate ? new Date(sprint.endDate).toISOString().split("T")[0] : "",
+      status: sprint.status || "Active",
     });
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError("");
+
+    if (!formData.name.trim()) {
+      setModalError("Sprint Name is required.");
+      return;
+    }
+    if (!formData.projectId) {
+      setModalError("Please select a Target Project. If none exist, create a Project first.");
+      return;
+    }
+    if (!formData.startDate) {
+      setModalError("Start Date is required.");
+      return;
+    }
+
     const payload = {
       ...formData,
-      sprintName: formData.name,
+      name: formData.name.trim(),
+      sprintName: formData.name.trim(),
     };
-    if (editingSprint) {
-      updateSprint(editingSprint._id || editingSprint.id, payload);
-    } else {
-      addSprint(payload);
+
+    try {
+      if (editingSprint) {
+        await updateSprint(editingSprint._id || editingSprint.id, payload);
+      } else {
+        await addSprint(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save sprint.");
     }
-    setShowModal(false);
   };
 
   const getProjectTitle = (pId) => {
@@ -249,6 +274,12 @@ function SprintManagement() {
               {editingSprint ? "Edit Sprint" : "Create Sprint"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Target Project *

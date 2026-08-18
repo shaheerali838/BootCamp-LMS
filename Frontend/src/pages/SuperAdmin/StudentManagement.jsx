@@ -54,8 +54,12 @@ function StudentManagement() {
     return name.includes(q) || roll.includes(q) || email.includes(q);
   });
 
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const handleOpenAdd = () => {
     setEditingStudent(null);
+    setError("");
     setFormData({
       firstName: "",
       lastName: "",
@@ -74,6 +78,7 @@ function StudentManagement() {
 
   const handleOpenEdit = (student) => {
     setEditingStudent(student);
+    setError("");
     const nameParts = (student.name || "").split(" ");
     setFormData({
       firstName: student.firstName || nameParts[0] || "",
@@ -91,25 +96,72 @@ function StudentManagement() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (!formData.firstName.trim()) {
+      setError("First Name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last Name is required.");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
+    if (!formData.rollNumber.trim()) {
+      setError("Roll number is required.");
+      return;
+    }
+    if (!formData.phoneNumber.trim()) {
+      setError("Phone number is required.");
+      return;
+    }
+    if (!formData.dateOfBirth) {
+      setError("Date of birth is required.");
+      return;
+    }
+    if (!formData.batchId) {
+      setError("Please select a Batch. If no batches exist, create one first.");
+      return;
+    }
+    if (!formData.mentorId) {
+      setError("Please select an Assigned Mentor. If no mentors exist, add one first.");
+      return;
+    }
+
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
     const initials = getStudentInitials({ name: fullName });
 
     const payload = {
       ...formData,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phoneNumber: formData.phoneNumber.trim(),
+      rollNumber: formData.rollNumber.trim(),
       name: fullName,
-      rollNo: formData.rollNumber,
-      phone: formData.phoneNumber,
+      rollNo: formData.rollNumber.trim(),
+      phone: formData.phoneNumber.trim(),
       initials,
     };
 
-    if (editingStudent) {
-      updateStudent(editingStudent._id || editingStudent.id, payload);
-    } else {
-      addStudent(payload);
+    try {
+      setSubmitting(true);
+      if (editingStudent) {
+        await updateStudent(editingStudent._id || editingStudent.id, payload);
+      } else {
+        await addStudent(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to save student.");
+    } finally {
+      setSubmitting(false);
     }
-    setShowModal(false);
   };
 
   return (
@@ -238,6 +290,13 @@ function StudentManagement() {
             </div>
 
             <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 text-xs">
+              {error && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold text-gray-700 mb-1">
