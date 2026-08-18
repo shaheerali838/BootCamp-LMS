@@ -11,22 +11,26 @@ try {
   // Ignore if DNS server configuration is restricted
 }
 
-const connectDB = async () => {
-  try {
-    console.log("Connecting to MongoDB...");
-    console.log("MONGO_URI:", process.env.MONGO_URI ? "Set" : "Not Set");
+let isConnected = false;
 
+const connectDB = async () => {
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    return;
+  }
+
+  try {
     if (process.env.MONGO_URI) {
+      console.log("Connecting to MongoDB...");
       await mongoose.connect(process.env.MONGO_URI, {
         serverSelectionTimeoutMS: 10000,
       });
-
+      isConnected = true;
       console.log("✅ MongoDB Connected");
     } else {
-      console.log("⚠️ MONGO_URI is missing. Skipping MongoDB connection.");
+      console.warn("⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables.");
     }
   } catch (error) {
-    console.log("❌ MongoDB Connection Error:", error.message);
+    console.error("❌ MongoDB Connection Error:", error.message);
     process.exit(1);
   }
 };

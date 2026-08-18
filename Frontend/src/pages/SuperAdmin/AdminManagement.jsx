@@ -66,8 +66,11 @@ function AdminManagement() {
     return matchSearch && matchRole;
   });
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingAdmin(null);
+    setModalError("");
     setFormData({
       firstName: "",
       lastName: "",
@@ -82,6 +85,7 @@ function AdminManagement() {
 
   const handleOpenEdit = (admin) => {
     setEditingAdmin(admin);
+    setModalError("");
     const nameParts = (admin.name || "").split(" ");
     setFormData({
       firstName: admin.firstName || nameParts[0] || "",
@@ -96,22 +100,53 @@ function AdminManagement() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError("");
+
+    if (!formData.firstName.trim()) {
+      setModalError("First Name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setModalError("Last Name is required.");
+      return;
+    }
+    if (!formData.email.trim()) {
+      setModalError("Email is required.");
+      return;
+    }
+    if (!formData.phoneNumber.trim()) {
+      setModalError("Phone Number is required.");
+      return;
+    }
+    if (!editingAdmin && (!formData.password || formData.password.length < 6)) {
+      setModalError("Password must be at least 6 characters.");
+      return;
+    }
+
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
     const payload = {
       ...formData,
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phoneNumber: formData.phoneNumber.trim(),
       name: fullName,
-      phone: formData.phoneNumber,
+      phone: formData.phoneNumber.trim(),
     };
 
-    if (editingAdmin) {
-      updateAdmin(editingAdmin._id || editingAdmin.id, payload);
-    } else {
-      addAdmin(payload);
+    try {
+      if (editingAdmin) {
+        await updateAdmin(editingAdmin._id || editingAdmin.id, payload);
+      } else {
+        await addAdmin(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save administrator.");
     }
-    setShowModal(false);
   };
 
   return (
@@ -259,6 +294,12 @@ function AdminManagement() {
               {editingAdmin ? "Edit Administrator" : "Add New Administrator"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-gray-700 mb-1">

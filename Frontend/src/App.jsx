@@ -60,7 +60,11 @@ function AppLayout() {
 
       <Route
         path="/*"
-        element={<DashboardLayout />}
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
       />
     </Routes>
   );

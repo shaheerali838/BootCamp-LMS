@@ -56,6 +56,34 @@ import SystemConfiguration from "../pages/SuperAdmin/SystemConfiguration";
 import Profile from "../pages/profile/Profile";
 import ChangePassword from "../pages/profile/ChangePassword";
 
+import { useAuth } from "../context/AuthContext";
+
+function RoleDashboardRouter() {
+  const { user } = useAuth();
+  const rawRole = user?.role || (user?.rollNumber || user?.rollNo ? "STUDENT" : "");
+  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+
+  if (role === "student") {
+    return <Navigate to="/student/dashboard" replace />;
+  }
+  if (role === "superadmin") {
+    return <Navigate to="/superadmin/dashboard" replace />;
+  }
+  return <Dashboard />;
+}
+
+function RootRouter() {
+  const { user, isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  const rawRole = user?.role || (user?.rollNumber || user?.rollNo ? "STUDENT" : "");
+  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+
+  if (role === "superadmin") return <Navigate to="/superadmin/dashboard" replace />;
+  if (role === "student") return <Navigate to="/student/dashboard" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -69,7 +97,7 @@ const AppRoutes = () => {
       <Route path="/profile" element={<Profile />} />
 
       {/* ================= ADMIN ROUTES ================= */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<RoleDashboardRouter />} />
       <Route path="/students" element={<StudentManagement />} />
       <Route path="/students/:id" element={<StudentDetails />} />
       <Route path="/batches" element={<BatchManagement />} />
@@ -125,8 +153,8 @@ const AppRoutes = () => {
       <Route path="/superadmin/configuration" element={<SystemConfiguration />} />
 
       {/* ================= DEFAULT & 404 ================= */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<RootRouter />} />
+      <Route path="*" element={<RootRouter />} />
     </Routes>
   );
 };

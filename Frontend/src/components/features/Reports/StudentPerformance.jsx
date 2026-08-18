@@ -1,10 +1,13 @@
 import React from "react";
 import { FiTrendingUp, FiTrendingDown } from "react-icons/fi";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
+import { useTasks, useEvaluations } from "../../../context/WorkContext";
 
 function StudentPerformance() {
   const { students = [] } = useStudents();
   const { getStudentAttendance } = useAttendance();
+  const { tasks = [] } = useTasks();
+  const { evaluations = [] } = useEvaluations();
 
   const getStudentName = (s) =>
     s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
@@ -13,9 +16,20 @@ function StudentPerformance() {
     const sid = s._id || s.id;
     const history = getStudentAttendance(sid) || [];
     const presentCount = history.filter((a) => a.status === "Present" || a.status === "Late").length;
-    const attendancePct = history.length > 0 ? Math.round((presentCount / history.length) * 100) : (s.attendance || 90);
-    const tasksPct = Math.min(100, Math.max(65, attendancePct - Math.floor(Math.random() * 8)));
-    const overallPerformance = Math.round((attendancePct * 0.4) + (tasksPct * 0.6));
+    const attendancePct = history.length > 0 ? Math.round((presentCount / history.length) * 100) : 0;
+
+    // Student task completion
+    const studentTasks = tasks.filter((t) => t.studentId === sid || t.assignedTo === sid || t.student === sid);
+    const completedTasks = studentTasks.filter((t) => t.status === "Completed").length;
+    const tasksPct = studentTasks.length > 0 ? Math.round((completedTasks / studentTasks.length) * 100) : 0;
+
+    // Student evaluations average
+    const studentEvals = evaluations.filter((e) => (e.studentId?._id || e.studentId || e.student?._id || e.student) === sid);
+    const evalAvg = studentEvals.length > 0
+      ? Math.round(studentEvals.reduce((acc, curr) => acc + (curr.overallScore || curr.score || 0), 0) / studentEvals.length)
+      : (tasksPct > 0 ? tasksPct : attendancePct);
+
+    const overallPerformance = Math.round((attendancePct * 0.3) + (tasksPct * 0.3) + (evalAvg * 0.4));
 
     return {
       id: sid,

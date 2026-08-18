@@ -1,4 +1,6 @@
 import Student from "../../model/student.model.js";
+import Admin from "../../model/admin.model.js";
+import Batch from "../../model/batch.model.js";
 import bcrypt from "bcryptjs";
 
 // Check if email already exists
@@ -21,6 +23,31 @@ export const findStudentByRollNumber = async (rollNumber, excludeId = null) => {
 
 // Create a new student
 export const createStudentService = async (studentData) => {
+  // Validate mentor existence and status
+  if (studentData.mentorId) {
+    const mentor = await Admin.findById(studentData.mentorId);
+    if (!mentor) {
+      const error = new Error("Assigned mentor does not exist.");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (mentor.status !== "active") {
+      const error = new Error("Assigned mentor is inactive.");
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  // Validate batch existence
+  if (studentData.batchId) {
+    const batch = await Batch.findById(studentData.batchId);
+    if (!batch) {
+      const error = new Error("Selected batch does not exist.");
+      error.statusCode = 404;
+      throw error;
+    }
+  }
+
   const hashedPassword = await bcrypt.hash(studentData.password, 10);
 
   const student = await Student.create({
@@ -39,7 +66,7 @@ export const createStudentService = async (studentData) => {
 };
 
 // Get all students with pagination, search, and populate
-export const getStudentsService = async ({ page = 1, limit = 10, search = "" }) => {
+export const getStudentsService = async ({ page = 1, limit = 500, search = "" }) => {
   const skip = (page - 1) * limit;
   let query = {};
 
@@ -104,8 +131,29 @@ export const updateStudentService = async (id, updateData) => {
   if (updateData.phoneNumber) student.phoneNumber = updateData.phoneNumber.trim();
   if (updateData.gender) student.gender = updateData.gender;
   if (updateData.dateOfBirth) student.dateOfBirth = updateData.dateOfBirth;
-  if (updateData.batchId) student.batchId = updateData.batchId;
-  if (updateData.mentorId) student.mentorId = updateData.mentorId;
+  if (updateData.batchId) {
+    const batch = await Batch.findById(updateData.batchId);
+    if (!batch) {
+      const error = new Error("Selected batch does not exist.");
+      error.statusCode = 404;
+      throw error;
+    }
+    student.batchId = updateData.batchId;
+  }
+  if (updateData.mentorId) {
+    const mentor = await Admin.findById(updateData.mentorId);
+    if (!mentor) {
+      const error = new Error("Assigned mentor does not exist.");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (mentor.status !== "active") {
+      const error = new Error("Assigned mentor is inactive.");
+      error.statusCode = 400;
+      throw error;
+    }
+    student.mentorId = updateData.mentorId;
+  }
 
   if (updateData.password) {
     student.password = await bcrypt.hash(updateData.password, 10);

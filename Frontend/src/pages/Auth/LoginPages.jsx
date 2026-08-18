@@ -115,7 +115,10 @@ function LoginPages() {
               <button
                 type="button"
                 onClick={() => {
-                  setFormData({ email: "superadmin@bootcamp.local", password: "SuperAdmin@123" });
+                  setFormData({
+                    email: "superadmin@bootcamp.local",
+                    password: "SuperAdmin@123",
+                  });
                   setError({});
                 }}
                 className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold rounded-lg transition"
@@ -125,7 +128,10 @@ function LoginPages() {
               <button
                 type="button"
                 onClick={() => {
-                  setFormData({ email: "shaheer838838@gmail.com", password: "Admin@123" });
+                  setFormData({
+                    email: "shaheer838838@gmail.com",
+                    password: "Admin@123",
+                  });
                   setError({});
                 }}
                 className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold rounded-lg transition"
@@ -135,10 +141,13 @@ function LoginPages() {
               <button
                 type="button"
                 onClick={() => {
-                  setFormData({ email: "student001@example.com", password: "Student@123" });
+                  setFormData({
+                    email: "shaheer838838@gmail.com",
+                    password: "Student@123",
+                  });
                   setError({});
                 }}
-                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg transition"
+                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg transition cursor-pointer"
               >
                 🎓 Student
               </button>

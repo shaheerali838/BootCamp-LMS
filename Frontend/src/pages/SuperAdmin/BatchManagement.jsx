@@ -38,8 +38,11 @@ function BatchManagement() {
     (b) => b.status === "completed",
   ).length;
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingBatch(null);
+    setModalError("");
     setFormData({
       batchName: "",
       program: "",
@@ -52,10 +55,11 @@ function BatchManagement() {
 
   const handleOpenEdit = (batch) => {
     setEditingBatch(batch);
+    setModalError("");
     setFormData({
-      batchName: batch.batchName,
-      program: batch.program,
-      status: batch.status,
+      batchName: batch.batchName || "",
+      program: batch.program || "",
+      status: batch.status || "active",
       startDate: batch.startDate
         ? new Date(batch.startDate).toISOString().split("T")[0]
         : "",
@@ -68,12 +72,39 @@ function BatchManagement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingBatch) {
-      await updateBatch(editingBatch._id, formData);
-    } else {
-      await addBatch(formData);
+    setModalError("");
+
+    if (!formData.batchName.trim()) {
+      setModalError("Batch Name is required.");
+      return;
     }
-    setShowModal(false);
+    if (!formData.program.trim()) {
+      setModalError("Program Code is required.");
+      return;
+    }
+    if (!formData.startDate) {
+      setModalError("Start Date is required.");
+      return;
+    }
+
+    try {
+      if (editingBatch) {
+        await updateBatch(editingBatch._id, {
+          ...formData,
+          batchName: formData.batchName.trim(),
+          program: formData.program.trim(),
+        });
+      } else {
+        await addBatch({
+          ...formData,
+          batchName: formData.batchName.trim(),
+          program: formData.program.trim(),
+        });
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save batch. Please check inputs.");
+    }
   };
 
   const formatDate = (dateString) => {
@@ -247,6 +278,12 @@ function BatchManagement() {
               {editingBatch ? "Edit Batch" : "Add Student Batch"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Batch Name *

@@ -3,8 +3,12 @@ import { FiClipboard, FiCheckCircle, FiExternalLink, FiClock, FiCheck, FiX } fro
 import { useTasks } from "../context/WorkContext";
 
 function Deliverables() {
-  const { tasks, updateTaskStatus } = useTasks();
+  const { tasks, fetchTasks, updateTaskStatus } = useTasks();
   const [filter, setFilter] = useState("All");
+
+  React.useEffect(() => {
+    if (fetchTasks) fetchTasks();
+  }, [fetchTasks]);
 
   const deliverableTasks = tasks.filter((t) => t.submission || t.status === "In Review" || t.status === "Completed");
 

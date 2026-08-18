@@ -35,8 +35,11 @@ function ProjectManagement() {
     return title.includes(q) || batchName.includes(q) || status.includes(q);
   });
 
+  const [modalError, setModalError] = useState("");
+
   const handleOpenAdd = () => {
     setEditingProject(null);
+    setModalError("");
     setFormData({
       projectName: "",
       description: "",
@@ -50,6 +53,7 @@ function ProjectManagement() {
 
   const handleOpenEdit = (project) => {
     setEditingProject(project);
+    setModalError("");
     setFormData({
       projectName: getProjectTitle(project),
       description: project.description || "",
@@ -61,20 +65,49 @@ function ProjectManagement() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setModalError("");
+
+    if (!formData.projectName.trim()) {
+      setModalError("Project Name is required.");
+      return;
+    }
+    if (!formData.description.trim()) {
+      setModalError("Description is required.");
+      return;
+    }
+    if (!formData.batch) {
+      setModalError("Please select a Target Batch. If none exist, create a Batch first.");
+      return;
+    }
+    if (!formData.startDate) {
+      setModalError("Start Date is required.");
+      return;
+    }
+    if (!formData.deadline) {
+      setModalError("Deadline is required.");
+      return;
+    }
+
     const payload = {
       ...formData,
-      name: formData.projectName,
+      projectName: formData.projectName.trim(),
+      name: formData.projectName.trim(),
+      description: formData.description.trim(),
       batchId: formData.batch,
     };
 
-    if (editingProject) {
-      updateProject(editingProject._id || editingProject.id, payload);
-    } else {
-      addProject(payload);
+    try {
+      if (editingProject) {
+        await updateProject(editingProject._id || editingProject.id, payload);
+      } else {
+        await addProject(payload);
+      }
+      setShowModal(false);
+    } catch (err) {
+      setModalError(err?.response?.data?.message || err?.message || "Failed to save project.");
     }
-    setShowModal(false);
   };
 
   const handleDelete = (id) => {
@@ -185,6 +218,12 @@ function ProjectManagement() {
               {editingProject ? "Edit Project" : "Create Project"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              {modalError && (
+                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">
                   Project Name *

@@ -6,10 +6,14 @@ import UploadResourceModal from "../components/features/Resources/UploadResource
 import { useResources } from "../context/SystemContext";
 
 function Resources() {
-  const { resources, setResources, addResource, updateResource } = useResources();
+  const { resources, fetchResources, setResources, addResource, updateResource } = useResources();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [showUploadModal, setShowUploadModal] = useState(false);
+
+  React.useEffect(() => {
+    if (fetchResources) fetchResources();
+  }, [fetchResources]);
 
   // Edit state
   const [editingResource, setEditingResource] = useState(null);

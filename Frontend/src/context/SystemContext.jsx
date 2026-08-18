@@ -1,16 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 const SystemContext = createContext();
 
 // ── Static local data (no backend route) ──────────────────
-const initialResourceData = [
-  { id: 1, name: "React Advanced Patterns.pdf", size: "4.2 MB", date: "Aug 5, 2025", category: "React", type: "PDF" },
-  { id: 2, name: "Node.js Best Practices Guide.pdf", size: "2.8 MB", date: "Aug 5, 2025", category: "Node.js", type: "PDF" },
-  { id: 3, name: "Database Normalization Lecture.mp4", size: "214 MB", date: "Aug 3, 2025", category: "Database", type: "VID" },
-  { id: 4, name: "JavaScript ES2024 Features.pdf", size: "1.5 MB", date: "Jul 30, 2025", category: "JavaScript", type: "PDF" },
-];
-
 const initialRegistrationData = [
   { id: 1, name: "Ali Hassan", role: "Student", email: "ali.hassan@smit.edu", date: "Aug 12, 2026", status: "Approved" },
   { id: 2, name: "Sara Bilal", role: "Super Admin", email: "superadmin@smit.edu.pk", date: "Aug 11, 2026", status: "Approved" },
@@ -24,23 +18,33 @@ const initialActivityData = [
 ];
 
 export const SystemProvider = ({ children }) => {
-  // ── Admins (API) ───────────────────────────────────────────
+  const { accessToken, user } = useAuth();
+
+  // ── Admins (API - SuperAdmin Only) ─────────────────────────
   const [admins, setAdmins] = useState([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [adminsError, setAdminsError] = useState(null);
 
-  const fetchAdmins = async () => {
-    const token = localStorage.getItem("accessToken");
-    const rawUser = localStorage.getItem("user");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  // ── Mentors (API - Accessible to SuperAdmin and Admin) ─────
+  const [mentors, setMentors] = useState([]);
+  const [mentorsLoading, setMentorsLoading] = useState(false);
+  const [mentorsError, setMentorsError] = useState(null);
 
-    // Only SUPER_ADMIN has authority to fetch admin records
-    let userObj = null;
-    try { userObj = JSON.parse(rawUser); } catch {}
-    const role = (userObj?.role || "").toUpperCase();
+  const fetchAdmins = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    const rawUser = user || (() => {
+      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+    })();
+
+    if (!token) return;
+
+    // Only SUPER_ADMIN has authority to fetch full admin management records
+    const role = (rawUser?.role || "").toUpperCase();
     const isSuperAdmin = role === "SUPER_ADMIN" || role === "SUPERADMIN" || role === "SUPER ADMIN";
-    if (!isSuperAdmin) return;
+    if (!isSuperAdmin) {
+      setAdmins([]);
+      return;
+    }
 
     setAdminsLoading(true);
     try {
@@ -57,7 +61,38 @@ export const SystemProvider = ({ children }) => {
     } finally {
       setAdminsLoading(false);
     }
-  };
+  }, [accessToken, user]);
+
+  const fetchMentors = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    const rawUser = user || (() => {
+      try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+    })();
+
+    if (!token) return;
+
+    const role = (rawUser?.role || "").toUpperCase();
+    if (role === "STUDENT") {
+      setMentors([]);
+      return;
+    }
+
+    setMentorsLoading(true);
+    try {
+      const res = await api.get("/admins/get-mentors");
+      setMentors(res.data.data || []);
+      setMentorsError(null);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setMentors([]);
+        return;
+      }
+      console.error("Failed to fetch mentors:", err);
+      setMentorsError(err.response?.data?.message || "Failed to fetch mentors");
+    } finally {
+      setMentorsLoading(false);
+    }
+  }, [accessToken, user]);
 
   const addAdmin = async (newAdmin) => {
     setAdminsLoading(true);
@@ -72,7 +107,8 @@ export const SystemProvider = ({ children }) => {
         status: newAdmin.status || "active",
       };
       const res = await api.post("/admins/create-admin", payload);
-      if (res.data.success) setAdmins((prev) => [res.data.data, ...prev]);
+      // Invalidate & refetch authoritative admin & mentor lists
+      await Promise.all([fetchAdmins(), fetchMentors()]);
       setAdminsError(null);
       return res.data;
     } catch (err) {
@@ -98,9 +134,8 @@ export const SystemProvider = ({ children }) => {
       Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
       const res = await api.put(`/admins/update-admin/${id}`, payload);
-      if (res.data.success) {
-        setAdmins((prev) => prev.map((a) => (a._id === id ? res.data.data : a)));
-      }
+      // Invalidate & refetch authoritative admin & mentor lists
+      await Promise.all([fetchAdmins(), fetchMentors()]);
       setAdminsError(null);
       return res.data;
     } catch (err) {
@@ -116,7 +151,8 @@ export const SystemProvider = ({ children }) => {
     setAdminsLoading(true);
     try {
       await api.delete(`/admins/delete-admin/${id}`);
-      setAdmins((prev) => prev.filter((a) => a._id !== id));
+      // Invalidate & refetch authoritative admin & mentor lists
+      await Promise.all([fetchAdmins(), fetchMentors()]);
       setAdminsError(null);
     } catch (err) {
       console.error("Failed to delete admin:", err);
@@ -127,20 +163,15 @@ export const SystemProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
   // ── Resources (API) ────────────────────────────────────────
   const [resources, setResources] = useState([]);
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [resourcesError, setResourcesError] = useState(null);
   const [categories, setCategories] = useState([]);
 
-  const fetchResources = async () => {
-    const token = localStorage.getItem("accessToken");
-    const isAuth = typeof window !== "undefined" && (window.location.pathname === "/login" || window.location.pathname.startsWith("/auth") || window.location.pathname === "/forgot-password");
-    if (!token || isAuth) return;
+  const fetchResources = useCallback(async () => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    if (!token) return;
 
     setResourcesLoading(true);
     try {
@@ -162,7 +193,7 @@ export const SystemProvider = ({ children }) => {
     } finally {
       setResourcesLoading(false);
     }
-  };
+  }, [accessToken]);
 
   const addResource = async (newResource) => {
     setResourcesLoading(true);
@@ -174,7 +205,8 @@ export const SystemProvider = ({ children }) => {
         fileType: newResource.fileType || newResource.type || "PDF",
         category: newResource.categoryId || newResource.category,
       });
-      if (res.data.success) setResources((prev) => [res.data.data, ...prev]);
+      // Invalidate & refetch
+      await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
@@ -190,9 +222,8 @@ export const SystemProvider = ({ children }) => {
     setResourcesLoading(true);
     try {
       const res = await api.put(`/resources/update-resource/${id}`, updatedData);
-      if (res.data.success) {
-        setResources((prev) => prev.map((r) => (r._id === id ? res.data.data : r)));
-      }
+      // Invalidate & refetch
+      await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
@@ -208,7 +239,8 @@ export const SystemProvider = ({ children }) => {
     setResourcesLoading(true);
     try {
       await api.delete(`/resources/delete-resource/${id}`);
-      setResources((prev) => prev.filter((r) => r._id !== id));
+      // Invalidate & refetch
+      await fetchResources();
       setResourcesError(null);
     } catch (err) {
       console.error("Failed to delete resource:", err);
@@ -222,7 +254,7 @@ export const SystemProvider = ({ children }) => {
   const addCategory = async (categoryName) => {
     try {
       const res = await api.post("/resources/categories/create", { categoryName });
-      if (res.data.success) setCategories((prev) => [...prev, res.data.data]);
+      await fetchResources();
       return res.data;
     } catch (err) {
       throw err;
@@ -232,16 +264,25 @@ export const SystemProvider = ({ children }) => {
   const deleteCategory = async (id) => {
     try {
       await api.delete(`/resources/categories/${id}`);
-      setCategories((prev) => prev.filter((c) => c._id !== id));
+      await fetchResources();
     } catch (err) {
       throw err;
     }
   };
 
+  // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
-    fetchAdmins();
-    fetchResources();
-  }, []);
+    if (accessToken) {
+      fetchAdmins();
+      fetchMentors();
+      fetchResources();
+    } else {
+      setAdmins([]);
+      setMentors([]);
+      setResources([]);
+      setCategories([]);
+    }
+  }, [accessToken, fetchAdmins, fetchMentors, fetchResources]);
 
   // ── Registration & Activity Log (local only) ───────────────
   const [registrations, setRegistrations] = useState(initialRegistrationData);
@@ -263,9 +304,12 @@ export const SystemProvider = ({ children }) => {
   return (
     <SystemContext.Provider
       value={{
-        // Admins
+        // Admins (Full Management for SuperAdmin)
         admins, adminsLoading, adminsError,
         setAdmins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin,
+        // Mentors (Eligible Mentors for SuperAdmin & Admin)
+        mentors, mentorsLoading, mentorsError,
+        setMentors, fetchMentors,
         // Resources
         resources, resourcesLoading, resourcesError, categories,
         setResources, fetchResources, addResource, updateResource, deleteResource,
@@ -288,10 +332,16 @@ export const useSystem = () => {
 
 // ── Thin compatibility wrappers ───────────────────────────
 export const useAdmins = () => {
-  const { admins, adminsLoading, adminsError, setAdmins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin } = useSystem();
-  return { admins, loading: adminsLoading, error: adminsError, setAdmins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin };
+  const { admins, adminsLoading, adminsError, setAdmins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin, mentors, mentorsLoading, fetchMentors } = useSystem();
+  return { admins, loading: adminsLoading, error: adminsError, setAdmins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin, mentors, mentorsLoading, fetchMentors };
 };
 export const useAdmin = useAdmins;
+
+export const useMentors = () => {
+  const { mentors, mentorsLoading, mentorsError, fetchMentors } = useSystem();
+  return { mentors, loading: mentorsLoading, error: mentorsError, fetchMentors };
+};
+export const useMentor = useMentors;
 
 export const useResources = () => {
   const { resources, resourcesLoading, resourcesError, categories, setResources, fetchResources, addResource, updateResource, deleteResource, addCategory, deleteCategory } = useSystem();
