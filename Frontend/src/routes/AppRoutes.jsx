@@ -5,7 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPages from "../pages/Auth/LoginPages";
 import ForgotPassword from "../pages/Auth/ForgetPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
-import ChangePassword from "../pages/Auth/ChangePassword";
+
 
 // ================= ADMIN =================
 import Dashboard from "../pages/Dashboard";
@@ -53,6 +53,8 @@ import AttendanceOverview from "../pages/SuperAdmin/AttendanceOverview";
 import SuperAdminReports from "../pages/SuperAdmin/Reports";
 import SuperAdminResources from "../pages/SuperAdmin/Resources";
 import SystemConfiguration from "../pages/SuperAdmin/SystemConfiguration";
+import Profile from "../pages/profile/Profile";
+import ChangePassword from "../pages/profile/ChangePassword";
 
 const AppRoutes = () => {
   return (
@@ -62,6 +64,9 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/change-password" element={<ChangePassword />} />
+
+            {/* ================= PROFILE ROUTE ================= */}
+      <Route path="/profile" element={<Profile />} />
 
       {/* ================= ADMIN ROUTES ================= */}
       <Route path="/dashboard" element={<Dashboard />} />

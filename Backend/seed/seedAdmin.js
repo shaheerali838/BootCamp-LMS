@@ -1,8 +1,13 @@
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import Admin from "../model/admin.model.js";
 import ROLES from "../constants/roles.js";
 
 const seedAdmin = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    return;
+  }
+
   try {
     // 1. Seed Super Admin
     const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "superadmin@bootcamp.local").toLowerCase();

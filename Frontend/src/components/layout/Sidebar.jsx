@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import smitLogo from "../../assets/smitLogo.png";
 
 import {
@@ -207,6 +207,7 @@ const ROLE_META = {
 const Sidebar = () => {
   const { pathname } = useLocation();
   const { isOpen, setIsOpen } = useSidebar();
+  const navigate = useNavigate()
 
   // ✅ Real authenticated user role — source of truth
   const { user } = useAuth();
@@ -295,31 +296,12 @@ const Sidebar = () => {
             </Link>
           );
         })}
+        <button onClick={() => navigate("/profile")}>
+      Profile
+    </button>
       </div>
 
-      {/* ========== USER FOOTER ========== */}
-      <div className="mt-auto flex items-center justify-between px-4 py-4 border-t border-gray-200">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-full ${meta.bg} flex items-center justify-center
-              text-white font-bold text-xs shrink-0`}
-          >
-            {meta.label}
-          </div>
-          {isOpen && (
-            <div>
-              <div className="text-sm font-bold text-gray-900">
-                {user
-                  ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
-                    user.email
-                  : "Guest"}
-              </div>
-              <div className="text-xs text-gray-400">{user?.email || ""}</div>
-            </div>
-          )}
-        </div>
-        {isOpen && <FiChevronDown size={16} className="text-gray-400" />}
-      </div>
+     
     </div>
   );
 };
