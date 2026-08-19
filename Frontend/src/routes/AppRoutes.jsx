@@ -90,11 +90,14 @@ const AppRoutes = () => {
       {/* ================= AUTH ROUTES ================= */}
       <Route path="/login" element={<LoginPages />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      {/* ================= PROFILE & PASSWORD ROUTES (ADDED / ENHANCED) ================= */}
       <Route path="/change-password" element={<ChangePassword />} />
-
-            {/* ================= PROFILE ROUTE ================= */}
+      <Route path="/student/change-password" element={<ChangePassword />} />
+      <Route path="/superadmin/change-password" element={<ChangePassword />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/student/profile" element={<Profile />} />
+      <Route path="/superadmin/profile" element={<Profile />} />
+      {/* ============================================================================== */}
 
       {/* ================= ADMIN ROUTES ================= */}
       <Route path="/dashboard" element={<RoleDashboardRouter />} />

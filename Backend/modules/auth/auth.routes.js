@@ -7,6 +7,8 @@ import {
   resetPassword,
   changePassword,
   register,
+  getProfile,
+  updateProfile,
 } from "./auth.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { adminMiddleware } from "../../middleware/adminMiddleware.js";
@@ -36,6 +38,7 @@ router.post(
 
 router.post("/refresh-token", refreshToken);
 
+// ================= PASSWORD MANAGEMENT ROUTES =================
 router.post(
   "/forgot-password",
   forgotPasswordValidator,
@@ -45,6 +48,7 @@ router.post(
 
 router.post("/reset-password", resetPasswordValidator, validate, resetPassword);
 
+// Support both POST and PUT for change-password
 router.post(
   "/change-password",
   authMiddleware,
@@ -52,5 +56,22 @@ router.post(
   validate,
   changePassword
 );
+
+router.put(
+  "/change-password",
+  authMiddleware,
+  changePasswordValidator,
+  validate,
+  changePassword
+);
+// ==============================================================
+
+// ================= PROFILE ROUTES (ADDED) =================
+// Get currently authenticated profile (Super Admin, Admin, Student)
+router.get("/profile", authMiddleware, getProfile);
+
+// Update profile details (including photo upload)
+router.put("/profile", authMiddleware, updateProfile);
+// ==========================================================
 
 export default router;

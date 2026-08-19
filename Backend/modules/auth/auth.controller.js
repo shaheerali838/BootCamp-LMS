@@ -110,14 +110,26 @@ export const login = async (req, res) => {
       message: "Login successful",
       data: {
         accessToken: token,
+        // ================= USER PAYLOAD (UPDATED WITH PROFILE DETAILS) =================
         user: {
           id: user._id,
+          _id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           role: user.role || (user.rollNumber ? "STUDENT" : "ADMIN"),
           rollNumber: user.rollNumber,
+          phoneNumber: user.phoneNumber || user.phone || "",
+          phone: user.phoneNumber || user.phone || "",
+          profilePicture: user.profilePicture || user.profileImage || "",
+          profileImage: user.profilePicture || user.profileImage || "",
+          gender: user.gender,
+          dateOfBirth: user.dateOfBirth,
+          batchId: user.batchId,
+          mentorId: user.mentorId,
+          status: user.status || "active",
         },
+        // ===============================================================================
       },
     });
   } catch (error) {
@@ -455,6 +467,121 @@ export const register = async (req, res) => {
       success: true,
       message: "Student registered successfully. Setup email sent.",
       data: studentResponse,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// =========================================================================
+// GET PROFILE (AUTHENTICATED USER: SUPER ADMIN, ADMIN, STUDENT) - ADDED
+// =========================================================================
+export const getProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const userData = {
+      id: user._id,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role || (user.rollNumber ? "STUDENT" : "ADMIN"),
+      rollNumber: user.rollNumber,
+      phoneNumber: user.phoneNumber || user.phone || "",
+      phone: user.phoneNumber || user.phone || "",
+      profilePicture: user.profilePicture || user.profileImage || "",
+      profileImage: user.profilePicture || user.profileImage || "",
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      batchId: user.batchId,
+      mentorId: user.mentorId,
+      status: user.status || "active",
+      createdAt: user.createdAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: { user: userData },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// =========================================================================
+// UPDATE PROFILE (AUTHENTICATED USER: SUPER ADMIN, ADMIN, STUDENT) - ADDED
+// =========================================================================
+export const updateProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const {
+      firstName,
+      lastName,
+      phoneNumber,
+      phone,
+      profilePicture,
+      profileImage,
+      gender,
+      dateOfBirth,
+    } = req.body;
+
+    if (firstName) user.firstName = firstName.trim();
+    if (lastName) user.lastName = lastName.trim();
+    if (phoneNumber || phone) user.phoneNumber = (phoneNumber || phone).trim();
+    if (profilePicture !== undefined) user.profilePicture = profilePicture;
+    if (profileImage !== undefined && profilePicture === undefined) user.profilePicture = profileImage;
+
+    // Student-specific fields update
+    if (user.role === "STUDENT" || user.rollNumber) {
+      if (gender) user.gender = gender;
+      if (dateOfBirth) user.dateOfBirth = new Date(dateOfBirth);
+    }
+
+    await user.save();
+
+    const updatedUser = {
+      id: user._id,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role || (user.rollNumber ? "STUDENT" : "ADMIN"),
+      rollNumber: user.rollNumber,
+      phoneNumber: user.phoneNumber || user.phone || "",
+      phone: user.phoneNumber || user.phone || "",
+      profilePicture: user.profilePicture || user.profileImage || "",
+      profileImage: user.profilePicture || user.profileImage || "",
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      batchId: user.batchId,
+      mentorId: user.mentorId,
+      status: user.status || "active",
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: { user: updatedUser },
     });
   } catch (error) {
     return res.status(500).json({

@@ -53,6 +53,13 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ================= PROFILE PICTURE (ADDED) =================
+    profilePicture: {
+      type: String,
+      default: "",
+    },
+    // ============================================================
+
     role: {
       type: String,
       enum: [ROLES.STUDENT],

@@ -9,6 +9,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 import { FiLoader } from "react-icons/fi";
 
 function ProtectedRoute({ children }) {
@@ -52,12 +53,16 @@ function AppLayout() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
 
+      {/* ================= PUBLIC AUTH ROUTES (IN AUTH LAYOUT) ================= */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPages />} />
+        <Route path="/forgot-password" element={<ForgetPassword />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
+      {/* ======================================================================= */}
 
-      <Route path="/forget-password" element={<ForgetPassword />} />
-
+      {/* ================= PROTECTED DASHBOARD ROUTES ================= */}
       <Route
         path="/*"
         element={

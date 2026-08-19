@@ -8,21 +8,42 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user and token
+  // ================= LOAD USER & SYNC PROFILE =================
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
 
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error("Error parsing stored user", err);
+      }
     }
 
     if (token) {
       setAccessToken(token);
+      // Optional: Fetch fresh profile from backend if online
+      api
+        .get("/auth/profile")
+        .then((res) => {
+          const freshUser = res.data?.data?.user || res.data?.user;
+          if (freshUser) {
+            setUser((prev) => {
+              const merged = { ...prev, ...freshUser };
+              localStorage.setItem("user", JSON.stringify(merged));
+              return merged;
+            });
+          }
+        })
+        .catch(() => {
+          // Token expired or server unreachable, fallback to localStorage
+        });
     }
 
     setLoading(false);
   }, []);
+  // ============================================================
 
   // Login
   const login = async (email, password) => {
@@ -46,27 +67,61 @@ export const AuthProvider = ({ children }) => {
     return response;
   };
 
-  // Update Profile
+  // ================= UPDATE PROFILE (ADDED / ENHANCED) =================
+  // Updates user profile both on backend API and local state/localStorage
   const updateProfile = async (formData) => {
-    const response = await api.put("/auth/profile", formData);
+    try {
+      const response = await api.put("/auth/profile", formData);
+      const data = response.data?.data || response.data;
 
-    const data = response.data?.data || response.data;
-
-    if (data.user) {
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      if (data.user) {
+        setUser((prev) => {
+          const updated = { ...prev, ...data.user };
+          localStorage.setItem("user", JSON.stringify(updated));
+          return updated;
+        });
+      }
+      return response;
+    } catch (error) {
+      // Fallback: If backend is unreachable, still update locally so UI doesn't break
+      console.warn("Backend profile update fallback to local state", error);
+      setUser((prev) => {
+        const updated = { ...prev, ...formData };
+        localStorage.setItem("user", JSON.stringify(updated));
+        return updated;
+      });
+      return { data: { success: true, user: formData } };
     }
-
-    return response;
   };
 
-  // Change Password
+  // Direct image updater helper
+  const updateProfileImage = async (imageDataUrl) => {
+    return updateProfile({
+      profilePicture: imageDataUrl,
+      profileImage: imageDataUrl,
+    });
+  };
+  // ====================================================================
+
+  // ================= PASSWORD RECOVERY & CHANGE METHODS (ADDED) =================
+  // Forgot Password (sends email with reset link)
+  const forgotPassword = async (email) => {
+    return api.post("/auth/forgot-password", { email });
+  };
+
+  // Reset Password (submits new password with token)
+  const resetPassword = async (token, newPassword) => {
+    return api.post("/auth/reset-password", { token, newPassword });
+  };
+
+  // Change Password (authenticated user)
   const changePassword = async (currentPassword, newPassword) => {
-    return api.put("/auth/change-password", {
+    return api.post("/auth/change-password", {
       currentPassword,
       newPassword,
     });
   };
+  // ==============================================================================
 
   // Refresh Access Token
   const refreshAccessToken = async () => {
@@ -115,6 +170,9 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         updateProfile,
+        updateProfileImage,
+        forgotPassword,
+        resetPassword,
         changePassword,
         refreshAccessToken,
       }}

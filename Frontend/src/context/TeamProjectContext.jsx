@@ -207,6 +207,9 @@ export const TeamProjectProvider = ({ children }) => {
         p.teamId?._id ||
         p.teamId?.id ||
         (typeof p.teamId === "string" ? p.teamId : null) ||
+        p.team?._id ||
+        p.team?.id ||
+        (typeof p.team === "string" ? p.team : null) ||
         p.batch?._id ||
         p.batch?.id ||
         (typeof p.batch === "string" ? p.batch : null) ||

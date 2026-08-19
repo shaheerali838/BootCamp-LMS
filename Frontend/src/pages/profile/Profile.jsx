@@ -1,43 +1,62 @@
+// =========================================================================
+// Profile Page Component
+// Displays personalized profile details dynamically for Super Admin, Admin, and Student
+// =========================================================================
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LockKeyhole,
   LogOut,
   Settings,
+  Shield,
+  UserCheck,
+  GraduationCap,
 } from "lucide-react";
 
-import ProfileHeader from "../../components/Profile/ProfileHeader";
-import ProfileInfo from "../../components/Profile/ProfileInfo";
+// Correct path imports with cross-platform casing
+import ProfileHeader from "../../components/profile/ProfileHeader";
+import ProfileInfo from "../../components/profile/ProfileInfo";
 import EditProfile from "./EditProfile";
 import { useAuth } from "../../context/AuthContext";
 
-const demoUser = {
+// Fallback demo user if not logged in (e.g. preview mode)
+const demoStudent = {
   firstName: "Ayesha",
   lastName: "Siddiqui",
   email: "ayesha.siddiqui@smit.edu",
   phone: "03001234567",
   role: "STUDENT",
+  rollNumber: "SMIT-2024-001",
   gender: "Female",
   dateOfBirth: "2002-05-14",
-  profileImage:
-    "https://i.pravatar.cc/300?img=47",
+  profileImage: "",
 };
 
 function Profile() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const [showEditProfile, setShowEditProfile] =
-    useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
-  // Demo data is used only when real user data is not available.
-  const profileUser = user || demoUser;
+  // ================= ROLE RESOLUTION (SUPER ADMIN, ADMIN, STUDENT) =================
+  const profileUser = user || demoStudent;
 
-  const role = (profileUser?.role || "STUDENT")
-    .toUpperCase()
-    .replace(/[\s_]+/g, "");
+  const rawRole = profileUser?.role || (profileUser?.rollNumber ? "STUDENT" : "ADMIN");
+  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
 
-  const isStudent = role === "STUDENT";
+  const isSuperAdmin = role === "superadmin";
+  const isStudent = role === "student";
+  const isAdmin = !isSuperAdmin && !isStudent;
+
+  const roleLabel = isSuperAdmin
+    ? "Super Admin"
+    : isStudent
+      ? "Student"
+      : "Admin / Mentor";
+
+  const RoleIcon = isSuperAdmin ? Shield : isStudent ? GraduationCap : UserCheck;
+  // ===============================================================================
 
   const handleLogout = async () => {
     try {
@@ -51,35 +70,51 @@ function Profile() {
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl">
-
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#111528] sm:text-3xl">
-            My Profile
-          </h1>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your personal information and account settings.
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-[#111528] sm:text-3xl">
+                My Profile
+              </h1>
+              <span
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                  isSuperAdmin
+                    ? "bg-purple-100 text-purple-700 border border-purple-200"
+                    : isStudent
+                      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
+                      : "bg-blue-100 text-blue-700 border border-blue-200"
+                }`}
+              >
+                <RoleIcon size={13} />
+                {roleLabel}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage your personal information, profile photo, and account security.
+            </p>
+          </div>
         </div>
 
-        {/* Profile Header */}
+        {/* Profile Header (Cover, Avatar Upload, and Summary Badges) */}
         <ProfileHeader
           user={profileUser}
+          roleType={isSuperAdmin ? "superadmin" : isStudent ? "student" : "admin"}
           onEdit={() => setShowEditProfile(true)}
         />
 
-        {/* Profile Information */}
+        {/* Profile Information (Role-specific attributes) */}
         <div className="mt-6">
           <ProfileInfo
             user={profileUser}
+            isSuperAdmin={isSuperAdmin}
+            isAdmin={isAdmin}
             isStudent={isStudent}
           />
         </div>
 
         {/* Account Settings */}
         <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
-
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0476b9]">
               <Settings size={20} />
@@ -89,21 +124,17 @@ function Profile() {
               <h2 className="text-lg font-bold text-[#111528]">
                 Account Settings
               </h2>
-
               <p className="text-sm text-gray-500">
-                Manage your account security and session.
+                Manage your account security and authentication.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
             {/* Change Password */}
             <button
               type="button"
-              onClick={() =>
-                navigate("/change-password")
-              }
+              onClick={() => navigate("/change-password")}
               className="group flex cursor-pointer items-center gap-4 rounded-xl border border-gray-200 p-4 text-left transition hover:border-[#0476b9] hover:bg-blue-50/40"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0476b9] transition group-hover:bg-[#0476b9] group-hover:text-white">
@@ -114,9 +145,8 @@ function Profile() {
                 <p className="font-semibold text-gray-800">
                   Change Password
                 </p>
-
                 <p className="mt-1 text-xs text-gray-500">
-                  Update your account password
+                  Update your login password securely
                 </p>
               </div>
             </button>
@@ -135,25 +165,23 @@ function Profile() {
                 <p className="font-semibold text-gray-800">
                   Logout
                 </p>
-
                 <p className="mt-1 text-xs text-gray-500">
-                  Sign out from your account
+                  Sign out from your active session
                 </p>
               </div>
             </button>
-
           </div>
         </div>
       </div>
 
-      {/* Edit Profile */}
+      {/* Edit Profile Modal */}
       {showEditProfile && (
         <EditProfile
           user={profileUser}
+          isSuperAdmin={isSuperAdmin}
+          isAdmin={isAdmin}
           isStudent={isStudent}
-          onClose={() =>
-            setShowEditProfile(false)
-          }
+          onClose={() => setShowEditProfile(false)}
         />
       )}
     </div>

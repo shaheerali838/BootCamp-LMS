@@ -44,7 +44,7 @@ function ProjectCard({ project, team, onEdit }) {
                 <div className="min-w-0 flex-1">
 
                     <h2 className="text-xl font-bold text-gray-800 truncate">
-                        {project.name || project.projectName}
+                        {project.projectName || project.name || project.title || "Untitled Project"}
                     </h2>
 
                     <p className="text-gray-400 text-xs mt-1">
