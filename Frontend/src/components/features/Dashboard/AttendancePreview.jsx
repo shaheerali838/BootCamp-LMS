@@ -1,11 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
+import { useTeamProject } from "../../../context/TeamProjectContext";
 
 function AttendancePreview() {
-  const { students = [] } = useStudents();
+  const { students = [], fetchStudents } = useStudents();
   const { getStudentAttendance } = useAttendance();
+  const { teams = [], fetchTeams } = useTeamProject();
+
+  useEffect(() => {
+    if (fetchStudents) fetchStudents();
+    if (fetchTeams) fetchTeams();
+  }, [fetchStudents, fetchTeams]);
 
   const today = new Date().toISOString().split("T")[0];
   const [search, setSearch] = useState("");
@@ -13,6 +20,44 @@ function AttendancePreview() {
 
   const getStudentName = (s) =>
     s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+
+  const getStudentTeam = (student) => {
+    const sid = String(student._id || student.id || "");
+    const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
+    const studentName = String(
+      student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
+    ).trim().toLowerCase();
+
+    const found = teams.find((team) => {
+      const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+      const leadName = String(
+        team.teamLead?.name || team.teamLead?.firstName
+          ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}`
+          : team.lead || ""
+      ).toLowerCase();
+
+      if (leadId && leadId === sid) return true;
+      if (leadName && studentName && leadName === studentName) return true;
+
+      if (Array.isArray(team.members)) {
+        return team.members.some((m) => {
+          const mId = String(m._id || m.id || m.studentId || m);
+          const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+          const mName = String(
+            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m
+          ).toLowerCase();
+          return (
+            (sid && mId === sid) ||
+            (studentRoll && mRoll === studentRoll) ||
+            (studentName && mName === studentName)
+          );
+        });
+      }
+      return false;
+    });
+
+    return found ? (found.teamName || found.name) : "No Team";
+  };
 
   const data = students
     .map((student) => {
@@ -30,12 +75,14 @@ function AttendancePreview() {
           .toUpperCase() ||
         "ST";
 
+      const teamName = getStudentTeam(student);
+
       return {
         ...student,
         sid,
         name: studentName,
         rollNo: student.rollNumber || student.rollNo || "N/A",
-        team: student.team || "No Team",
+        team: teamName,
         initials,
         status: todayAttendance?.status || "Unmarked",
         time: todayAttendance?.time || todayAttendance?.checkInTime || "--:--",
@@ -126,7 +173,7 @@ function AttendancePreview() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search student..."
+            placeholder="Search student or team..."
             className="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg outline-none text-xs text-gray-700 focus:border-blue-500 transition"
           />
         </div>
@@ -148,8 +195,8 @@ function AttendancePreview() {
               className="grid grid-cols-5 items-center px-3 py-2.5 hover:bg-gray-50/50 transition text-xs"
             >
               {/* Student */}
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
                   {student.initials}
                 </div>
                 <span className="font-bold text-gray-900 truncate">
@@ -158,7 +205,11 @@ function AttendancePreview() {
               </div>
 
               {/* Team */}
-              <span className="text-gray-500 font-medium">{student.team}</span>
+              <span className={`truncate font-medium text-xs ${
+                student.team !== "No Team" ? "text-blue-600 font-semibold" : "text-gray-400"
+              }`}>
+                {student.team}
+              </span>
 
               {/* Roll Number */}
               <span className="text-gray-500 font-medium">{student.rollNo}</span>
