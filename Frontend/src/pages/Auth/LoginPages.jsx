@@ -56,7 +56,7 @@ function LoginPages() {
     try {
       const response = await login(formData.email, formData.password);
 
-      const userRole = (response.data?.user?.role || "STUDENT")
+      const userRole = (response.data?.data?.user?.role || response.data?.user?.role || "STUDENT")
         .toUpperCase()
         .replace(/[\s_]+/g, "");
 
@@ -84,7 +84,7 @@ function LoginPages() {
   };
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center px-2 ">
+    <div className="w-full min-h-screen flex items-center justify-center px-2">
       <div className="w-full max-w-md">
         <div className="w-full flex items-center py-2 justify-center lg:hidden">
           <img src={img} alt="SMIT Logo" className="w-30 h-20 object-contain" />

@@ -170,7 +170,7 @@ function TeamDetail() {
 
   if (!team) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <div className="bg-gray-50 p-4 sm:p-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -206,7 +206,7 @@ function TeamDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-5 lg:p-6">
+    <div className="bg-gray-50 p-3 sm:p-5 lg:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-5">
           <button
@@ -243,26 +243,48 @@ function TeamDetail() {
                 </div>
               </div>
 
-              {(team.teamLead || team.lead) && (
+              {Boolean(team.teamLead || team.lead) && (
                 <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 w-fit">
-                  <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold">
-                    {(typeof team.teamLead === "object"
-                      ? team.teamLead.firstName || team.teamLead.name
-                      : team.lead || "L"
-                    )
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
+                  {(() => {
+                    const rawLead = team.teamLead || team.lead;
+                    let leadName = "";
+                    if (typeof rawLead === "object" && rawLead) {
+                      leadName = (
+                        `${rawLead.firstName || ""} ${rawLead.lastName || ""}`.trim() ||
+                        rawLead.name ||
+                        rawLead.email ||
+                        ""
+                      );
+                    } else if (rawLead) {
+                      const found = students.find((s) => String(s._id || s.id) === String(rawLead));
+                      if (found) {
+                        leadName = (
+                          `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+                          found.name ||
+                          found.email ||
+                          ""
+                        );
+                      } else if (typeof rawLead === "string" && !rawLead.match(/^[0-9a-fA-F]{24}$/)) {
+                        leadName = rawLead;
+                      }
+                    }
+                    const displayName = leadName || "Team Lead Assigned";
 
-                  <div>
-                    <p className="text-xs text-gray-500">Team Lead</p>
-                    <p className="font-semibold text-gray-800">
-                      {typeof team.teamLead === "object"
-                        ? `${team.teamLead.firstName || ""} ${team.teamLead.lastName || ""}`.trim() ||
-                          team.teamLead.name
-                        : team.lead || "Lead"}
-                    </p>
-                  </div>
+                    return (
+                      <>
+                        <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold">
+                          {displayName.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-gray-500 font-medium">Team Lead</p>
+                          <p className="font-semibold text-gray-800">
+                            {displayName}
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -447,7 +469,7 @@ function TeamDetail() {
                       <div>
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <h3 className="font-bold text-gray-800 text-base leading-snug">
-                            {project.title || project.name}
+                            {project.projectName || project.name || project.title || "Untitled Project"}
                           </h3>
 
                           <span

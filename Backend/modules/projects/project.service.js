@@ -6,11 +6,23 @@ const createProject = async (projectData) => {
   return project;
 };
 
+// ================= TEAM POPULATION CONFIG (ENHANCED) =================
+const teamPopulateConfig = {
+  path: "teamId",
+  select: "teamName members teamLead mentor batchId description status",
+  populate: [
+    { path: "teamLead", select: "firstName lastName email rollNumber" },
+    { path: "members", select: "firstName lastName email rollNumber" },
+    { path: "mentor", select: "firstName lastName email" },
+  ],
+};
+// ======================================================================
+
 // Get All Projects
 const getAllProjects = async () => {
   return await Project.find()
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
@@ -18,7 +30,7 @@ const getAllProjects = async () => {
 const getProjectById = async (id) => {
   return await Project.findById(id)
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
@@ -33,7 +45,7 @@ const updateProject = async (id, data) => {
     }
   )
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
@@ -51,7 +63,7 @@ const searchProject = async (keyword) => {
     },
   })
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
@@ -59,7 +71,7 @@ const searchProject = async (keyword) => {
 const getProjectsByBatch = async (batchId) => {
   return await Project.find({ batch: batchId })
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
@@ -67,7 +79,7 @@ const getProjectsByBatch = async (batchId) => {
 const getProjectsByStatus = async (status) => {
   return await Project.find({ status })
     .populate("batch", "batchName")
-    .populate("teamId", "teamName")
+    .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 

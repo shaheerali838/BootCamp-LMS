@@ -121,7 +121,7 @@ function TeamCard({ team, onEdit }) {
                 </div>
             </div>
 
-            <div className="flex gap-2 mt-5">
+            <div className="flex gap-2 mt-4">
                 <button
                     type="button"
                     onClick={() => navigate(`/teams/${teamId}`)}

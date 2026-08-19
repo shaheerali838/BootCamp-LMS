@@ -144,8 +144,6 @@ function MilestoneManagement() {
 
   return (
     <div className="p-4">
-      <div className="mb-5"></div>
-
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
@@ -227,7 +225,7 @@ function MilestoneManagement() {
 
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-200 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-[600px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Milestone Title</span>
             <span>Project</span>
             <span>Due Date & Status</span>
@@ -235,7 +233,7 @@ function MilestoneManagement() {
           </div>
 
           {/* Table Rows */}
-          <div className="divide-y divide-gray-100 min-w-200">
+          <div className="divide-y divide-gray-100 min-w-[600px]">
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}
@@ -409,13 +407,13 @@ function MilestoneManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold"
+                  className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer"
                 >
                   {editingMilestone ? "Save Changes" : "Create Milestone"}
                 </button>

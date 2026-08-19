@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useStudents } from "../../../context/AcademicContext";
+import api from "../../../api/axios";
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -19,15 +20,51 @@ function ProjectDetail() {
 
   const {
     projects,
+    projectsLoading,
     teams,
     updateProjectStatus,
+    fetchProjects,
+    fetchTeams,
   } = useTeamProject();
-  const { students = [] } = useStudents();
+  const { students = [], fetchStudents } = useStudents();
 
-  const project = projects.find(
-    (project) =>
-      String(project.id || project._id) === String(id)
-  );
+  // ================= SINGLE PROJECT DIRECT FETCH FALLBACK (ADDED) =================
+  const [singleProject, setSingleProject] = useState(null);
+  const [loadingSingle, setLoadingSingle] = useState(false);
+
+  useEffect(() => {
+    if (fetchProjects) fetchProjects();
+    if (fetchTeams) fetchTeams();
+    if (fetchStudents) fetchStudents();
+  }, [fetchProjects, fetchTeams, fetchStudents]);
+
+  useEffect(() => {
+    if (id) {
+      const existing = projects.find((p) => String(p.id || p._id) === String(id));
+      if (!existing && !singleProject) {
+        setLoadingSingle(true);
+        api
+          .get(`/projects/get-project/${id}`)
+          .then((res) => {
+            if (res.data?.data) {
+              setSingleProject(res.data.data);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load project details:", err);
+          })
+          .finally(() => {
+            setLoadingSingle(false);
+          });
+      }
+    }
+  }, [id, projects, singleProject]);
+  // ==============================================================================
+
+  // Resolve project from context or fallback API call
+  const project =
+    projects.find((p) => String(p.id || p._id) === String(id)) ||
+    singleProject;
 
   const formatDate = (date) => {
     if (!date) return "Not set";
@@ -91,10 +128,21 @@ function ProjectDetail() {
     return "bg-yellow-500";
   };
 
+  // ================= LOADING STATE =================
+  if ((projectsLoading || loadingSingle) && !project) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-200 border-t-[#0476b9] rounded-full animate-spin" />
+          <p className="text-sm font-semibold text-gray-500">Loading project details...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!project) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-
         <button
           type="button"
           onClick={() => navigate("/projects")}
@@ -105,7 +153,6 @@ function ProjectDetail() {
         </button>
 
         <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl p-10 text-center shadow-sm">
-
           <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
             <FiLayers
               size={28}
@@ -118,7 +165,7 @@ function ProjectDetail() {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            The project you are looking for does not exist.
+            The project you are looking for does not exist or has been removed.
           </p>
 
           <button
@@ -128,17 +175,57 @@ function ProjectDetail() {
           >
             View Projects
           </button>
-
         </div>
       </div>
     );
   }
 
-  const team = teams.find(
-    (team) =>
-      String(team.id || team._id) ===
-      String(project.teamId || project.batch)
+  // ================= ASSIGNED TEAM RESOLUTION (FIXED / ENHANCED) =================
+  // Safely extract string team ID whether stored as string or populated object
+  const projectTeamId =
+    project?.teamId?._id ||
+    project?.teamId?.id ||
+    (typeof project?.teamId === "string" ? project.teamId : null) ||
+    project?.team?._id ||
+    project?.team?.id ||
+    (typeof project?.team === "string" ? project.team : null) ||
+    project?.batch?._id ||
+    project?.batch?.id ||
+    (typeof project?.batch === "string" ? project.batch : null) ||
+    project?.batchId;
+
+  // Search across teams list
+  const matchedTeam = teams.find(
+    (t) => String(t._id || t.id) === String(projectTeamId)
   );
+
+  // Populated team object on project if returned from backend
+  const populatedTeam =
+    typeof project?.teamId === "object" && project?.teamId
+      ? project.teamId
+      : typeof project?.team === "object" && project?.team
+      ? project.team
+      : null;
+
+  // Merge matched team from context & populated team from project so teamLead and members are never lost
+  const team = matchedTeam
+    ? {
+        ...matchedTeam,
+        teamLead:
+          matchedTeam.teamLead ||
+          populatedTeam?.teamLead ||
+          matchedTeam.lead ||
+          populatedTeam?.lead,
+        mentor:
+          matchedTeam.mentor ||
+          populatedTeam?.mentor,
+        members:
+          matchedTeam.members && matchedTeam.members.length > 0
+            ? matchedTeam.members
+            : populatedTeam?.members || [],
+      }
+    : populatedTeam;
+  // ===============================================================================
 
   const startDate = project.startDate
     ? new Date(project.startDate)
@@ -170,9 +257,9 @@ function ProjectDetail() {
     project.status !== "completed";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-5 lg:p-6">
+    <div className="m bg-gray-50 pt-7 px-4 ">
 
-      <div className="max-w-7xl mx-auto">
+      <div className="">
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
 
@@ -196,7 +283,7 @@ function ProjectDetail() {
 
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border  border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
           <div className="p-5 sm:p-7 border-b border-gray-100">
 
@@ -210,7 +297,7 @@ function ProjectDetail() {
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 break-words">
-                  {project.name || project.projectName}
+                  {project.projectName || project.name || project.title || "Untitled Project"}
                 </h1>
 
                 <p className="text-gray-500 mt-3 max-w-3xl leading-6">
@@ -333,7 +420,6 @@ function ProjectDetail() {
               </div>
 
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
-
                 <div className="flex items-center gap-2 text-gray-500">
                   <FiUsers size={17} />
                   <span className="text-sm font-medium">
@@ -342,13 +428,13 @@ function ProjectDetail() {
                 </div>
 
                 <p className="text-lg font-bold text-gray-800 mt-3">
-                  {team?.members?.length || 0}
+                  {(Array.isArray(team?.members) ? team.members.length : 0) +
+                    (team?.teamLead || team?.lead ? 1 : 0)}
                 </p>
 
                 <p className="text-xs text-gray-400 mt-1">
                   Assigned members
                 </p>
-
               </div>
 
             </div>
@@ -550,71 +636,85 @@ function ProjectDetail() {
                 <div className="p-5">
 
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-gray-100">
-
                     <div>
-
                       <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">
                         Team
                       </p>
 
                       <h3 className="text-xl font-bold text-gray-800 mt-1">
-                        {team.name}
+                        {team.teamName || team.name || "Assigned Team"}
                       </h3>
 
                       <p className="text-sm text-gray-500 mt-1">
-                        {team.description ||
-                          "No team description available."}
+                        {team.description || "Active team assigned to project deliverables."}
                       </p>
-
                     </div>
 
-                    <div className="flex items-center gap-2 bg-blue-50 text-[#0476b9] px-4 py-2 rounded-lg">
-
+                    <div className="flex items-center gap-2 bg-blue-50 text-[#0476b9] px-4 py-2 rounded-lg border border-blue-100">
                       <FiUser size={16} />
-
                       <span className="text-sm font-semibold">
-                        {team.lead ||
-                          "No team lead"}
+                        {(() => {
+                          const rawLead = team.teamLead || team.lead || team.teamLeadId;
+                          if (!rawLead) return "No team lead assigned";
+
+                          if (typeof rawLead === "object" && rawLead) {
+                            return rawLead.firstName
+                              ? `${rawLead.firstName} ${rawLead.lastName || ""}`.trim()
+                              : rawLead.name || rawLead.email || "Team Lead";
+                          }
+                          const found = students.find((s) => String(s._id || s.id) === String(rawLead));
+                          if (found) {
+                            return found.firstName
+                              ? `${found.firstName} ${found.lastName || ""}`.trim()
+                              : found.name || found.email || "Team Lead";
+                          }
+                          return typeof rawLead === "string" && rawLead.length > 2 && !rawLead.match(/^[0-9a-fA-F]{24}$/)
+                            ? rawLead
+                            : "Team Lead Assigned";
+                        })()}
                       </span>
-
                     </div>
-
                   </div>
 
                   <div className="pt-5">
-
                     <div className="flex items-center justify-between mb-3">
-
                       <p className="text-sm font-semibold text-gray-700">
                         Team Members
                       </p>
 
                       <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                        {team.members?.length || 0} Members
+                        {(Array.isArray(team.members) ? team.members.length : 0) + (team.teamLead || team.lead ? 1 : 0)} Members
                       </span>
-
                     </div>
 
                     {(() => {
                       const allMembers = [];
-                      if (team.teamLead) {
-                        allMembers.push({ raw: team.teamLead, isLead: true });
+                      const rawLead = team.teamLead || team.lead || team.teamLeadId;
+                      if (rawLead) {
+                        allMembers.push({ raw: rawLead, isLead: true });
                       }
                       if (Array.isArray(team.members)) {
-                        const leadId = String(team.teamLead?._id || team.teamLead?.id || team.teamLead || "");
+                        const leadId = String(
+                          typeof rawLead === "object" && rawLead
+                            ? rawLead._id || rawLead.id || ""
+                            : rawLead || ""
+                        );
                         team.members.forEach((m) => {
-                          const mId = String(m?._id || m?.id || m);
-                          if (mId !== leadId) {
+                          const mId = String(
+                            typeof m === "object" && m ? m._id || m.id || "" : m || ""
+                          );
+                          if (!leadId || mId !== leadId) {
                             allMembers.push({ raw: m, isLead: false });
                           }
                         });
                       }
 
                       const resolveStudent = (raw) => {
-                        if (typeof raw === "object" && (raw.firstName || raw.name)) {
+                        if (!raw) return { name: "Team Member", roll: "" };
+                        if (typeof raw === "object") {
                           const name = raw.firstName
                             ? `${raw.firstName} ${raw.lastName || ""}`.trim()
-                            : raw.name;
+                            : raw.name || raw.email || "Team Member";
                           const roll = raw.rollNumber || raw.rollNo || raw.email || "";
                           return { name, roll };
                         }
@@ -623,9 +723,12 @@ function ProjectDetail() {
                         if (found) {
                           const name = found.firstName
                             ? `${found.firstName} ${found.lastName || ""}`.trim()
-                            : found.name;
+                            : found.name || found.email || "Team Member";
                           const roll = found.rollNumber || found.rollNo || found.email || "";
                           return { name, roll };
+                        }
+                        if (typeof raw === "string" && raw.length > 2 && !raw.match(/^[0-9a-fA-F]{24}$/)) {
+                          return { name: raw, roll: "" };
                         }
                         return { name: "Team Member", roll: "" };
                       };
@@ -648,18 +751,29 @@ function ProjectDetail() {
                             return (
                               <div
                                 key={idx}
-                                className="flex items-center gap-3 border border-gray-200 rounded-xl p-3 hover:border-blue-200 hover:bg-blue-50/30 transition"
+                                className={`flex items-center gap-3 border rounded-xl p-3 transition ${
+                                  item.isLead
+                                    ? "border-blue-300 bg-blue-50/50 shadow-xs"
+                                    : "border-gray-200 hover:border-blue-200 hover:bg-blue-50/30"
+                                }`}
                               >
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold shrink-0 text-white ${
-                                  item.isLead ? "bg-blue-600" : "bg-[#0476b9]"
+                                  item.isLead ? "bg-blue-600 ring-2 ring-blue-300" : "bg-[#0476b9]"
                                 }`}>
-                                  {name.charAt(0).toUpperCase()}
+                                  {(name || "U").charAt(0).toUpperCase()}
                                 </div>
 
                                 <div className="min-w-0">
-                                  <p className="font-semibold text-gray-800 truncate text-sm">
-                                    {name}
-                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="font-semibold text-gray-800 truncate text-sm">
+                                      {name}
+                                    </p>
+                                    {item.isLead && (
+                                      <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded">
+                                        LEAD
+                                      </span>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-gray-400">
                                     {item.isLead ? "Team Lead" : roll || "Team Member"}
                                   </p>
@@ -670,7 +784,6 @@ function ProjectDetail() {
                         </div>
                       );
                     })()}
-
                   </div>
 
                 </div>

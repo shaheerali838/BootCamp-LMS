@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import smitLogo from "../../assets/smitlogo.png";
 
 import {
@@ -219,6 +219,7 @@ const ROLE_META = {
 const Sidebar = () => {
   const { pathname } = useLocation();
   const { isOpen, setIsOpen } = useSidebar();
+  const navigate = useNavigate()
 
   // ✅ Real authenticated user role — source of truth
   const { user } = useAuth();
@@ -307,31 +308,70 @@ const Sidebar = () => {
             </Link>
           );
         })}
+
+        {/* ================= PROFILE NAV LINK (ADDED) ================= */}
+        <Link
+          to="/profile"
+          className={`flex items-center gap-3 px-4 py-3.5 mx-2 rounded-xl transition-all ${
+            pathname === "/profile"
+              ? "bg-blue-50 text-blue-700 font-semibold"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <span className="flex items-center justify-center shrink-0">
+            <FiSliders size={19} />
+          </span>
+          {isOpen && (
+            <span className="text-[13px] whitespace-nowrap">My Profile</span>
+          )}
+        </Link>
+        {/* ============================================================ */}
       </div>
 
-      {/* ========== USER FOOTER ========== */}
-      <div className="mt-auto flex items-center justify-between px-4 py-4 border-t border-gray-200">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-full ${meta.bg} flex items-center justify-center
-              text-white font-bold text-xs shrink-0`}
-          >
-            {meta.label}
-          </div>
-          {isOpen && (
-            <div>
-              <div className="text-sm font-bold text-gray-900">
-                {user
-                  ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
-                    user.email
-                  : "Guest"}
+      {/* ================= USER PROFILE FOOTER CARD (ADDED) ================= */}
+      <div className="p-3 border-t border-gray-200 bg-gray-50/50">
+        <button
+          type="button"
+          onClick={() => navigate("/profile")}
+          title="View Profile"
+          className={`w-full flex items-center ${
+            isOpen ? "gap-3 p-2" : "justify-center p-1"
+          } rounded-xl hover:bg-white hover:shadow-xs transition cursor-pointer border border-transparent hover:border-gray-200`}
+        >
+          {/* Avatar Image or Initial */}
+          <div className="relative shrink-0">
+            {user?.profilePicture || user?.profileImage ? (
+              <img
+                src={user.profilePicture || user.profileImage}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-xs"
+              />
+            ) : (
+              <div
+                className={`w-10 h-10 rounded-full ${meta.bg} flex items-center justify-center text-white font-bold text-sm shadow-xs`}
+              >
+                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : meta.label}
               </div>
-              <div className="text-xs text-gray-400">{user?.email || ""}</div>
+            )}
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+          </div>
+
+          {/* User Info (Expanded state) */}
+          {isOpen && (
+            <div className="text-left overflow-hidden">
+              <p className="text-xs font-bold text-gray-800 truncate">
+                {user?.firstName
+                  ? `${user.firstName} ${user.lastName || ""}`.trim()
+                  : meta.fullLabel}
+              </p>
+              <p className="text-[11px] text-gray-500 font-medium truncate">
+                {meta.fullLabel}
+              </p>
             </div>
           )}
-        </div>
-        {isOpen && <FiChevronDown size={16} className="text-gray-400" />}
+        </button>
       </div>
+      {/* ==================================================================== */}
     </div>
   );
 };

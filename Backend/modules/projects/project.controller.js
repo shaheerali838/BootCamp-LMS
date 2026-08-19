@@ -14,11 +14,21 @@ import TeamProject from "../../model/teamProject.model.js";
 // Create Project
 const createProjectHandler = async (req, res) => {
   try {
-    const rawTeamId = req.body.teamId || req.body.batch || req.body.batchId;
+    // ================= SAFE TEAM ID EXTRACTION (ADDED) =================
+    const rawTeamId =
+      req.body.teamId?._id ||
+      req.body.teamId?.id ||
+      (typeof req.body.teamId === "string" ? req.body.teamId : null) ||
+      req.body.batch?._id ||
+      req.body.batch?.id ||
+      (typeof req.body.batch === "string" ? req.body.batch : null) ||
+      req.body.batchId;
+
     const teamId =
-      rawTeamId && mongoose.Types.ObjectId.isValid(rawTeamId)
-        ? rawTeamId
+      rawTeamId && mongoose.Types.ObjectId.isValid(String(rawTeamId))
+        ? String(rawTeamId)
         : undefined;
+    // ===================================================================
 
     const payload = {
       ...req.body,
@@ -96,11 +106,21 @@ const getProjectByIdHandler = async (req, res) => {
 // Update Project
 const updateProjectHandler = async (req, res) => {
   try {
-    const rawTeamId = req.body.teamId || req.body.batch || req.body.batchId;
+    // ================= SAFE TEAM ID EXTRACTION (ADDED) =================
+    const rawTeamId =
+      req.body.teamId?._id ||
+      req.body.teamId?.id ||
+      (typeof req.body.teamId === "string" ? req.body.teamId : null) ||
+      req.body.batch?._id ||
+      req.body.batch?.id ||
+      (typeof req.body.batch === "string" ? req.body.batch : null) ||
+      req.body.batchId;
+
     const teamId =
-      rawTeamId && mongoose.Types.ObjectId.isValid(rawTeamId)
-        ? rawTeamId
+      rawTeamId && mongoose.Types.ObjectId.isValid(String(rawTeamId))
+        ? String(rawTeamId)
         : undefined;
+    // ===================================================================
 
     const payload = {
       ...req.body,

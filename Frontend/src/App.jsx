@@ -4,14 +4,12 @@ import { AppProvider } from "./context/AppProvider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
-
 import AppRoutes from "./routes/AppRoutes";
-
 import { Routes, Route, Navigate } from "react-router-dom";
-
 import AuthLayout from "./components/layout/AuthLayout";
 import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 import { FiLoader } from "react-icons/fi";
 
 function ProtectedRoute({ children }) {
@@ -38,9 +36,7 @@ function DashboardLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
-
       <Navbar />
-
       <main
         className={`pt-10 transition-all duration-300 ${
           isOpen ? "ml-70" : "ml-22.5"
@@ -57,12 +53,16 @@ function AppLayout() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
 
+      {/* ================= PUBLIC AUTH ROUTES (IN AUTH LAYOUT) ================= */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPages />} />
+        <Route path="/forgot-password" element={<ForgetPassword />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
+      {/* ======================================================================= */}
 
-      <Route path="/forget-password" element={<ForgetPassword />} />
-
+      {/* ================= PROTECTED DASHBOARD ROUTES ================= */}
       <Route
         path="/*"
         element={

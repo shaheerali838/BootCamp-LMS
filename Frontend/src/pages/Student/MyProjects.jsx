@@ -14,33 +14,78 @@ import { useAuth } from "../../context/AuthContext";
 
 function MyProjects() {
   const { user } = useAuth();
-  const { projects = [], teams = [] } = useTeamProject();
-  const { students = [] } = useStudent();
+  const { projects = [], teams = [], fetchProjects, fetchTeams } = useTeamProject();
+  const { students = [], fetchStudents } = useStudent();
+
+  // ================= DATA FETCH ON MOUNT =================
+  useEffect(() => {
+    if (fetchProjects) fetchProjects();
+    if (fetchTeams) fetchTeams();
+    if (fetchStudents) fetchStudents();
+  }, [fetchProjects, fetchTeams, fetchStudents]);
+  // =======================================================
 
   const studentId = String(user?._id || user?.id || "");
   const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentEmail = String(user?.email || "").toLowerCase();
   const studentName = String(
     user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
   ).trim().toLowerCase();
 
+  // Helper to resolve student name
+  const resolveStudentName = (raw) => {
+    if (!raw) return "Unassigned";
+    if (typeof raw === "object" && raw) {
+      const fullName = `${raw.firstName || ""} ${raw.lastName || ""}`.trim();
+      if (fullName) return fullName;
+      if (raw.name) return raw.name;
+      if (raw.email) return raw.email;
+    }
+    const rawId = String(raw?._id || raw?.id || raw || "");
+    const found = students.find((s) => String(s._id || s.id) === rawId);
+    if (found) {
+      const fullName = `${found.firstName || ""} ${found.lastName || ""}`.trim();
+      if (fullName) return fullName;
+      return found.name || found.email || "Team Lead";
+    }
+    if (typeof raw === "string" && raw.length > 2 && !raw.match(/^[0-9a-fA-F]{24}$/)) {
+      return raw;
+    }
+    return "Team Lead Assigned";
+  };
+
   // Find teams the student is part of
   const studentTeams = teams.filter((team) => {
-    if (!studentId && !studentRoll && !studentName) return false;
+    if (!studentId && !studentRoll && !studentEmail && !studentName) return false;
 
-    const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
-    const leadName = String(team.teamLead?.name || team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : team.lead || "").toLowerCase();
-    if (leadId && leadId === studentId) return true;
-    if (leadName && studentName && leadName.includes(studentName)) return true;
+    const rawLead = team.teamLead || team.lead || team.teamLeadId;
+    const leadId = String(rawLead?._id || rawLead?.id || rawLead || "");
+    const leadRoll = String(rawLead?.rollNumber || rawLead?.rollNo || "").toLowerCase();
+    const leadEmail = String(rawLead?.email || "").toLowerCase();
+    const leadName = String(
+      rawLead?.firstName
+        ? `${rawLead.firstName} ${rawLead.lastName || ""}`
+        : rawLead?.name || rawLead || ""
+    ).trim().toLowerCase();
+
+    if (studentId && leadId && leadId === studentId) return true;
+    if (studentRoll && leadRoll && leadRoll === studentRoll) return true;
+    if (studentEmail && leadEmail && leadEmail === studentEmail) return true;
+    if (studentName && leadName && (leadName === studentName || leadName.includes(studentName))) return true;
 
     if (Array.isArray(team.members)) {
       return team.members.some((m) => {
-        const mId = String(m._id || m.id || m.studentId || m);
-        const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
-        const mName = String(m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m).toLowerCase();
+        const mId = String(m?._id || m?.id || m?.studentId || m || "");
+        const mRoll = String(m?.rollNumber || m?.rollNo || "").toLowerCase();
+        const mEmail = String(m?.email || "").toLowerCase();
+        const mName = String(
+          m?.firstName ? `${m.firstName} ${m.lastName || ""}` : m?.name || m || ""
+        ).trim().toLowerCase();
 
         return (
-          (studentId && mId === studentId) ||
-          (studentRoll && mRoll === studentRoll) ||
+          (studentId && mId && mId === studentId) ||
+          (studentRoll && mRoll && mRoll === studentRoll) ||
+          (studentEmail && mEmail && mEmail === studentEmail) ||
           (studentName && mName && (mName === studentName || mName.includes(studentName)))
         );
       });
@@ -50,12 +95,23 @@ function MyProjects() {
 
   const studentTeamIds = new Set(studentTeams.map((t) => String(t._id || t.id)));
 
-  // Filter projects belonging to student's team
-  const studentProjects = projects.filter((project) => {
-    const projTeamId = String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch) || "");
-    if (projTeamId && studentTeamIds.has(projTeamId)) return true;
-    return false;
+  // Filter projects belonging to student's team (or all projects if none filtered)
+  const myAssignedProjects = projects.filter((project) => {
+    const projTeamId = String(
+      project.teamId?._id ||
+      project.teamId?.id ||
+      (typeof project.teamId === "string" ? project.teamId : null) ||
+      project.team?._id ||
+      project.team?.id ||
+      (typeof project.team === "string" ? project.team : null) ||
+      (typeof project.batch === "object" ? project.batch?._id : project.batch) ||
+      project.batchId ||
+      ""
+    );
+    return projTeamId && studentTeamIds.has(projTeamId);
   });
+
+  const studentProjects = myAssignedProjects.length > 0 ? myAssignedProjects : projects;
 
   const getBatchName = (b) => {
     if (!b) return "Batch";
@@ -83,12 +139,25 @@ function MyProjects() {
 
   // Prepare project data
   const displayList = studentProjects.map((project) => {
-    const team = teams.find(
-      (team) =>
-        String(team.id || team._id) === String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch)),
+    const projTeamId = String(
+      project.teamId?._id ||
+      project.teamId?.id ||
+      (typeof project.teamId === "string" ? project.teamId : null) ||
+      project.team?._id ||
+      project.team?.id ||
+      (typeof project.team === "string" ? project.team : null) ||
+      (typeof project.batch === "object" ? project.batch?._id : project.batch) ||
+      project.batchId ||
+      ""
     );
 
+    const team =
+      teams.find((t) => String(t.id || t._id) === projTeamId) ||
+      (typeof project.teamId === "object" ? project.teamId : null) ||
+      (typeof project.team === "object" ? project.team : null);
+
     const status = project.status || "In Progress";
+    const rawLeader = team?.teamLead || team?.lead || team?.teamLeadId;
 
     return {
       id: project.id || project._id,
@@ -107,14 +176,14 @@ function MyProjects() {
 
       progress: calculateProgress(status, project.progress),
 
-      teamName: team?.name || "No Team Assigned",
+      teamName: team?.teamName || team?.name || "No Team Assigned",
 
       // Project dates
       startDate: project.startDate || "",
       deadline: project.deadline || "",
 
       // Team information
-      leader: team?.lead || "Unassigned",
+      leader: resolveStudentName(rawLeader),
       members: Array.isArray(team?.members)
         ? team.members
         : Array.isArray(project.members)
@@ -130,6 +199,7 @@ function MyProjects() {
   const itemsPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Resolved merge conflict: Calculate totalPages and check bounds in useEffect
   const totalPages = Math.ceil(displayList.length / itemsPerPage);
 
   useEffect(() => {

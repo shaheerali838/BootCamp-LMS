@@ -1,13 +1,13 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Auth Pages
+// ================= AUTH =================
 import LoginPages from "../pages/Auth/LoginPages";
 import ForgotPassword from "../pages/Auth/ForgetPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
-import ChangePassword from "../pages/Auth/ChangePassword";
 
-// Admin Pages
+
+// ================= ADMIN =================
 import Dashboard from "../pages/Dashboard";
 import StudentManagement from "../pages/Students";
 import StudentDetails from "../components/features/Students/StudentDetails";
@@ -18,16 +18,16 @@ import Resources from "../pages/Resources";
 import Deliverables from "../pages/Deliverables";
 import Evaluations from "../pages/Evaluations";
 
-// Team
+// ================= TEAM =================
 import TeamManagement from "../components/features/Teams/TeamManagement";
 import TeamDetails from "../components/features/Teams/TeamDetail";
 
-// Projects & Announcements
+// ================= PROJECTS & ANNOUNCEMENTS =================
 import ProjectManagement from "../components/features/Projects/ProjectManagement";
 import ProjectDetail from "../components/features/Projects/ProjectDetail";
 import Announcement from "../components/features/Announcements/Announcement";
 
-// Student Layer
+// ================= STUDENT =================
 import StudentDashboard from "../pages/Student/StudentDashboard";
 import MyAttendance from "../pages/Student/MyAttendance";
 import MyTasks from "../pages/Student/MyTasks";
@@ -41,20 +41,20 @@ import MySprints from "../pages/Student/MySprints";
 import MyDeliverables from "../pages/Student/MyDeliverables";
 import MyEvaluation from "../pages/Student/MyEvaluation";
 
-// SuperAdmin Layer
+// ================= SUPER ADMIN =================
 import SuperAdminDashboard from "../pages/SuperAdmin/SuperAdminDashboard";
 import SuperAdminManagement from "../pages/SuperAdmin/SuperAdminManagement";
 import AdminManagement from "../pages/SuperAdmin/AdminManagement";
 import SuperAdminStudentManagement from "../pages/SuperAdmin/StudentManagement";
 import BatchManagement from "../pages/SuperAdmin/BatchManagement";
-import SuperAdminTeamManagement from "../pages/SuperAdmin/TeamManagement";
-import SuperAdminProjectManagement from "../pages/SuperAdmin/ProjectManagement";
 import MilestoneManagement from "../pages/SuperAdmin/MilestoneManagement";
 import SprintManagement from "../pages/SuperAdmin/SprintManagement";
 import AttendanceOverview from "../pages/SuperAdmin/AttendanceOverview";
 import SuperAdminReports from "../pages/SuperAdmin/Reports";
 import SuperAdminResources from "../pages/SuperAdmin/Resources";
 import SystemConfiguration from "../pages/SuperAdmin/SystemConfiguration";
+import Profile from "../pages/profile/Profile";
+import ChangePassword from "../pages/profile/ChangePassword";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -90,8 +90,14 @@ const AppRoutes = () => {
       {/* ================= AUTH ROUTES ================= */}
       <Route path="/login" element={<LoginPages />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      {/* ================= PROFILE & PASSWORD ROUTES (ADDED / ENHANCED) ================= */}
       <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/student/change-password" element={<ChangePassword />} />
+      <Route path="/superadmin/change-password" element={<ChangePassword />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/student/profile" element={<Profile />} />
+      <Route path="/superadmin/profile" element={<Profile />} />
+      {/* ============================================================================== */}
 
       {/* ================= ADMIN ROUTES ================= */}
       <Route path="/dashboard" element={<RoleDashboardRouter />} />

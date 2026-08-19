@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import Admin from "../model/admin.model.js";
 import Student from "../model/student.model.js";
@@ -5,6 +6,10 @@ import Batch from "../model/batch.model.js";
 import ROLES from "../constants/roles.js";
 
 const seedAdmin = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    return;
+  }
+
   try {
     // 1. Seed Super Admin
     const superAdminEmail = (

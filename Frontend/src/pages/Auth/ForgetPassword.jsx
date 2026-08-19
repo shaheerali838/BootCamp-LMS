@@ -27,7 +27,7 @@ function ForgotPassword() {
       const response = await forgotPassword(email);
 
       setMessage(
-        response.data.message ||
+        response?.data?.message ||
           "Password reset email sent successfully"
       );
     } catch (error) {
@@ -82,7 +82,7 @@ function ForgotPassword() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5"
+          className="w-full bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5 cursor-pointer"
         >
           {loading ? "Sending..." : "Send Reset Link"}
         </button>
@@ -90,7 +90,7 @@ function ForgotPassword() {
         <button
           type="button"
           onClick={() => navigate("/login")}
-          className="w-full text-gray-500 mt-3 text-sm"
+          className="w-full text-gray-500 hover:text-[#0476b9] mt-3 text-sm cursor-pointer transition"
         >
           Back to Login
         </button>
