@@ -59,7 +59,7 @@ function ProjectManagement() {
   // --------------------------------
   const totalMembers = teams.reduce(
     (total, team) =>
-      total + (team.members?.length || 0),
+      total + (team.members?.length || 0) + (team.teamLead || team.lead ? 1 : 0),
     0
   );
 
@@ -67,9 +67,7 @@ function ProjectManagement() {
   // TOTAL LEADERS
   // --------------------------------
   const totalLeaders = teams.filter(
-    (team) =>
-      team.lead &&
-      team.lead.trim() !== ""
+    (team) => Boolean(team.teamLead || team.lead)
   ).length;
 
   // --------------------------------
