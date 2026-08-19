@@ -19,21 +19,32 @@ function AttendancePreview() {
   const [page, setPage] = useState(1);
 
   const getStudentName = (s) =>
-    s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+    s.name ||
+    `${s.firstName || ""} ${s.lastName || ""}`.trim() ||
+    s.email ||
+    "Student";
 
   const getStudentTeam = (student) => {
     const sid = String(student._id || student.id || "");
-    const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
+    const studentRoll = String(
+      student.rollNumber || student.rollNo || "",
+    ).toLowerCase();
     const studentName = String(
-      student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
-    ).trim().toLowerCase();
+      student.firstName
+        ? `${student.firstName} ${student.lastName || ""}`
+        : student.name || "",
+    )
+      .trim()
+      .toLowerCase();
 
     const found = teams.find((team) => {
-      const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+      const leadId = String(
+        team.teamLead?._id || team.teamLead || team.lead || "",
+      );
       const leadName = String(
         team.teamLead?.name || team.teamLead?.firstName
           ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}`
-          : team.lead || ""
+          : team.lead || "",
       ).toLowerCase();
 
       if (leadId && leadId === sid) return true;
@@ -44,7 +55,7 @@ function AttendancePreview() {
           const mId = String(m._id || m.id || m.studentId || m);
           const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
           const mName = String(
-            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m
+            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m,
           ).toLowerCase();
           return (
             (sid && mId === sid) ||
@@ -56,7 +67,7 @@ function AttendancePreview() {
       return false;
     });
 
-    return found ? (found.teamName || found.name) : "No Team";
+    return found ? found.teamName || found.name : "No Team";
   };
 
   const data = students
@@ -92,7 +103,9 @@ function AttendancePreview() {
       const value = search.toLowerCase();
       return (
         student.name.toLowerCase().includes(value) ||
-        (student.rollNumber || student.rollNo || "").toLowerCase().includes(value) ||
+        (student.rollNumber || student.rollNo || "")
+          .toLowerCase()
+          .includes(value) ||
         student.team.toLowerCase().includes(value)
       );
     })
@@ -113,7 +126,7 @@ function AttendancePreview() {
   const currentPage = Math.min(page, totalPages);
   const displayedData = data.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const getStatusStyle = (status) => {
@@ -139,7 +152,7 @@ function AttendancePreview() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-xs h-[380px] overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-xs h-95 overflow-hidden">
       {/* Main Content */}
       <div className="flex flex-col flex-1 min-h-0">
         {/* Top Header */}
@@ -205,14 +218,20 @@ function AttendancePreview() {
               </div>
 
               {/* Team */}
-              <span className={`truncate font-medium text-xs ${
-                student.team !== "No Team" ? "text-blue-600 font-semibold" : "text-gray-400"
-              }`}>
+              <span
+                className={`truncate font-medium text-xs ${
+                  student.team !== "No Team"
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-400"
+                }`}
+              >
                 {student.team}
               </span>
 
               {/* Roll Number */}
-              <span className="text-gray-500 font-medium">{student.rollNo}</span>
+              <span className="text-gray-500 font-medium">
+                {student.rollNo}
+              </span>
 
               {/* Time */}
               <span className="text-gray-500 font-medium">{student.time}</span>
@@ -221,7 +240,7 @@ function AttendancePreview() {
               <div className="flex justify-end">
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusStyle(
-                    student.status
+                    student.status,
                   )}`}
                 >
                   {student.status}
