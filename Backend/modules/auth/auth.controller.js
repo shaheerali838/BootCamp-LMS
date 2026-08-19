@@ -223,7 +223,7 @@ export const refreshToken = async (req, res) => {
   }
 };
 
-// ---------- FORGOT PASSWORD ----------
+// FORGOT PASSWORD 
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -275,7 +275,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ---------- RESET PASSWORD ----------
+// RESET PASSWORD 
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -296,7 +296,7 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       user = await Student.findOne({
         resetPasswordTokenHash: hashedToken,
-        resetPasswordExpiresAt: { $gt: new Date() },
+        resetPasswordExpiresAt: { $gt: new Date() },  //gt => mongodb operater hai
       });
     }
 
@@ -310,6 +310,7 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     user.tokenVersion = (user.tokenVersion || 0) + 1;
 
+    //  Tokens ko null kar do taake link doosri baar kaam na kare
     user.resetPasswordTokenHash = null;
     user.resetPasswordExpiresAt = null;
 
@@ -331,6 +332,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
 // ---------- CHANGE PASSWORD ----------
 export const changePassword = async (req, res) => {
   try {
@@ -344,6 +346,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
+    //  Check karo user ne purana password sahi enter kiya hai ya nahi
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({

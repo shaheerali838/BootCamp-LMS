@@ -11,7 +11,7 @@ import {
 } from "./student.service.js";
 import sendEmail from "../../utils/sendEmail.js";
 
-// ---------- CREATE STUDENT ----------
+// CREATE STUDENT 
 export const createStudent = async (req, res) => {
   try {
     const { email, rollNumber, password } = req.body;
@@ -32,6 +32,7 @@ export const createStudent = async (req, res) => {
       });
     }
 
+    // Step 3: Service call to save student
     const student = await createStudentService(req.body);
 
     // Send Welcome Email
