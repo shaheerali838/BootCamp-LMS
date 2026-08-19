@@ -1,8 +1,3 @@
-// =========================================================================
-// Profile Header Component
-// Displays profile cover, avatar upload with camera trigger, and user role badges
-// =========================================================================
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {

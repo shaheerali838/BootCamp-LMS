@@ -1,8 +1,3 @@
-// =========================================================================
-// Top Navbar Component
-// Includes dynamic Breadcrumb and active User Profile quick badge with avatar & role
-// =========================================================================
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Breadcrumb from "../common/Breadcrumb";

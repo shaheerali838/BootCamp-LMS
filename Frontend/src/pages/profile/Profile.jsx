@@ -1,8 +1,3 @@
-// =========================================================================
-// Profile Page Component
-// Displays personalized profile details dynamically for Super Admin, Admin, and Student
-// =========================================================================
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
