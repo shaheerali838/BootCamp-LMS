@@ -39,60 +39,87 @@ function AddStudentModal({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setError("");
-      setShowPassword(false);
-      if (editingStudent) {
-        const nameParts = (editingStudent.name || "").split(" ");
-        setFormData({
-          firstName:
-            editingStudent.firstName || nameParts[0] || "",
-          lastName:
-            editingStudent.lastName ||
-            nameParts.slice(1).join(" ") ||
-            "",
-          email: editingStudent.email || "",
-          password: "",
-          phoneNumber:
-            editingStudent.phoneNumber || editingStudent.phone || "",
-          rollNumber:
-            editingStudent.rollNumber || editingStudent.rollNo || "",
-          gender: (editingStudent.gender || "male").toLowerCase(),
-          dateOfBirth: editingStudent.dateOfBirth
-            ? new Date(editingStudent.dateOfBirth).toISOString().split("T")[0]
-            : "2002-01-01",
-          batchId:
-            editingStudent.batchId ||
-            editingStudent.batch?._id ||
-            editingStudent.batch ||
-            (batches[0] ? batches[0]._id || batches[0].id : ""),
-          mentorId:
-            editingStudent.mentorId ||
-            editingStudent.mentor?._id ||
-            editingStudent.mentor ||
-            (availableMentors[0]
-              ? availableMentors[0]._id || availableMentors[0].id
-              : ""),
-          status: editingStudent.status || "active",
-        });
-      } else {
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "Student@123",
-          phoneNumber: "",
-          rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
-          gender: "male",
-          dateOfBirth: "2002-01-01",
-          batchId: batches[0] ? batches[0]._id || batches[0].id : "",
-          mentorId: availableMentors[0]
+    if (isOpen && fetchMentors) {
+      fetchMentors();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setError("");
+    setShowPassword(false);
+
+    if (editingStudent) {
+      const nameParts = (editingStudent.name || "").split(" ");
+      setFormData({
+        firstName:
+          editingStudent.firstName || nameParts[0] || "",
+        lastName:
+          editingStudent.lastName ||
+          nameParts.slice(1).join(" ") ||
+          "",
+        email: editingStudent.email || "",
+        password: "",
+        phoneNumber:
+          editingStudent.phoneNumber || editingStudent.phone || "",
+        rollNumber:
+          editingStudent.rollNumber || editingStudent.rollNo || "",
+        gender: (editingStudent.gender || "male").toLowerCase(),
+        dateOfBirth: editingStudent.dateOfBirth
+          ? new Date(editingStudent.dateOfBirth).toISOString().split("T")[0]
+          : "2002-01-01",
+        batchId:
+          editingStudent.batchId?._id ||
+          (typeof editingStudent.batchId === "string" ? editingStudent.batchId : "") ||
+          editingStudent.batch?._id ||
+          (typeof editingStudent.batch === "string" ? editingStudent.batch : "") ||
+          (batches[0] ? batches[0]._id || batches[0].id : ""),
+        mentorId:
+          editingStudent.mentorId?._id ||
+          (typeof editingStudent.mentorId === "string" ? editingStudent.mentorId : "") ||
+          editingStudent.mentor?._id ||
+          (typeof editingStudent.mentor === "string" ? editingStudent.mentor : "") ||
+          (availableMentors[0]
             ? availableMentors[0]._id || availableMentors[0].id
-            : "",
-          status: "active",
-        });
-      }
-      if (fetchMentors) fetchMentors();
+            : ""),
+        status: editingStudent.status || "active",
+      });
+    } else {
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "Student@123",
+        phoneNumber: "",
+        rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
+        gender: "male",
+        dateOfBirth: "2002-01-01",
+        batchId: batches[0] ? batches[0]._id || batches[0].id : "",
+        mentorId: availableMentors[0]
+          ? availableMentors[0]._id || availableMentors[0].id
+          : "",
+        status: "active",
+      });
+    }
+  }, [isOpen, editingStudent]);
+
+  // Sync batchId and mentorId once batches/mentors finish loading if not yet set
+  useEffect(() => {
+    if (isOpen && !editingStudent) {
+      setFormData((prev) => {
+        let updated = false;
+        const next = { ...prev };
+        if (!next.batchId && batches.length > 0) {
+          next.batchId = batches[0]._id || batches[0].id || "";
+          updated = true;
+        }
+        if (!next.mentorId && availableMentors.length > 0) {
+          next.mentorId = availableMentors[0]._id || availableMentors[0].id || "";
+          updated = true;
+        }
+        return updated ? next : prev;
+      });
     }
   }, [isOpen, editingStudent, batches, availableMentors]);
 

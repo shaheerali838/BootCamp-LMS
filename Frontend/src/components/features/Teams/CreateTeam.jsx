@@ -17,11 +17,26 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
     });
   }, [mentors, admins]);
 
+  const getEditBatchId = () => {
+    if (!edit) return batches[0]?._id || batches[0]?.id || "";
+    return edit.batchId?._id || (typeof edit.batchId === "string" ? edit.batchId : "") || batches[0]?._id || batches[0]?.id || "";
+  };
+
+  const getEditMentorId = () => {
+    if (!edit) return availableMentors[0]?._id || availableMentors[0]?.id || "";
+    return edit.mentor?._id || (typeof edit.mentor === "string" ? edit.mentor : "") || availableMentors[0]?._id || availableMentors[0]?.id || "";
+  };
+
+  const getEditTeamLeadId = () => {
+    if (!edit) return students[0]?._id || students[0]?.id || "";
+    return edit.teamLead?._id || (typeof edit.teamLead === "string" ? edit.teamLead : "") || students[0]?._id || students[0]?.id || "";
+  };
+
   const [formData, setFormData] = useState({
     teamName: edit ? (edit.teamName || edit.name || "") : "",
-    batchId: edit ? (edit.batchId || (batches[0]?._id || batches[0]?.id || "")) : (batches[0]?._id || batches[0]?.id || ""),
-    mentor: edit ? (edit.mentor || (availableMentors[0]?._id || availableMentors[0]?.id || "")) : (availableMentors[0]?._id || availableMentors[0]?.id || ""),
-    teamLead: edit ? (edit.teamLead || (students[0]?._id || students[0]?.id || "")) : (students[0]?._id || students[0]?.id || ""),
+    batchId: getEditBatchId(),
+    mentor: getEditMentorId(),
+    teamLead: getEditTeamLeadId(),
     status: edit ? (edit.status || "active") : "active",
   });
 
@@ -37,9 +52,9 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
     if (edit) {
       setFormData({
         teamName: edit.teamName || edit.name || "",
-        batchId: edit.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : ""),
-        mentor: edit.mentor || (availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : ""),
-        teamLead: edit.teamLead || (students[0] ? (students[0]._id || students[0].id) : ""),
+        batchId: edit.batchId?._id || (typeof edit.batchId === "string" ? edit.batchId : "") || (batches[0] ? (batches[0]._id || batches[0].id) : ""),
+        mentor: edit.mentor?._id || (typeof edit.mentor === "string" ? edit.mentor : "") || (availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : ""),
+        teamLead: edit.teamLead?._id || (typeof edit.teamLead === "string" ? edit.teamLead : "") || (students[0] ? (students[0]._id || students[0].id) : ""),
         status: edit.status || "active",
       });
     }

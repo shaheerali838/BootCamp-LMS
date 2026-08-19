@@ -12,7 +12,11 @@ import {
 // Create Milestone
 const createMilestoneHandler = async (req, res) => {
   try {
-    const milestone = await createMilestone(req.body);
+    const payload = {
+      ...req.body,
+      milestoneName: req.body.milestoneName || req.body.title || req.body.name || "Milestone",
+    };
+    const milestone = await createMilestone(payload);
 
     res.status(201).json({
       success: true,
@@ -72,7 +76,13 @@ const getMilestoneByIdHandler = async (req, res) => {
 // Update Milestone
 const updateMilestoneHandler = async (req, res) => {
   try {
-    const milestone = await updateMilestone(req.params.id, req.body);
+    const payload = {
+      ...req.body,
+    };
+    if (req.body.title && !req.body.milestoneName) payload.milestoneName = req.body.title;
+    if (req.body.name && !req.body.milestoneName) payload.milestoneName = req.body.name;
+
+    const milestone = await updateMilestone(req.params.id, payload);
 
     if (!milestone) {
       return res.status(404).json({

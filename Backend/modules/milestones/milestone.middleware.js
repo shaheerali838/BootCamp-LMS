@@ -13,7 +13,6 @@ const checkMilestoneExists = async (req, res, next) => {
     }
 
     req.milestone = milestone;
-
     next();
   } catch (error) {
     res.status(500).json({
@@ -26,15 +25,22 @@ const checkMilestoneExists = async (req, res, next) => {
 // Check Duplicate Milestone Name
 const checkDuplicateMilestoneName = async (req, res, next) => {
   try {
-    const milestone = await Milestone.findOne({
-      milestoneName: req.body.milestoneName,
-      projectId: req.body.projectId,
-    });
+    const name = req.body.milestoneName || req.body.title || req.body.name;
+    if (!name) return next();
+
+    const query = {
+      milestoneName: { $regex: new RegExp(`^${name.trim()}$`, "i") },
+    };
+    if (req.params.id) {
+      query._id = { $ne: req.params.id };
+    }
+
+    const milestone = await Milestone.findOne(query);
 
     if (milestone) {
       return res.status(400).json({
         success: false,
-        message: "Milestone name already exists in this project",
+        message: "Milestone name already exists",
       });
     }
 

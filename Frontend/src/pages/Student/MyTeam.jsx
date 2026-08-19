@@ -12,30 +12,65 @@ import {
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/AcademicContext";
 
+import { useAuth } from "../../context/AuthContext";
+
 function MyTeam() {
-  // CHANGED: Get projects from Context API
+  const { user } = useAuth();
   const { teams = [], projects = [] } = useTeamProject();
   const { students = [] } = useStudent();
 
+  const studentId = String(user?._id || user?.id || "");
+  const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentName = String(
+    user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
+  ).trim().toLowerCase();
+
+  // Filter teams to only those where the current student is lead or member
+  const studentTeams = teams.filter((team) => {
+    if (!studentId && !studentRoll && !studentName) return false;
+
+    // Check if team lead
+    const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+    const leadName = String(team.teamLead?.name || team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : team.lead || "").toLowerCase();
+    if (leadId && leadId === studentId) return true;
+    if (leadName && studentName && leadName.includes(studentName)) return true;
+
+    // Check if member
+    if (Array.isArray(team.members)) {
+      return team.members.some((m) => {
+        const mId = String(m._id || m.id || m.studentId || m);
+        const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+        const mName = String(m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m).toLowerCase();
+
+        return (
+          (studentId && mId === studentId) ||
+          (studentRoll && mRoll === studentRoll) ||
+          (studentName && mName && (mName === studentName || mName.includes(studentName)))
+        );
+      });
+    }
+    return false;
+  });
+
   const getBatchName = (b) => {
-    if (!b) return "Batch 11";
-    if (typeof b === "object") return b.batchName || b.name || "Batch 11";
+    if (!b) return "Batch";
+    if (typeof b === "object") return b.batchName || b.name || "Batch";
     return String(b);
   };
 
   const studentBatch = getBatchName(students[0]?.batch);
 
-  // ADDED: Store selected team for details modal
+  // Store selected team for details modal
   const [selectedTeam, setSelectedTeam] = useState(null);
 
   // Pagination
   const itemsPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(teams.length / itemsPerPage);
+  const totalPages = Math.ceil(studentTeams.length / itemsPerPage);
 
   const validPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
 
-  const currentTeams = teams.slice(
+  const currentTeams = studentTeams.slice(
     (validPage - 1) * itemsPerPage,
     validPage * itemsPerPage
   );

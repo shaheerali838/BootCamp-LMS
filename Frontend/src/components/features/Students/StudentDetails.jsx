@@ -15,7 +15,7 @@ function StudentDetails() {
   const { students } = useStudent();
 
   const student = students.find(
-    (item) => item.id === Number(id)
+    (item) => String(item._id || item.id) === String(id)
   );
 
   if (!student) {
@@ -103,7 +103,7 @@ function StudentDetails() {
             </div>
 
             <p className="text-gray-500 mt-1">
-              {student.rollNo}
+              {student.rollNumber || student.rollNo}
             </p>
 
             <div className="flex flex-wrap gap-5 mt-4 text-sm text-gray-500">
@@ -157,7 +157,7 @@ function StudentDetails() {
           </p>
 
           <h2 className="text-xl font-semibold text-gray-900 mt-3">
-            {student.rollNo}
+            {student.rollNumber || student.rollNo}
           </h2>
         </div>
       </div>

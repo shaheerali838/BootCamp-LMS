@@ -39,7 +39,7 @@ function Students() {
   const filteredStudents = students.filter((student) => {
     const value = search.toLowerCase();
     const name = getStudentName(student).toLowerCase();
-    const roll = (student.rollNo || "").toLowerCase();
+    const roll = (student.rollNumber || student.rollNo || "").toLowerCase();
     const team = (student.team || "").toLowerCase();
     const email = (student.email || "").toLowerCase();
 
@@ -174,7 +174,7 @@ function Students() {
             >
               {/* Roll No */}
               <span className="text-xs text-gray-600">
-                {student.rollNo || "N/A"}
+                {student.rollNumber || student.rollNo || "N/A"}
               </span>
 
               {/* Name */}

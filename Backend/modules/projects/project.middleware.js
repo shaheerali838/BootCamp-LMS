@@ -13,7 +13,6 @@ const checkProjectExists = async (req, res, next) => {
     }
 
     req.project = project;
-
     next();
   } catch (error) {
     res.status(500).json({
@@ -26,9 +25,17 @@ const checkProjectExists = async (req, res, next) => {
 // Check Duplicate Project Name
 const checkDuplicateProjectName = async (req, res, next) => {
   try {
-    const project = await Project.findOne({
-      projectName: req.body.projectName,
-    });
+    const name = req.body.projectName || req.body.name;
+    if (!name) return next();
+
+    const query = {
+      projectName: { $regex: new RegExp(`^${name.trim()}$`, "i") },
+    };
+    if (req.params.id) {
+      query._id = { $ne: req.params.id };
+    }
+
+    const project = await Project.findOne(query);
 
     if (project) {
       return res.status(400).json({

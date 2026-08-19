@@ -1,5 +1,4 @@
 import TeamMember from "../../model/teamMember.model.js";
-import { checkDuplicateMember as checkDuplicateMemberService } from "./teamMember.service.js";
 
 // Check Team Member Exists
 const checkTeamMemberExists = async (req, res, next) => {
@@ -14,7 +13,6 @@ const checkTeamMemberExists = async (req, res, next) => {
     }
 
     req.teamMember = member;
-
     next();
   } catch (error) {
     res.status(500).json({
@@ -27,9 +25,17 @@ const checkTeamMemberExists = async (req, res, next) => {
 // Check Duplicate Member
 const checkDuplicateMember = async (req, res, next) => {
   try {
-    const { teamId, studentId } = req.body;
+    const teamId = req.body.teamId || req.params.teamId;
+    const studentId = req.body.studentId || req.params.studentId;
 
-    const existingMember = await checkDuplicateMemberService(teamId, studentId);
+    if (!teamId || !studentId) return next();
+
+    const query = { teamId, studentId };
+    if (req.params.id) {
+      query._id = { $ne: req.params.id };
+    }
+
+    const existingMember = await TeamMember.findOne(query);
 
     if (existingMember) {
       return res.status(400).json({

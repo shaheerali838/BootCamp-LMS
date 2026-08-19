@@ -16,7 +16,10 @@ function StudentManagement() {
   const [editingStudent, setEditingStudent] = useState(null);
 
   const getStudentName = (s) =>
-    s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+    s.name ||
+    `${s.firstName || ""} ${s.lastName || ""}`.trim() ||
+    s.email ||
+    "Student";
 
   const getStudentInitials = (s) => {
     if (s.initials) return s.initials;
@@ -68,7 +71,8 @@ function StudentManagement() {
               SuperAdmin Student Management
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Full system authority to enroll, modify, or remove student accounts
+              Full system authority to enroll, modify, or remove student
+              accounts
             </p>
           </div>
           <button
@@ -111,7 +115,8 @@ function StudentManagement() {
           {filtered.map((item) => {
             const studentName = getStudentName(item);
             const studentInitials = getStudentInitials(item);
-            const isStatusActive = (item.status || "").toLowerCase() === "active";
+            const isStatusActive =
+              (item.status || "").toLowerCase() === "active";
 
             return (
               <div

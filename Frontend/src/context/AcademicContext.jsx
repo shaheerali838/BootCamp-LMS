@@ -99,6 +99,8 @@ export const AcademicProvider = ({ children }) => {
   const updateStudent = async (id, updatedData) => {
     setStudentsLoading(true);
     try {
+      const bId = updatedData.batchId?._id || updatedData.batchId || updatedData.batch?._id || updatedData.batch;
+      const mId = updatedData.mentorId?._id || updatedData.mentorId || updatedData.mentor?._id || updatedData.mentor;
       const payload = {
         firstName: updatedData.firstName || updatedData.name?.split(" ")[0],
         lastName:
@@ -113,15 +115,15 @@ export const AcademicProvider = ({ children }) => {
           ? updatedData.gender.toLowerCase()
           : undefined,
         dateOfBirth: updatedData.dateOfBirth,
-        batchId: updatedData.batchId || updatedData.batch,
-        mentorId: updatedData.mentorId || updatedData.mentor,
+        batchId: bId || undefined,
+        mentorId: mId || undefined,
         status: updatedData.status,
       };
       if (updatedData.password) {
         payload.password = updatedData.password;
       }
       Object.keys(payload).forEach(
-        (k) => payload[k] === undefined && delete payload[k],
+        (k) => (payload[k] === undefined || payload[k] === "") && delete payload[k],
       );
 
       const res = await api.put(`/students/update-student/${id}`, payload);

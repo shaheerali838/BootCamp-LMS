@@ -5,7 +5,10 @@ const sprintSchema = new mongoose.Schema(
     milestoneId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Milestone",
-      required: true,
+    },
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
     },
     sprintName: {
       type: String,
@@ -17,11 +20,9 @@ const sprintSchema = new mongoose.Schema(
     },
     endDate: {
       type: Date,
-      required: true,
     },
     status: {
       type: String,
-      enum: ["active", "inactive"],
       default: "active",
     },
   },

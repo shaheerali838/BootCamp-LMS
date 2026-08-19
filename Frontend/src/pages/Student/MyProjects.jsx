@@ -10,13 +10,56 @@ import {
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/AcademicContext";
 
+import { useAuth } from "../../context/AuthContext";
+
 function MyProjects() {
+  const { user } = useAuth();
   const { projects = [], teams = [] } = useTeamProject();
   const { students = [] } = useStudent();
 
+  const studentId = String(user?._id || user?.id || "");
+  const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentName = String(
+    user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
+  ).trim().toLowerCase();
+
+  // Find teams the student is part of
+  const studentTeams = teams.filter((team) => {
+    if (!studentId && !studentRoll && !studentName) return false;
+
+    const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+    const leadName = String(team.teamLead?.name || team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : team.lead || "").toLowerCase();
+    if (leadId && leadId === studentId) return true;
+    if (leadName && studentName && leadName.includes(studentName)) return true;
+
+    if (Array.isArray(team.members)) {
+      return team.members.some((m) => {
+        const mId = String(m._id || m.id || m.studentId || m);
+        const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+        const mName = String(m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m).toLowerCase();
+
+        return (
+          (studentId && mId === studentId) ||
+          (studentRoll && mRoll === studentRoll) ||
+          (studentName && mName && (mName === studentName || mName.includes(studentName)))
+        );
+      });
+    }
+    return false;
+  });
+
+  const studentTeamIds = new Set(studentTeams.map((t) => String(t._id || t.id)));
+
+  // Filter projects belonging to student's team
+  const studentProjects = projects.filter((project) => {
+    const projTeamId = String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch) || "");
+    if (projTeamId && studentTeamIds.has(projTeamId)) return true;
+    return false;
+  });
+
   const getBatchName = (b) => {
-    if (!b) return "Batch 11";
-    if (typeof b === "object") return b.batchName || b.name || "Batch 11";
+    if (!b) return "Batch";
+    if (typeof b === "object") return b.batchName || b.name || "Batch";
     return String(b);
   };
 
@@ -39,7 +82,7 @@ function MyProjects() {
   };
 
   // Prepare project data
-  const displayList = projects.map((project) => {
+  const displayList = studentProjects.map((project) => {
     const team = teams.find(
       (team) =>
         String(team.id || team._id) === String(project.teamId || (typeof project.batch === "object" ? project.batch?._id : project.batch)),

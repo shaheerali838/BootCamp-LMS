@@ -134,7 +134,7 @@ function ProjectCard({ project, team, onEdit }) {
                 </p>
 
                 <p className="font-semibold text-[#0476b9] mt-1">
-                    {team?.name || "Unknown Team"}
+                    {team?.teamName || team?.name || project.teamId?.teamName || project.team?.teamName || project.team?.name || "Unassigned"}
                 </p>
 
             </div>

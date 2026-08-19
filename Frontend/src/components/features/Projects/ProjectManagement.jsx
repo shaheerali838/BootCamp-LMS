@@ -163,8 +163,13 @@ function ProjectManagement() {
     setEditingProject(project);
 
     const selectedTeamId =
-      project.batch ||
-      project.teamId ||
+      project.teamId?._id ||
+      project.teamId?.id ||
+      (typeof project.teamId === "string" ? project.teamId : "") ||
+      project.batch?._id ||
+      project.batch?.id ||
+      (typeof project.batch === "string" ? project.batch : "") ||
+      project.batchId ||
       "";
 
     // Find selected team
@@ -585,19 +590,23 @@ function ProjectManagement() {
 
             {currentProjects.map(
               (project) => {
+                const projectTeamId =
+                  project.teamId?._id ||
+                  project.teamId?.id ||
+                  (typeof project.teamId === "string" ? project.teamId : null) ||
+                  project.batch?._id ||
+                  project.batch?.id ||
+                  (typeof project.batch === "string" ? project.batch : null) ||
+                  project.batchId;
 
                 const team =
                   teams.find(
-                    (team) =>
-                      String(
-                        team._id ||
-                        team.id
-                      ) ===
-                      String(
-                        project.teamId ||
-                        project.batch
-                      )
-                  );
+                    (t) =>
+                      String(t._id || t.id) === String(projectTeamId)
+                  ) ||
+                  (project.teamId && typeof project.teamId === "object"
+                    ? project.teamId
+                    : null);
 
                 return (
                   <ProjectCard

@@ -35,7 +35,7 @@ function StudentPerformance() {
       id: sid,
       name: getStudentName(s),
       team: s.team || "General",
-      rollNo: s.rollNo || "N/A",
+      rollNo: s.rollNumber || s.rollNo || "N/A",
       attendance: attendancePct,
       tasks: tasksPct,
       performance: overallPerformance,
