@@ -34,31 +34,34 @@ function MyTeam() {
     user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
   ).trim().toLowerCase();
 
-  // Helper to resolve student name from populated object, student ID lookup, or raw string
-  const resolveStudentName = (raw) => {
-    if (!raw) return "Unassigned";
+  // Helper to resolve student lead details (name + avatar)
+  const resolveStudentLead = (raw) => {
+    if (!raw) return { name: "Unassigned", avatar: "" };
     if (typeof raw === "object" && raw) {
       const fullName = `${raw.firstName || ""} ${raw.lastName || ""}`.trim();
-      if (fullName) return fullName;
-      if (raw.name) return raw.name;
-      if (raw.email) return raw.email;
+      const name = fullName || raw.name || raw.email || "Team Lead";
+      const avatar = raw.profilePicture || raw.profileImage || raw.image || "";
+      return { name, avatar };
     }
     const rawId = String(raw?._id || raw?.id || raw || "");
     const found = students.find((s) => String(s._id || s.id) === rawId);
     if (found) {
       const fullName = `${found.firstName || ""} ${found.lastName || ""}`.trim();
-      if (fullName) return fullName;
-      return found.name || found.email || "Team Lead";
+      const name = fullName || found.name || found.email || "Team Lead";
+      const avatar = found.profilePicture || found.profileImage || found.image || "";
+      return { name, avatar };
     }
     if (typeof raw === "string" && raw.length > 2 && !raw.match(/^[0-9a-fA-F]{24}$/)) {
-      return raw;
+      return { name: raw, avatar: "" };
     }
-    return "Team Lead Assigned";
+    return { name: "Team Lead Assigned", avatar: "" };
   };
 
-  // Helper to resolve student member details
+  const resolveStudentName = (raw) => resolveStudentLead(raw).name;
+
+  // Helper to resolve student member details (name + roll + avatar)
   const resolveMemberDetails = (m) => {
-    if (!m) return { name: "Team Member", roll: "" };
+    if (!m) return { name: "Team Member", roll: "", avatar: "" };
     if (typeof m === "object" && m) {
       const name =
         `${m.firstName || ""} ${m.lastName || ""}`.trim() ||
@@ -67,7 +70,8 @@ function MyTeam() {
         m.email ||
         "Team Member";
       const roll = m.rollNumber || m.rollNo || m.email || "";
-      return { name, roll };
+      const avatar = m.profilePicture || m.profileImage || m.image || "";
+      return { name, roll, avatar };
     }
     const rawId = String(m);
     const found = students.find((s) => String(s._id || s.id) === rawId);
@@ -78,12 +82,13 @@ function MyTeam() {
         found.email ||
         "Team Member";
       const roll = found.rollNumber || found.rollNo || found.email || "";
-      return { name, roll };
+      const avatar = found.profilePicture || found.profileImage || found.image || "";
+      return { name, roll, avatar };
     }
     if (typeof m === "string" && !m.match(/^[0-9a-fA-F]{24}$/)) {
-      return { name: m, roll: "" };
+      return { name: m, roll: "", avatar: "" };
     }
-    return { name: "Team Member", roll: "" };
+    return { name: "Team Member", roll: "", avatar: "" };
   };
 
   // Check if logged-in student is part of the given team (as leader or member)
@@ -495,26 +500,33 @@ function MyTeam() {
 
             <div className="p-5 space-y-4">
               {/* Team Leader */}
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold">
-                    {resolveStudentName(selectedTeam.teamLead || selectedTeam.lead)
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
+              {(() => {
+                const leadInfo = resolveStudentLead(selectedTeam.teamLead || selectedTeam.lead);
+                return (
+                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
+                        {leadInfo.avatar ? (
+                          <img src={leadInfo.avatar} alt={leadInfo.name} className="w-full h-full object-cover" />
+                        ) : (
+                          leadInfo.name.charAt(0).toUpperCase()
+                        )}
+                      </div>
 
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Team Leader</p>
-                    <p className="font-bold text-gray-900 text-sm mt-0.5">
-                      {resolveStudentName(selectedTeam.teamLead || selectedTeam.lead)}
-                    </p>
-                  </div>
-                </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Team Leader</p>
+                        <p className="font-bold text-gray-900 text-sm mt-0.5">
+                          {leadInfo.name}
+                        </p>
+                      </div>
+                    </div>
 
-                <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                  LEAD
-                </span>
-              </div>
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      LEAD
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Team Members */}
               <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl">
@@ -531,21 +543,27 @@ function MyTeam() {
                 {selectedTeam.members?.length > 0 ? (
                   <div className="space-y-2">
                     {selectedTeam.members.map((member, index) => {
-                      const { name, roll } = resolveMemberDetails(member);
+                      const { name, roll, avatar } = resolveMemberDetails(member);
                       return (
                         <div
                           key={index}
                           className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-gray-100 text-xs"
                         >
-                          <div className="flex items-center gap-2">
-                            <FiUsers className="text-blue-600 shrink-0" />
-                            <span className="font-semibold text-gray-800">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px] overflow-hidden shrink-0 border border-blue-200">
+                              {avatar ? (
+                                <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                              ) : (
+                                name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <span className="font-semibold text-gray-800 truncate">
                               {name}
                             </span>
                           </div>
 
                           {roll && (
-                            <span className="text-gray-400 font-mono">
+                            <span className="text-gray-400 font-mono text-[11px] shrink-0 ml-2">
                               {roll}
                             </span>
                           )}

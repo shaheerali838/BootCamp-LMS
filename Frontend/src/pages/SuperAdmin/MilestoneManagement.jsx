@@ -8,6 +8,7 @@ import {
   FiCheckCircle,
   FiClock,
   FiTarget,
+  FiLoader,
 } from "react-icons/fi";
 import { useMilestones } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
@@ -78,6 +79,7 @@ function MilestoneManagement() {
   ).length;
 
   const [modalError, setModalError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingMilestone(null);
@@ -92,19 +94,16 @@ function MilestoneManagement() {
     setShowModal(true);
   };
 
-  const handleOpenEdit = (milestone) => {
-    setEditingMilestone(milestone);
+  const handleOpenEdit = (m) => {
+    setEditingMilestone(m);
     setModalError("");
-    const mProjId = milestone.projectId?._id || milestone.projectId;
+    const pId = m.projectId?._id || m.projectId || (projects[0] ? projects[0]._id || projects[0].id : "");
     setFormData({
-      title: milestone.milestoneName || milestone.title || "",
-      description: milestone.description || "",
-      dueDate: milestone.dueDate
-        ? new Date(milestone.dueDate).toISOString().split("T")[0]
-        : "",
-      projectId:
-        mProjId || (projects[0] ? projects[0]._id || projects[0].id : ""),
-      status: milestone.status || "Pending",
+      title: m.title || m.milestoneName || "",
+      description: m.description || "",
+      dueDate: m.dueDate ? new Date(m.dueDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      projectId: pId,
+      status: m.status || "Pending",
     });
     setShowModal(true);
   };
@@ -118,9 +117,7 @@ function MilestoneManagement() {
       return;
     }
     if (!formData.projectId) {
-      setModalError(
-        "Please select a Target Project. If none exist, create a Project first.",
-      );
+      setModalError("Please select a Project.");
       return;
     }
     if (!formData.dueDate) {
@@ -137,6 +134,7 @@ function MilestoneManagement() {
       description: formData.description.trim(),
     };
 
+    setSubmitting(true);
     try {
       if (editingMilestone) {
         await updateMilestone(
@@ -153,6 +151,8 @@ function MilestoneManagement() {
           err?.message ||
           "Failed to save milestone.",
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -424,15 +424,24 @@ function MilestoneManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  disabled={submitting}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer"
+                  disabled={submitting}
+                  className="flex items-center gap-1.5 px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingMilestone ? "Save Changes" : "Create Milestone"}
+                  {submitting ? (
+                    <>
+                      <FiLoader size={14} className="animate-spin" />
+                      <span>{editingMilestone ? "Updating Milestone..." : "Creating Milestone..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingMilestone ? "Save Changes" : "Create Milestone"}</span>
+                  )}
                 </button>
               </div>
             </form>

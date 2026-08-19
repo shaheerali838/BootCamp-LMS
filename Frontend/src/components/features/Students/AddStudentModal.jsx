@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { FiX, FiAlertCircle, FiEye, FiEyeOff, FiCamera, FiUser } from "react-icons/fi";
+import { FiX, FiAlertCircle, FiEye, FiEyeOff, FiCamera, FiUser, FiLoader } from "react-icons/fi";
 import { useBatches } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
 
@@ -550,15 +550,16 @@ function AddStudentModal({
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting
-                ? editingStudent
-                  ? "Updating..."
-                  : "Enrolling..."
-                : editingStudent
-                ? "Update Student"
-                : "Enroll Student"}
+              {submitting ? (
+                <>
+                  <FiLoader size={14} className="animate-spin" />
+                  <span>{editingStudent ? "Updating Student..." : "Enrolling Student..."}</span>
+                </>
+              ) : (
+                <span>{editingStudent ? "Update Student" : "Enroll Student"}</span>
+              )}
             </button>
           </div>
         </form>

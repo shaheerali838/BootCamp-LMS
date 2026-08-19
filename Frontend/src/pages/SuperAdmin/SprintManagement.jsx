@@ -8,6 +8,7 @@ import {
   FiCheckCircle,
   FiRefreshCw,
   FiClock,
+  FiLoader,
 } from "react-icons/fi";
 import { useSprints } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
@@ -67,6 +68,7 @@ function SprintManagement() {
   ).length;
 
   const [modalError, setModalError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingSprint(null);
@@ -128,6 +130,7 @@ function SprintManagement() {
       status: formData.status,
     };
 
+    setSubmitting(true);
     try {
       if (editingSprint) {
         await updateSprint(editingSprint._id || editingSprint.id, payload);
@@ -141,6 +144,8 @@ function SprintManagement() {
           err?.message ||
           "Failed to save sprint.",
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -404,15 +409,24 @@ function SprintManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  disabled={submitting}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer"
+                  disabled={submitting}
+                  className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingSprint ? "Save Changes" : "Create Sprint"}
+                  {submitting ? (
+                    <>
+                      <FiLoader size={14} className="animate-spin" />
+                      <span>{editingSprint ? "Updating Sprint..." : "Creating Sprint..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingSprint ? "Save Changes" : "Create Sprint"}</span>
+                  )}
                 </button>
               </div>
             </form>

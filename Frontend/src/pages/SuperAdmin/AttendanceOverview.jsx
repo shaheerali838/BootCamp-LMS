@@ -141,8 +141,12 @@ function AttendanceOverview() {
               >
                 {/* Name & Team */}
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
-                    {studentName.charAt(0).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-blue-200 shadow-2xs">
+                    {student.profilePicture || student.profileImage || student.image ? (
+                      <img src={student.profilePicture || student.profileImage || student.image} alt={studentName} className="w-full h-full object-cover" />
+                    ) : (
+                      studentName.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="min-w-0">
                     <div className="font-bold text-gray-900 truncate">

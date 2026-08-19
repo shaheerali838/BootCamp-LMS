@@ -4,32 +4,6 @@ import { useAuth } from "./AuthContext";
 
 const WorkContext = createContext();
 
-// ── Static report data (no backend route) ─────────────────
-const initialReportData = {
-  attendanceReportData: [
-    { day: "Mon", present: 82, absent: 8, late: 5 },
-    { day: "Tue", present: 90, absent: 5, late: 7 },
-    { day: "Wed", present: 87, absent: 7, late: 6 },
-    { day: "Thu", present: 94, absent: 4, late: 5 },
-    { day: "Fri", present: 88, absent: 6, late: 8 },
-  ],
-  taskDistributionData: [
-    { label: "UI/UX", value: 84 },
-    { label: "Web Dev", value: 72 },
-    { label: "Pending", value: 48 },
-  ],
-  batchPerformanceData: [
-    { month: "Jan", value: 82 },
-    { month: "Feb", value: 96 },
-    { month: "Mar", value: 112 },
-    { month: "Apr", value: 135 },
-    { month: "May", value: 165 },
-    { month: "Jun", value: 198 },
-    { month: "Jul", value: 235 },
-  ],
-  reportSummary: { taskCompleted: 84, lastUpdated: "Today" },
-};
-
 export const WorkProvider = ({ children }) => {
   const { accessToken } = useAuth();
 
@@ -45,7 +19,10 @@ export const WorkProvider = ({ children }) => {
     setTasksLoading(true);
     try {
       const res = await api.get("/tasks/get-all-tasks");
-      setTasks(res.data.data || []);
+      const list = (res.data.data || []).sort(
+        (a, b) => new Date(b.createdAt || b.createdAtDate || 0) - new Date(a.createdAt || a.createdAtDate || 0)
+      );
+      setTasks(list);
       setTasksError(null);
     } catch (err) {
       if (err.response?.status === 401) {
@@ -406,7 +383,10 @@ export const WorkProvider = ({ children }) => {
   const taskDistributionData =
     dynamicTaskDistributionData.length > 0
       ? dynamicTaskDistributionData
-      : initialReportData.taskDistributionData;
+      : [
+          { label: "Completed", value: completedTasksCount },
+          { label: "In Progress / Pending", value: pendingTasks },
+        ];
 
   const reportSummary = {
     taskCompleted: taskCompletionPercentage,
@@ -429,9 +409,9 @@ export const WorkProvider = ({ children }) => {
         evaluations, evaluationsLoading, evaluationsError,
         fetchEvaluations, addEvaluation,
         // Reports
-        attendanceReportData: initialReportData.attendanceReportData,
+        attendanceReportData: [],
         taskDistributionData,
-        batchPerformanceData: initialReportData.batchPerformanceData,
+        batchPerformanceData: [],
         reportSummary,
       }}
     >

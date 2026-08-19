@@ -4,19 +4,6 @@ import { useAuth } from "./AuthContext";
 
 const SystemContext = createContext();
 
-// ── Static local data (no backend route) ──────────────────
-const initialRegistrationData = [
-  { id: 1, name: "Ali Hassan", role: "Student", email: "ali.hassan@smit.edu", date: "Aug 12, 2026", status: "Approved" },
-  { id: 2, name: "Sara Bilal", role: "Super Admin", email: "superadmin@smit.edu.pk", date: "Aug 11, 2026", status: "Approved" },
-  { id: 3, name: "Sir Usman", role: "Mentor", email: "usman@smit.edu.pk", date: "Aug 10, 2026", status: "Approved" },
-];
-
-const initialActivityData = [
-  { id: 1, action: "New batch created (Batch 12 - Mobile App Dev)", actor: "Sara Bilal (SuperAdmin)", timestamp: "10 mins ago", type: "batch" },
-  { id: 2, action: "New student registered (Ali Hassan)", actor: "Sir Ahmed", timestamp: "1 hour ago", type: "student" },
-  { id: 3, action: "New project added (Hackathon Portal)", actor: "Sir Bilal", timestamp: "3 hours ago", type: "project" },
-];
-
 export const SystemProvider = ({ children }) => {
   const { accessToken, user } = useAuth();
 
@@ -312,8 +299,8 @@ export const SystemProvider = ({ children }) => {
   }, [accessToken, fetchAdmins, fetchMentors, fetchResources]);
 
   // ── Registration & Activity Log (local only) ───────────────
-  const [registrations, setRegistrations] = useState(initialRegistrationData);
-  const [activities, setActivities] = useState(initialActivityData);
+  const [registrations, setRegistrations] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   const addRegistrationLog = (log) => {
     setRegistrations((prev) => [{

@@ -18,7 +18,8 @@ const getTasks = async () => {
       "assignedStudentId",
       "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
     )
-    .populate("sprintId");
+    .populate("sprintId")
+    .sort({ createdAt: -1 });
 };
 
 const getTaskById = async (id) => {
@@ -37,7 +38,8 @@ const getTasksBySprintId = async (sprintId) => {
     .populate(
       "assignedStudentId",
       "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
-    );
+    )
+    .sort({ createdAt: -1 });
 };
 
 const updateTask = async (id, task) => {
@@ -57,7 +59,8 @@ const deleteTask = async (id) => {
 const getTasksByStudentId = async (studentId) => {
   return await Task.find({ assignedStudentId: studentId })
     .populate("sprintId")
-    .populate("assignedTeamId");
+    .populate("assignedTeamId")
+    .sort({ createdAt: -1 });
 };
 
 const getTasksByTeamId = async (teamId) => {
@@ -66,7 +69,8 @@ const getTasksByTeamId = async (teamId) => {
     .populate(
       "assignedStudentId",
       "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
-    );
+    )
+    .sort({ createdAt: -1 });
 };
 
 export {

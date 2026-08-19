@@ -190,8 +190,12 @@ function SuperAdminManagement() {
                 className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center">
-                    {adminName.slice(0, 2).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-purple-200 shadow-2xs">
+                    {item.profilePicture || item.profileImage || item.image ? (
+                      <img src={item.profilePicture || item.profileImage || item.image} alt={adminName} className="w-full h-full object-cover" />
+                    ) : (
+                      adminName.slice(0, 2).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <div className="font-bold text-gray-900">{adminName}</div>

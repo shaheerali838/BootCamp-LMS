@@ -7,6 +7,7 @@ import {
   FiUsers,
   FiLayers,
   FiUserCheck,
+  FiLoader,
 } from "react-icons/fi";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useStudents } from "../../../context/AcademicContext";
@@ -33,12 +34,7 @@ function ProjectManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [search, setSearch] = useState("");
-
-  // --------------------------------
-  // PAGINATION
-  // --------------------------------
-  const projectsPerPage = 3;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
 
   // --------------------------------
   // FORM DATA
@@ -79,42 +75,6 @@ function ProjectManagement() {
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
-
-  // --------------------------------
-  // PAGINATION
-  // --------------------------------
-  const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-
-  const startIndex = (currentPage - 1) * projectsPerPage;
-
-  const currentProjects = filteredProjects.slice(
-    startIndex,
-    startIndex + projectsPerPage,
-  );
-
-  // --------------------------------
-  // FIX CURRENT PAGE
-  // --------------------------------
-  useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-
-    if (totalPages === 0 && currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [totalPages, currentPage]);
-
-  // --------------------------------
-  // GO TO PAGE
-  // --------------------------------
-  const goToPage = (page) => {
-    if (page < 1 || page > totalPages) {
-      return;
-    }
-
-    setCurrentPage(page);
-  };
 
   // --------------------------------
   // RESET FORM
@@ -229,7 +189,7 @@ function ProjectManagement() {
   // --------------------------------
   // SUBMIT PROJECT
   // --------------------------------
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // --------------------------------
@@ -281,26 +241,21 @@ function ProjectManagement() {
       members: formData.members,
     };
 
-    // --------------------------------
-    // UPDATE PROJECT
-    // --------------------------------
-    if (editingProject) {
-      const projectId = editingProject.id || editingProject._id;
-
-      updateProject(projectId, projectData);
+    setSubmitting(true);
+    try {
+      if (editingProject) {
+        const projectId = editingProject.id || editingProject._id;
+        await updateProject(projectId, projectData);
+      } else {
+        await addProject(projectData);
+      }
+      closeForm();
+    } catch (err) {
+      console.error("Project save error:", err);
+      alert(err?.response?.data?.message || err?.message || "Failed to save project.");
+    } finally {
+      setSubmitting(false);
     }
-
-    // --------------------------------
-    // CREATE PROJECT
-    // --------------------------------
-    else {
-      addProject(projectData);
-
-      // Go to first page
-      setCurrentPage(1);
-    }
-
-    closeForm();
   };
 
   return (
@@ -449,11 +404,11 @@ function ProjectManagement() {
       ) : (
         <>
           {/* -------------------------------- */}
-          {/* PROJECT CARDS */}
+          {/* PROJECT CARDS (Continuous Scrollable) */}
           {/* -------------------------------- */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
-            {currentProjects.map((project) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 mt-3">
+            {filteredProjects.map((project) => {
               const projectTeamId =
                 project.teamId?._id ||
                 project.teamId?.id ||
@@ -481,66 +436,6 @@ function ProjectManagement() {
               );
             })}
           </div>
-
-          {/* -------------------------------- */}
-          {/* PAGINATION */}
-          {/* -------------------------------- */}
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6 mb-6">
-              {/* PREVIOUS */}
-
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-lg font-semibold border transition ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                Previous
-              </button>
-
-              {/* PAGE NUMBERS */}
-
-              {Array.from(
-                {
-                  length: totalPages,
-                },
-                (_, index) => index + 1,
-              ).map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => goToPage(page)}
-                  className={`w-10 h-10 rounded-lg font-semibold transition ${
-                    currentPage === page
-                      ? "bg-[#0476b9] text-white"
-                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-              {/* NEXT */}
-
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded-lg font-semibold border transition ${
-                  currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          )}
         </>
       )}
 
@@ -813,16 +708,25 @@ function ProjectManagement() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
+                  disabled={submitting}
+                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50 text-sm disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+                  disabled={submitting}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingProject ? "Update Project" : "Create Project"}
+                  {submitting ? (
+                    <>
+                      <FiLoader size={16} className="animate-spin" />
+                      <span>{editingProject ? "Updating Project..." : "Creating Project..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingProject ? "Update Project" : "Create Project"}</span>
+                  )}
                 </button>
               </div>
             </form>

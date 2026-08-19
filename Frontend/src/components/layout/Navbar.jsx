@@ -171,13 +171,32 @@ function Navbar() {
           >
             {/* Header info with Close Button */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <div className="min-w-0 pr-2">
-                <p className="text-xs font-bold text-gray-900 truncate">
-                  {fullName}
-                </p>
-                <p className="text-[11px] text-gray-500 truncate">
-                  {user?.email || "No email"}
-                </p>
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 shadow-2xs">
+                  {avatarImage ? (
+                    <img src={avatarImage} alt={fullName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className={`w-full h-full flex items-center justify-center text-white font-bold text-[11px] ${
+                        isSuperAdmin
+                          ? "bg-purple-700"
+                          : isStudent
+                            ? "bg-emerald-600"
+                            : "bg-blue-600"
+                      }`}
+                    >
+                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : fullName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-900 truncate">
+                    {fullName}
+                  </p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {user?.email || "No email"}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"

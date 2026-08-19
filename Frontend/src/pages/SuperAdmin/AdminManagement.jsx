@@ -5,6 +5,7 @@ import {
   FiTrash2,
   FiEdit2,
   FiSearch,
+  FiLoader,
 } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
 
@@ -67,10 +68,10 @@ function AdminManagement() {
   });
 
   const [modalError, setModalError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingAdmin(null);
-    setModalError("");
     setFormData({
       firstName: "",
       lastName: "",
@@ -80,23 +81,22 @@ function AdminManagement() {
       role: "ADMIN",
       status: "active",
     });
+    setModalError("");
     setShowModal(true);
   };
 
   const handleOpenEdit = (admin) => {
     setEditingAdmin(admin);
-    setModalError("");
-    const nameParts = (admin.name || "").split(" ");
     setFormData({
-      firstName: admin.firstName || nameParts[0] || "",
-      lastName: admin.lastName || nameParts.slice(1).join(" ") || "",
+      firstName: admin.firstName || "",
+      lastName: admin.lastName || "",
       email: admin.email || "",
       phoneNumber: admin.phoneNumber || admin.phone || "",
       password: "",
-      role:
-        (admin.role || "ADMIN").toUpperCase() === "MENTOR" ? "MENTOR" : "ADMIN",
+      role: (admin.role || "ADMIN").toUpperCase().replace(/[\s_]+/g, "") === "MENTOR" ? "MENTOR" : "ADMIN",
       status: admin.status || "active",
     });
+    setModalError("");
     setShowModal(true);
   };
 
@@ -104,29 +104,17 @@ function AdminManagement() {
     e.preventDefault();
     setModalError("");
 
-    if (!formData.firstName.trim()) {
-      setModalError("First Name is required.");
+    if (!formData.firstName.trim() || !formData.email.trim()) {
+      setModalError("First Name and Email are required.");
       return;
     }
-    if (!formData.lastName.trim()) {
-      setModalError("Last Name is required.");
-      return;
-    }
-    if (!formData.email.trim()) {
-      setModalError("Email is required.");
-      return;
-    }
-    if (!formData.phoneNumber.trim()) {
-      setModalError("Phone Number is required.");
-      return;
-    }
+
     if (!editingAdmin && (!formData.password || formData.password.length < 6)) {
       setModalError("Password must be at least 6 characters.");
       return;
     }
 
-    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-
+    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
     const payload = {
       ...formData,
       firstName: formData.firstName.trim(),
@@ -137,6 +125,7 @@ function AdminManagement() {
       phone: formData.phoneNumber.trim(),
     };
 
+    setSubmitting(true);
     try {
       if (editingAdmin) {
         await updateAdmin(editingAdmin._id || editingAdmin.id, payload);
@@ -146,6 +135,8 @@ function AdminManagement() {
       setShowModal(false);
     } catch (err) {
       setModalError(err?.response?.data?.message || err?.message || "Failed to save administrator.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -227,8 +218,12 @@ function AdminManagement() {
                 className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
-                    {adminName.slice(0, 2).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
+                    {item.profilePicture || item.profileImage || item.image ? (
+                      <img src={item.profilePicture || item.profileImage || item.image} alt={adminName} className="w-full h-full object-cover" />
+                    ) : (
+                      adminName.slice(0, 2).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <div className="font-bold text-gray-900">{adminName}</div>
@@ -420,15 +415,24 @@ function AdminManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  disabled={submitting}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer"
+                  disabled={submitting}
+                  className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Administrator
+                  {submitting ? (
+                    <>
+                      <FiLoader size={14} className="animate-spin" />
+                      <span>{editingAdmin ? "Updating Administrator..." : "Saving Administrator..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingAdmin ? "Save Changes" : "Save Administrator"}</span>
+                  )}
                 </button>
               </div>
             </form>

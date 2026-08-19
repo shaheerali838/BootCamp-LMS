@@ -388,10 +388,16 @@ function BatchManagement() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 flex items-center gap-2 transition"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition"
                 >
-                  {loading && <FiLoader className="animate-spin" />}
-                  {editingBatch ? "Update Batch" : "Add Batch"}
+                  {loading ? (
+                    <>
+                      <FiLoader className="animate-spin" size={14} />
+                      <span>{editingBatch ? "Updating Batch..." : "Adding Batch..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingBatch ? "Update Batch" : "Add Batch"}</span>
+                  )}
                 </button>
               </div>
             </form>

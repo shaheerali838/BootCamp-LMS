@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaTimes, FaBullhorn } from "react-icons/fa";
+import { FiLoader } from "react-icons/fi";
 
 const AnnouncementForm = ({
   onSubmit,
@@ -9,6 +10,7 @@ const AnnouncementForm = ({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (editingAnnouncement) {
@@ -21,7 +23,7 @@ const AnnouncementForm = ({
     setError("");
   }, [editingAnnouncement]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -35,10 +37,17 @@ const AnnouncementForm = ({
     }
 
     setError("");
-    onSubmit({
-      title: title.trim(),
-      description: description.trim(),
-    });
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        description: description.trim(),
+      });
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to post announcement.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -110,18 +119,25 @@ const AnnouncementForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition cursor-pointer"
+            disabled={submitting}
+            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-6 py-2.5 bg-[#0476b9] hover:bg-[#03669f] text-white rounded-xl text-sm font-medium transition shadow-sm cursor-pointer"
+            disabled={submitting}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#0476b9] hover:bg-[#03669f] text-white rounded-xl text-sm font-medium transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {editingAnnouncement
-              ? "Update Announcement"
-              : "Post Announcement"}
+            {submitting ? (
+              <>
+                <FiLoader size={14} className="animate-spin" />
+                <span>{editingAnnouncement ? "Updating Announcement..." : "Posting Announcement..."}</span>
+              </>
+            ) : (
+              <span>{editingAnnouncement ? "Update Announcement" : "Post Announcement"}</span>
+            )}
           </button>
         </div>
       </form>
