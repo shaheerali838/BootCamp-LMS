@@ -33,8 +33,10 @@ function MilestoneManagement() {
   const getProjectTitle = (projId) => {
     if (!projId) return "General Project";
     const pId = projId?._id || projId;
-    const p = projects.find((item) => String(item._id || item.id) === String(pId));
-    return p ? (p.projectName || p.name || p.title) : "General Project";
+    const p = projects.find(
+      (item) => String(item._id || item.id) === String(pId),
+    );
+    return p ? p.projectName || p.name || p.title : "General Project";
   };
 
   const formatDate = (dateStr) => {
@@ -55,11 +57,13 @@ function MilestoneManagement() {
   const filtered = milestones.filter((m) => {
     const mProjId = m.projectId?._id || m.projectId;
     const matchProject =
-      selectedProjectId === "All" || String(mProjId) === String(selectedProjectId);
+      selectedProjectId === "All" ||
+      String(mProjId) === String(selectedProjectId);
     const title = (m.milestoneName || m.title || "").toLowerCase();
     const desc = (m.description || "").toLowerCase();
     const matchSearch =
-      title.includes(search.toLowerCase()) || desc.includes(search.toLowerCase());
+      title.includes(search.toLowerCase()) ||
+      desc.includes(search.toLowerCase());
     return matchProject && matchSearch;
   });
 
@@ -82,7 +86,7 @@ function MilestoneManagement() {
       title: "",
       description: "",
       dueDate: new Date().toISOString().split("T")[0],
-      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
+      projectId: projects[0] ? projects[0]._id || projects[0].id : "",
       status: "Pending",
     });
     setShowModal(true);
@@ -98,7 +102,8 @@ function MilestoneManagement() {
       dueDate: milestone.dueDate
         ? new Date(milestone.dueDate).toISOString().split("T")[0]
         : "",
-      projectId: mProjId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      projectId:
+        mProjId || (projects[0] ? projects[0]._id || projects[0].id : ""),
       status: milestone.status || "Pending",
     });
     setShowModal(true);
@@ -113,7 +118,9 @@ function MilestoneManagement() {
       return;
     }
     if (!formData.projectId) {
-      setModalError("Please select a Target Project. If none exist, create a Project first.");
+      setModalError(
+        "Please select a Target Project. If none exist, create a Project first.",
+      );
       return;
     }
     if (!formData.dueDate) {
@@ -132,13 +139,20 @@ function MilestoneManagement() {
 
     try {
       if (editingMilestone) {
-        await updateMilestone(editingMilestone._id || editingMilestone.id, payload);
+        await updateMilestone(
+          editingMilestone._id || editingMilestone.id,
+          payload,
+        );
       } else {
         await addMilestone(payload);
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save milestone.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save milestone.",
+      );
     }
   };
 
@@ -225,7 +239,7 @@ function MilestoneManagement() {
 
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-[600px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Milestone Title</span>
             <span>Project</span>
             <span>Due Date & Status</span>
@@ -233,7 +247,7 @@ function MilestoneManagement() {
           </div>
 
           {/* Table Rows */}
-          <div className="divide-y divide-gray-100 min-w-[600px]">
+          <div className="divide-y divide-gray-100 min-w-150">
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}
@@ -241,7 +255,10 @@ function MilestoneManagement() {
               >
                 <div className="col-span-2">
                   <div className="text-sm font-semibold text-gray-900">
-                    {item.milestoneName || item.title || item.name || "Untitled Milestone"}
+                    {item.milestoneName ||
+                      item.title ||
+                      item.name ||
+                      "Untitled Milestone"}
                   </div>
                   {item.description && (
                     <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">

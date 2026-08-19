@@ -75,24 +75,24 @@ function ResetPassword() {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="bg-white p-7 sm:p-8 rounded-2xl border border-gray-200 shadow-xl w-full max-w-md">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#111528]">
+      <div className="bg-[#0476B9] text-white lg:bg-white lg:text-gray-900 p-7 sm:p-8 rounded-2xl border border-white/20 lg:border-gray-200 shadow-xl lg:shadow-sm w-full max-w-md">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white lg:text-[#111528]">
           Reset Password
         </h1>
 
-        <p className="text-gray-500 text-xs sm:text-sm mt-1.5 leading-5">
+        <p className="text-blue-100 lg:text-gray-500 text-xs sm:text-sm mt-1.5 leading-5">
           Enter your new password below to secure and update your account.
         </p>
 
         {error && (
-          <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg mt-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-2 text-red-600 bg-white/95 lg:bg-red-50 border border-red-200 p-3 rounded-lg mt-4 text-xs sm:text-sm font-medium">
             <AlertCircle size={16} className="shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {message && (
-          <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg mt-4 text-xs sm:text-sm">
+          <div className="flex items-center gap-2 text-emerald-800 bg-emerald-100 lg:bg-green-50 lg:text-green-700 border border-emerald-200 lg:border-green-200 p-3 rounded-lg mt-4 text-xs sm:text-sm font-medium">
             <CheckCircle2 size={16} className="shrink-0" />
             <span>{message}</span>
           </div>
@@ -100,12 +100,12 @@ function ResetPassword() {
 
         {isSuccess ? (
           <div className="mt-6 text-center">
-            <p className="text-gray-500 text-xs sm:text-sm mb-4">
+            <p className="text-blue-100 lg:text-gray-500 text-xs sm:text-sm mb-4">
               Redirecting to login in 3 seconds...
             </p>
             <Link
               to="/login"
-              className="inline-flex items-center justify-center gap-2 w-full bg-[#0476b9] text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-[#03669f] transition"
+              className="inline-flex items-center justify-center gap-2 w-full bg-[#0476b9] hover:bg-[#03669f] text-white py-2.5 px-4 rounded-lg font-semibold transition shadow-md lg:shadow-none"
             >
               Proceed to Login
             </Link>
@@ -113,7 +113,7 @@ function ResetPassword() {
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-white lg:text-gray-700">
                 New Password
               </label>
               <div className="relative mt-1">
@@ -123,12 +123,12 @@ function ResetPassword() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter at least 6 characters"
                   disabled={loading}
-                  className="border border-gray-300 w-full p-2.5 pr-11 rounded-lg outline-none focus:border-[#0476b9] transition text-sm"
+                  className="bg-white text-gray-900 border border-gray-200 lg:border-gray-300 w-full p-2.5 pr-11 rounded-lg outline-none focus:border-[#92C94E] lg:focus:border-[#0476b9] transition text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0476b9]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0476b9]"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -136,7 +136,7 @@ function ResetPassword() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-white lg:text-gray-700">
                 Confirm New Password
               </label>
               <div className="relative mt-1">
@@ -146,12 +146,12 @@ function ResetPassword() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter your new password"
                   disabled={loading}
-                  className="border border-gray-300 w-full p-2.5 pr-11 rounded-lg outline-none focus:border-[#0476b9] transition text-sm"
+                  className="bg-white text-gray-900 border border-gray-200 lg:border-gray-300 w-full p-2.5 pr-11 rounded-lg outline-none focus:border-[#92C94E] lg:focus:border-[#0476b9] transition text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0476b9]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0476b9]"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -161,7 +161,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-[#0476b9] disabled:opacity-60 text-white py-2.5 rounded-lg font-semibold mt-5 cursor-pointer hover:bg-[#03669f] transition"
+              className="w-full flex items-center justify-center gap-2 bg-white text-[#0476b9] hover:bg-blue-50 font-bold lg:bg-[#0476b9] lg:text-white lg:hover:bg-[#03669f] lg:font-semibold disabled:opacity-60 py-2.5 rounded-lg mt-5 cursor-pointer transition shadow-md lg:shadow-none"
             >
               {loading ? (
                 <>
@@ -176,7 +176,7 @@ function ResetPassword() {
             <div className="pt-2 text-center">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-[#0476b9] font-medium transition"
+                className="inline-flex items-center gap-1 text-xs text-blue-100 hover:text-[#92C94E] lg:text-gray-500 lg:hover:text-[#0476b9] font-medium transition"
               >
                 <ArrowLeft size={14} /> Back to Login
               </Link>

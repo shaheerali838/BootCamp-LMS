@@ -32,7 +32,9 @@ function SprintManagement() {
     if (!pId) return "General Project";
     const projId = pId?._id || pId;
     const proj = projects.find((p) => String(p._id || p.id) === String(projId));
-    return proj ? (proj.projectName || proj.name || proj.title) : "General Project";
+    return proj
+      ? proj.projectName || proj.name || proj.title
+      : "General Project";
   };
 
   const formatDate = (dateStr) => {
@@ -73,7 +75,7 @@ function SprintManagement() {
       name: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
-      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
+      projectId: projects[0] ? projects[0]._id || projects[0].id : "",
       status: "Active",
     });
     setShowModal(true);
@@ -91,7 +93,8 @@ function SprintManagement() {
       endDate: sprint.endDate
         ? new Date(sprint.endDate).toISOString().split("T")[0]
         : "",
-      projectId: sProjId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      projectId:
+        sProjId || (projects[0] ? projects[0]._id || projects[0].id : ""),
       status: sprint.status || "Active",
     });
     setShowModal(true);
@@ -106,7 +109,9 @@ function SprintManagement() {
       return;
     }
     if (!formData.projectId) {
-      setModalError("Please select a Target Project. If none exist, create a Project first.");
+      setModalError(
+        "Please select a Target Project. If none exist, create a Project first.",
+      );
       return;
     }
     if (!formData.startDate) {
@@ -131,7 +136,11 @@ function SprintManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save sprint.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save sprint.",
+      );
     }
   };
 
@@ -218,7 +227,7 @@ function SprintManagement() {
 
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-[600px] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Sprint Name</span>
             <span>Project</span>
             <span>Timeline & Status</span>
@@ -226,7 +235,7 @@ function SprintManagement() {
           </div>
 
           {/* Table Rows */}
-          <div className="divide-y divide-gray-100 min-w-[600px]">
+          <div className="divide-y divide-gray-100 min-w-150">
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}

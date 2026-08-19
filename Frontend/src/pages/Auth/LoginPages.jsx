@@ -14,9 +14,20 @@ function LoginPages() {
     password: "",
   });
 
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load remembered credentials on mount
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const isRemembered = localStorage.getItem("rememberMe") === "true";
+    if (savedEmail && isRemembered) {
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -56,7 +67,20 @@ function LoginPages() {
     try {
       const response = await login(formData.email, formData.password);
 
-      const userRole = (response.data?.data?.user?.role || response.data?.user?.role || "STUDENT")
+      // Handle Remember Me persistence
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", formData.email);
+        localStorage.setItem("rememberMe", "true");
+      } else {
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberMe");
+      }
+
+      const userRole = (
+        response.data?.data?.user?.role ||
+        response.data?.user?.role ||
+        "STUDENT"
+      )
         .toUpperCase()
         .replace(/[\s_]+/g, "");
 
@@ -68,10 +92,14 @@ function LoginPages() {
         navigate("/student/dashboard", { replace: true });
       }
 
-      setFormData({
-        email: "",
-        password: "",
-      });
+      if (!rememberMe) {
+        setFormData({
+          email: "",
+          password: "",
+        });
+      } else {
+        setFormData((prev) => ({ ...prev, password: "" }));
+      }
       setError({});
     } catch (err) {
       console.error(err);
@@ -84,32 +112,39 @@ function LoginPages() {
   };
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center px-2">
+    <div className="w-full flex items-center justify-center">
       <div className="w-full max-w-md">
-        <div className="w-full flex items-center py-2 justify-center lg:hidden">
-          <img src={img} alt="SMIT Logo" className="w-30 h-20 object-contain" />
+        <div className="w-full flex items-center pb-2 justify-center lg:hidden">
+          <img
+            src={img}
+            alt="SMIT Logo"
+            className="w-38 h-22 sm:w-52 sm:h-30 object-contain"
+          />
         </div>
 
         <form
           onSubmit={submitForm}
-          className="bg-white px-7 py-6 border border-gray-200 rounded-2xl shadow-sm w-full"
+          className="bg-[#0476B9] text-white lg:bg-white lg:text-gray-900 px-6 py-4 sm:px-7 sm:py-5 border border-white/20 lg:border-gray-200 rounded-2xl shadow-xl lg:shadow-sm w-full"
         >
           {error.general && (
-            <p className="text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm mb-4">
+            <p className="text-red-600 bg-white/95 border border-red-200 lg:bg-red-50 lg:border-red-200 rounded-lg px-3 py-1.5 text-xs sm:text-sm mb-3 font-medium">
               {error.general}
             </p>
           )}
 
-          <h1 className="font-bold text-3xl text-[#111528]">Welcome back</h1>
+          <h1 className="font-bold text-2xl sm:text-3xl text-white lg:text-[#111528]">
+            Welcome back
+          </h1>
 
-          <p className="text-gray-500 text-xs sm:text-sm leading-5 sm:leading-6 mt-1">
-            Kindly provide the Email or Roll Number and password used during registration.
+          <p className="text-blue-100 lg:text-gray-500 text-xs sm:text-sm leading-4 sm:leading-5 mt-1">
+            Kindly provide the Email or Roll Number and password used during
+            registration.
           </p>
 
           <div>
             <label
               htmlFor="email"
-              className="block text-gray-700 text-sm font-semibold mt-5"
+              className="block text-white lg:text-gray-700 text-xs sm:text-sm font-semibold mt-3 sm:mt-4"
             >
               Email or Roll Number
             </label>
@@ -122,22 +157,24 @@ function LoginPages() {
               onChange={handleChange}
               disabled={isLoading}
               placeholder="name@example.com or SMIT-1001"
-              className={`border w-full p-2.5 rounded-lg mt-1 outline-none transition ${
+              className={`bg-white text-gray-900 border w-full p-2 sm:p-2.5 rounded-lg mt-1 outline-none text-xs sm:text-sm transition ${
                 error.email
                   ? "border-red-400"
-                  : "border-gray-300 focus:border-[#0476b9]"
+                  : "border-gray-200 lg:border-gray-300 focus:border-[#92C94E] lg:focus:border-[#0476b9]"
               } ${isLoading ? "bg-gray-100" : ""}`}
             />
 
             {error.email && (
-              <p className="text-red-500 text-xs mt-1">{error.email}</p>
+              <p className="text-amber-300 lg:text-red-500 text-xs mt-0.5 font-medium">
+                {error.email}
+              </p>
             )}
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-gray-700 text-sm font-semibold mt-4"
+              className="block text-white lg:text-gray-700 text-xs sm:text-sm font-semibold mt-2.5 sm:mt-3"
             >
               Password
             </label>
@@ -151,10 +188,10 @@ function LoginPages() {
                 onChange={handleChange}
                 disabled={isLoading}
                 placeholder="Enter your password"
-                className={`border w-full p-2.5 pr-12 rounded-lg mt-1 outline-none transition ${
+                className={`bg-white text-gray-900 border w-full p-2 sm:p-2.5 pr-11 rounded-lg mt-1 outline-none text-xs sm:text-sm transition ${
                   error.password
                     ? "border-red-400"
-                    : "border-gray-300 focus:border-[#0476b9]"
+                    : "border-gray-200 lg:border-gray-300 focus:border-[#92C94E] lg:focus:border-[#0476b9]"
                 } ${isLoading ? "bg-gray-100" : ""}`}
               />
 
@@ -164,31 +201,38 @@ function LoginPages() {
                 disabled={isLoading}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0476b9]"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
 
             {error.password && (
-              <p className="text-red-500 text-xs mt-1">{error.password}</p>
+              <p className="text-amber-300 lg:text-red-500 text-xs mt-0.5 font-medium">
+                {error.password}
+              </p>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 p-1 sm:p-2 mt-2 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-1 sm:gap-0 p-0.5 sm:p-1 mt-1.5 items-start sm:items-center justify-between">
             <div className="flex items-center">
               <input
                 type="checkbox"
                 id="remember"
-                className="accent-[#0476b9]"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="accent-[#92C94E] lg:accent-[#0476b9] cursor-pointer"
               />
 
-              <label htmlFor="remember" className="text-gray-500 text-sm ml-2">
+              <label
+                htmlFor="remember"
+                className="text-blue-100 lg:text-gray-500 text-xs sm:text-sm ml-2 cursor-pointer select-none"
+              >
                 Remember me
               </label>
             </div>
 
             <NavLink
               to="/forgot-password"
-              className="text-gray-500 text-sm hover:text-[#0476b9]"
+              className="text-blue-100 lg:text-gray-500 text-xs sm:text-sm hover:text-[#92C94E] lg:hover:text-[#0476b9] transition"
             >
               Forgot Password?
             </NavLink>
@@ -197,7 +241,7 @@ function LoginPages() {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 bg-[#0476b9] cursor-pointer text-white py-2.5 px-4 rounded-lg font-semibold mt-3 sm:mt-4 w-full hover:bg-[#03669f] transition disabled:opacity-70"
+            className="flex items-center justify-center gap-2 bg-white text-[#0476b9] hover:bg-blue-50 font-bold lg:bg-[#0476b9] lg:text-white lg:hover:bg-[#03669f] lg:font-semibold cursor-pointer py-2 sm:py-2.5 px-4 rounded-lg mt-2.5 sm:mt-3.5 w-full text-xs sm:text-sm transition disabled:opacity-70 shadow-md lg:shadow-none"
           >
             {isLoading && <FiLoader className="animate-spin" />}
             Log in

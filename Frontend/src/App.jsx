@@ -67,7 +67,9 @@ function AppLayout() {
         path="/*"
         element={
           <ProtectedRoute>
-            <DashboardLayout />
+            <AppProvider>
+              <DashboardLayout />
+            </AppProvider>
           </ProtectedRoute>
         }
       />
@@ -78,9 +80,7 @@ function AppLayout() {
 function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <AppLayout />
-      </AppProvider>
+      <AppLayout />
     </AuthProvider>
   );
 }

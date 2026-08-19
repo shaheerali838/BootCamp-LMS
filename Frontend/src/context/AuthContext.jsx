@@ -13,32 +13,42 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
 
-    if (savedUser) {
+    if (savedUser && token) {
       try {
         setUser(JSON.parse(savedUser));
+        setAccessToken(token);
+
+        // Only sync profile in background if not on public auth pages
+        const isAuthPage =
+          window.location.pathname.includes("/login") ||
+          window.location.pathname.includes("/forgot-password") ||
+          window.location.pathname.includes("/forget-password") ||
+          window.location.pathname.includes("/reset-password");
+
+        if (!isAuthPage) {
+          api
+            .get("/auth/profile")
+            .then((res) => {
+              const freshUser = res.data?.data?.user || res.data?.user;
+              if (freshUser) {
+                setUser((prev) => {
+                  const merged = { ...prev, ...freshUser };
+                  localStorage.setItem("user", JSON.stringify(merged));
+                  return merged;
+                });
+              }
+            })
+            .catch(() => {
+              // Token expired or server unreachable, fallback to localStorage
+            });
+        }
       } catch (err) {
         console.error("Error parsing stored user", err);
       }
-    }
-
-    if (token) {
-      setAccessToken(token);
-      // Optional: Fetch fresh profile from backend if online
-      api
-        .get("/auth/profile")
-        .then((res) => {
-          const freshUser = res.data?.data?.user || res.data?.user;
-          if (freshUser) {
-            setUser((prev) => {
-              const merged = { ...prev, ...freshUser };
-              localStorage.setItem("user", JSON.stringify(merged));
-              return merged;
-            });
-          }
-        })
-        .catch(() => {
-          // Token expired or server unreachable, fallback to localStorage
-        });
+    } else {
+      // Clear any orphaned token/user
+      setUser(null);
+      setAccessToken(null);
     }
 
     setLoading(false);
