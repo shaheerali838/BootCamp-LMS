@@ -1,10 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiFileText, FiFolder } from "react-icons/fi";
+import { FiFileText, FiFolder, FiDownload, FiExternalLink } from "react-icons/fi";
 import { useResources } from "../../../../context/SystemContext";
-
 import { downloadResourceFile } from "../../../../utils/downloadHelper";
-import { FiDownload } from "react-icons/fi";
 
 function RecentResources() {
   const { resources = [] } = useResources();
@@ -23,16 +21,8 @@ function RecentResources() {
         : "text-amber-600 bg-amber-50 border-amber-100",
   }));
 
-  const handleDownload = async (item) => {
-    if (!item.fileUrl) return;
-    setDownloadingId(item.id);
-    try {
-      await downloadResourceFile(item.fileUrl, item.fileName, item.type);
-    } catch (err) {
-      console.error("Download error:", err);
-    } finally {
-      setDownloadingId(null);
-    }
+  const handleDownload = (item) => {
+    downloadResourceFile(item);
   };
 
   return (
@@ -80,15 +70,10 @@ function RecentResources() {
               {item.fileUrl && (
                 <button
                   onClick={() => handleDownload(item)}
-                  disabled={downloadingId === item.id}
                   className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition shrink-0 cursor-pointer"
-                  title="Download File"
+                  title="Open / Download in New Tab"
                 >
-                  {downloadingId === item.id ? (
-                    <span className="text-[10px] font-bold text-blue-600 animate-pulse">...</span>
-                  ) : (
-                    <FiDownload size={15} />
-                  )}
+                  <FiExternalLink size={16} />
                 </button>
               )}
             </div>

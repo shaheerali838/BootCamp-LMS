@@ -43,20 +43,8 @@ function ResourceCard({ resource, onDelete, onEdit }) {
     }
   };
 
-  const handleDownloadOrView = async () => {
-    if (!fileUrl) {
-      alert("This resource does not have an attached file.");
-      return;
-    }
-
-    setDownloading(true);
-    try {
-      await downloadResourceFile(fileUrl, fileName, type);
-    } catch (err) {
-      console.error("Download error:", err);
-    } finally {
-      setDownloading(false);
-    }
+  const handleDownloadOrView = () => {
+    downloadResourceFile(resource);
   };
 
   const resourceId = resource._id || resource.id;
@@ -102,15 +90,10 @@ function ResourceCard({ resource, onDelete, onEdit }) {
 
         <button
           onClick={handleDownloadOrView}
-          disabled={downloading}
-          title="Download Resource"
-          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition flex items-center gap-1 cursor-pointer"
+          title="Open / Download in New Tab"
+          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 cursor-pointer"
         >
-          {downloading ? (
-            <span className="text-[10px] font-bold text-blue-600 animate-pulse">...</span>
-          ) : (
-            <FiDownload size={16} />
-          )}
+          <FiExternalLink size={16} />
         </button>
 
         {onDelete && (

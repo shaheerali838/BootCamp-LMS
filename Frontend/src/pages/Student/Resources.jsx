@@ -6,6 +6,7 @@ import {
   FiVideo,
   FiBookOpen,
   FiExternalLink,
+} from "react-icons/fi";
 import { useResources } from "../../context/SystemContext";
 import { downloadResourceFile } from "../../utils/downloadHelper";
 
@@ -77,27 +78,8 @@ function Resources() {
     });
   }, [resources, search, category]);
 
-  const [downloadingId, setDownloadingId] = useState(null);
-
-  const handleDownload = async (res) => {
-    const fileUrl = res.file || res.fileUrl || res.url || res.link;
-    const fileName = res.fileName || res.title || res.name || "Resource";
-    const fileType = res.fileType || res.type || "PDF";
-    const resId = res._id || res.id;
-
-    if (!fileUrl) {
-      alert("No file available for download on this resource.");
-      return;
-    }
-
-    setDownloadingId(resId);
-    try {
-      await downloadResourceFile(fileUrl, fileName, fileType);
-    } catch (err) {
-      console.error("Download failed:", err);
-    } finally {
-      setDownloadingId(null);
-    }
+  const handleDownload = (res) => {
+    downloadResourceFile(res);
   };
 
   return (
@@ -174,8 +156,6 @@ function Resources() {
               })
             : res.date || "Recently";
 
-          const isDownloading = downloadingId === resId;
-
           return (
             <div
               key={resId}
@@ -204,15 +184,10 @@ function Resources() {
 
               <button
                 onClick={() => handleDownload(res)}
-                disabled={isDownloading}
-                className="p-2 text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition shrink-0 ml-2 cursor-pointer flex items-center gap-1"
-                title="Download Resource"
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition shrink-0 ml-2 cursor-pointer flex items-center gap-1"
+                title="Open / Download in New Tab"
               >
-                {isDownloading ? (
-                  <span className="text-[10px] font-bold text-blue-600 animate-pulse">Downloading...</span>
-                ) : (
-                  <FiDownload size={18} />
-                )}
+                <FiExternalLink size={18} />
               </button>
             </div>
           );

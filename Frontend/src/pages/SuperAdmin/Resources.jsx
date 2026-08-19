@@ -27,25 +27,8 @@ function Resources() {
     }
   };
 
-  const handleOpenDoc = async (item) => {
-    const fileUrl = item.file || item.fileUrl || item.url || item.link;
-    const fileName = item.fileName || item.title || item.name || "Resource";
-    const fileType = item.fileType || item.type || "PDF";
-    const itemId = item._id || item.id;
-
-    if (!fileUrl) {
-      alert("No file URL available on this resource.");
-      return;
-    }
-
-    setDownloadingId(itemId);
-    try {
-      await downloadResourceFile(fileUrl, fileName, fileType);
-    } catch (err) {
-      console.error("Download failed:", err);
-    } finally {
-      setDownloadingId(null);
-    }
+  const handleOpenDoc = (item) => {
+    downloadResourceFile(item);
   };
 
   return (
@@ -123,15 +106,10 @@ function Resources() {
                 <div className="flex items-center justify-end gap-2 text-gray-400">
                   <button
                     onClick={() => handleOpenDoc(item)}
-                    disabled={downloadingId === id}
-                    className="p-1.5 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition cursor-pointer"
-                    title="Download File"
+                    className="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                    title="Open / Download in New Tab"
                   >
-                    {downloadingId === id ? (
-                      <span className="text-[10px] font-bold text-blue-600 animate-pulse">...</span>
-                    ) : (
-                      <FiDownload size={16} />
-                    )}
+                    <FiExternalLink size={16} />
                   </button>
                   <button
                     onClick={() => handleDelete(id)}

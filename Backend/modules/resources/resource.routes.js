@@ -8,6 +8,7 @@ import {
   getAllCategories,
   createCategory,
   deleteCategory,
+  downloadResource,
 } from "./resource.controller.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 import { requirePermission } from "../../middleware/permissionMiddleware.js";
@@ -15,6 +16,9 @@ import { uploadResource } from "../../middleware/uploadMiddleware.js";
 import PERMISSIONS from "../../constants/permission.js";
 
 const router = express.Router();
+
+// ── Public Download Stream Endpoint (Opens seamlessly in browser new tab) ──
+router.get("/download/:id", downloadResource);
 
 router.use(authMiddleware);
 

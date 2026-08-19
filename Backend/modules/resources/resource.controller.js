@@ -76,11 +76,14 @@ export const createResource = async (req, res) => {
       fileType = req.body.fileType || extension;
       fileSize = (req.file.size / (1024 * 1024)).toFixed(2) + " MB";
 
-      // Upload buffer directly to Cloudinary
+      const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+      const safePublicId = `${Date.now()}_${baseName.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
+      // Upload buffer directly to Cloudinary as raw resource for seamless public document delivery
       const uploadResult = await uploadToCloudinary(req.file.buffer, {
         folder: "saylani_lms/resources",
-        resource_type: "auto",
-        public_id: `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+        resource_type: "raw",
+        public_id: safePublicId,
       });
 
       fileUrl = uploadResult.secure_url || uploadResult.url;
@@ -181,6 +184,7 @@ export const updateResource = async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, message: "Resource not found." });
 
     const { title, description, file, fileType, category } = req.body;
+
     if (title) resource.title = title.trim();
     if (description) resource.description = description.trim();
     if (category) {
@@ -199,10 +203,13 @@ export const updateResource = async (req, res) => {
       const extension = fileName.split(".").pop()?.toUpperCase() || "PDF";
       const fileSize = (req.file.size / (1024 * 1024)).toFixed(2) + " MB";
 
+      const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+      const safePublicId = `${Date.now()}_${baseName.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
       const uploadResult = await uploadToCloudinary(req.file.buffer, {
         folder: "saylani_lms/resources",
-        resource_type: "auto",
-        public_id: `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`,
+        resource_type: "raw",
+        public_id: safePublicId,
       });
 
       resource.file = uploadResult.secure_url || uploadResult.url;
@@ -301,5 +308,100 @@ export const deleteCategory = async (req, res) => {
     return res.status(200).json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to delete category", error: error.message });
+  }
+};
+
+// ---------- DOWNLOAD / STREAM RESOURCE FILE ----------
+export const downloadResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid resource ID." });
+    }
+
+    const resource = await Resource.findById(id);
+    if (!resource || !resource.file) {
+      return res.status(404).json({ success: false, message: "Resource or file not found." });
+    }
+
+    const fileUrl = resource.file;
+    const cleanFileName = (resource.fileName || resource.title || "document")
+      .trim()
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+    const ext = (resource.fileType || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const finalFileName = cleanFileName.includes(".")
+      ? cleanFileName
+      : `${cleanFileName}.${ext === "vid" ? "mp4" : ext || "pdf"}`;
+
+    // 1. Generate signed Cloudinary URL on server for privileged fetch
+    let fetchUrl = fileUrl;
+    let publicId = resource.publicId;
+    if (!publicId && fileUrl.includes("cloudinary.com")) {
+      const parts = fileUrl.split("/upload/");
+      if (parts[1]) {
+        publicId = parts[1].replace(/^v\d+\//, "");
+      }
+    }
+
+    if (publicId) {
+      try {
+        const isImage = fileUrl.includes("/image/upload/");
+        const signedUrl = cloudinary.url(publicId, {
+          sign_url: true,
+          resource_type: isImage ? "image" : "raw",
+          type: "upload",
+          secure: true,
+        });
+        if (signedUrl) {
+          fetchUrl = signedUrl;
+        }
+      } catch (signErr) {
+        console.warn("Cloudinary URL signing warning:", signErr);
+      }
+    }
+
+    // 2. Fetch the file server-to-server and stream binary directly to browser
+    let response = await fetch(fetchUrl);
+    if (!response.ok && fetchUrl !== fileUrl) {
+      response = await fetch(fileUrl);
+    }
+
+    if (!response.ok) {
+      // If fetching the image URL failed, attempt fetching from raw endpoint
+      if (fileUrl.includes("/image/upload/")) {
+        const rawUrl = fileUrl.replace("/image/upload/", "/raw/upload/");
+        const rawRes = await fetch(rawUrl);
+        if (rawRes.ok) {
+          const arrayBuffer = await rawRes.arrayBuffer();
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `inline; filename="${finalFileName}"`);
+          return res.send(Buffer.from(arrayBuffer));
+        }
+      }
+
+      return res.status(response.status).json({
+        success: false,
+        message: `Failed to stream file from storage (${response.statusText})`,
+      });
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const isPdf = finalFileName.toLowerCase().endsWith(".pdf");
+    const contentType = isPdf
+      ? "application/pdf"
+      : response.headers.get("content-type") || "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Disposition", `inline; filename="${finalFileName}"`);
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (error) {
+    console.error("Download Resource Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to stream resource file",
+      error: error.message,
+    });
   }
 };

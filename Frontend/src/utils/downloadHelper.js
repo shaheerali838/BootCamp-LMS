@@ -1,76 +1,68 @@
 /**
- * Robust resource download helper for LMS.
- * Handles Cloudinary URLs, direct URLs, blobs, and fallback anchors.
+ * Opens and views/downloads resource document directly in a new tab.
+ * Routes through the server's authenticated Cloudinary streaming proxy for 100% reliable document delivery.
  *
- * @param {string} fileUrl - The URL of the file to download
- * @param {string} fileName - Desired downloaded filename
- * @param {string} fileType - Optional format type (e.g. "PDF", "DOC", "ZIP")
+ * @param {string|Object} resourceOrUrl - Resource object or direct URL string
  */
-export const downloadResourceFile = async (fileUrl, fileName = "resource-file", fileType = "PDF") => {
-  if (!fileUrl) {
+export const downloadResourceFile = (resourceOrUrl) => {
+  if (!resourceOrUrl) {
     alert("No file attached to this resource.");
     return false;
   }
 
-  // Sanitize and determine proper filename with extension
-  let cleanName = (fileName || "resource-file").trim().replace(/[^a-zA-Z0-9._ -]/g, "_");
-  const ext = (fileType || "PDF").toLowerCase().replace(/[^a-z0-9]/g, "");
+  let resourceId = null;
+  let fileUrl = "";
 
-  if (!cleanName.includes(".")) {
-    cleanName = `${cleanName}.${ext === "vid" ? "mp4" : ext}`;
+  if (typeof resourceOrUrl === "object" && resourceOrUrl !== null) {
+    resourceId = resourceOrUrl._id || resourceOrUrl.id || null;
+    fileUrl =
+      resourceOrUrl.file ||
+      resourceOrUrl.fileUrl ||
+      resourceOrUrl.url ||
+      resourceOrUrl.link ||
+      "";
+  } else if (typeof resourceOrUrl === "string") {
+    fileUrl = resourceOrUrl;
   }
 
-  // Construct attachment URL for Cloudinary if applicable
-  let downloadUrl = fileUrl;
-  if (typeof fileUrl === "string" && fileUrl.includes("cloudinary.com") && fileUrl.includes("/upload/")) {
-    // Avoid duplicate fl_attachment
-    if (!fileUrl.includes("fl_attachment")) {
-      downloadUrl = fileUrl.replace("/upload/", "/upload/fl_attachment/");
+  const backendHost = (import.meta.env.VITE_API_URL || "http://localhost:7000")
+    .trim()
+    .replace(/\/api\/?$/, "");
+
+  let openUrl = "";
+
+  // 1. Primary: Use the backend stream proxy which generates signed Cloudinary delivery
+  if (resourceId) {
+    openUrl = `${backendHost}/api/resources/download/${resourceId}`;
+  } else if (fileUrl) {
+    let targetUrl = fileUrl.trim();
+    if (targetUrl.startsWith("/")) {
+      targetUrl = `${backendHost}${targetUrl}`;
     }
+    openUrl = targetUrl;
   }
 
-  try {
-    // Method 1: Fetch as Blob for pure native download
-    const response = await fetch(downloadUrl, { mode: "cors" });
-    if (response.ok) {
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = blobUrl;
-      a.download = cleanName;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(blobUrl);
-      }, 300);
-      return true;
-    }
-    throw new Error(`Fetch failed with status ${response.status}`);
-  } catch (err) {
-    console.warn("Direct blob download failed, trying anchor fallback:", err);
-
-    // Method 2: Create download anchor with download attribute & target
-    try {
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = downloadUrl;
-      a.download = cleanName;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-      }, 300);
-      return true;
-    } catch (fallbackErr) {
-      console.error("Fallback download failed, opening in new tab:", fallbackErr);
-      window.open(downloadUrl, "_blank", "noopener,noreferrer");
-      return true;
-    }
+  if (!openUrl) {
+    alert("No file available for this resource.");
+    return false;
   }
+
+  // Open the file directly in a new tab
+  const opened = window.open(openUrl, "_blank", "noopener,noreferrer");
+  if (!opened) {
+    // If popup blocker intervened, trigger click via invisible anchor tag
+    const link = document.createElement("a");
+    link.href = openUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+    }, 300);
+  }
+
+  return true;
 };
 
 export default downloadResourceFile;
