@@ -19,20 +19,28 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email or Roll number and password are required",
       });
     }
 
-    const emailAddress = email.trim().toLowerCase();
+    const identifier = String(email).trim();
+    const emailAddress = identifier.toLowerCase();
 
-    // First, search for Admin or Super Admin
+    // 1. First, search for Admin or Super Admin by email
     let user = await Admin.findOne({ email: emailAddress }).select("+password");
 
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        // Check if there is also a Student account with this email and matching password
-        const studentUser = await Student.findOne({ email: emailAddress }).select("+password");
+        // Check if there is also a Student account with this email/rollNumber
+        const studentUser = await Student.findOne({
+          $or: [
+            { email: emailAddress },
+            { rollNumber: identifier },
+            { rollNumber: emailAddress.toUpperCase() },
+          ],
+        }).select("+password");
+
         if (studentUser) {
           const studentMatch = await bcrypt.compare(password, studentUser.password);
           if (studentMatch) {
@@ -40,23 +48,30 @@ export const login = async (req, res) => {
           } else {
             return res.status(401).json({
               success: false,
-              message: "Invalid email or password",
+              message: "Invalid email/roll number or password",
             });
           }
         } else {
           return res.status(401).json({
             success: false,
-            message: "Invalid email or password",
+            message: "Invalid email/roll number or password",
           });
         }
       }
     } else {
-      // If not Admin, search for Student
-      user = await Student.findOne({ email: emailAddress }).select("+password");
+      // 2. If not Admin, search for Student by email OR rollNumber (case-insensitive)
+      user = await Student.findOne({
+        $or: [
+          { email: emailAddress },
+          { rollNumber: identifier },
+          { rollNumber: { $regex: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } },
+        ],
+      }).select("+password");
+
       if (!user) {
-        return res.status(404).json({
+        return res.status(401).json({
           success: false,
-          message: "User not found",
+          message: "Invalid email or password",
         });
       }
 
@@ -70,7 +85,7 @@ export const login = async (req, res) => {
     }
 
     // Check account status
-    if (user.status !== "active") {
+    if (user.status && user.status === "inactive") {
       return res.status(403).json({
         success: false,
         message: "User account is inactive",

@@ -13,7 +13,6 @@ const checkTeamExists = async (req, res, next) => {
     }
 
     req.team = team;
-
     next();
   } catch (error) {
     res.status(500).json({
@@ -26,9 +25,16 @@ const checkTeamExists = async (req, res, next) => {
 // Check Duplicate Team Name
 const checkDuplicateTeamName = async (req, res, next) => {
   try {
-    const team = await Team.findOne({
-      teamName: req.body.teamName,
-    });
+    if (!req.body.teamName && !req.body.name) return next();
+    const name = (req.body.teamName || req.body.name).trim();
+    const query = {
+      teamName: { $regex: new RegExp(`^${name}$`, "i") },
+    };
+    if (req.params.id) {
+      query._id = { $ne: req.params.id };
+    }
+
+    const team = await Team.findOne(query);
 
     if (team) {
       return res.status(400).json({
@@ -50,4 +56,3 @@ export {
   checkTeamExists,
   checkDuplicateTeamName,
 };
-

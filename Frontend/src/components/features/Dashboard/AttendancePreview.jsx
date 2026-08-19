@@ -34,7 +34,7 @@ function AttendancePreview() {
         ...student,
         sid,
         name: studentName,
-        rollNo: student.rollNo || "N/A",
+        rollNo: student.rollNumber || student.rollNo || "N/A",
         team: student.team || "No Team",
         initials,
         status: todayAttendance?.status || "Unmarked",
@@ -45,7 +45,7 @@ function AttendancePreview() {
       const value = search.toLowerCase();
       return (
         student.name.toLowerCase().includes(value) ||
-        student.rollNo.toLowerCase().includes(value) ||
+        (student.rollNumber || student.rollNo || "").toLowerCase().includes(value) ||
         student.team.toLowerCase().includes(value)
       );
     })

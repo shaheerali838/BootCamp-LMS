@@ -1,15 +1,57 @@
 import React, { useState } from "react";
 import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink } from "react-icons/fi";
 import { useTasks } from "../../context/WorkContext";
+import { useTeamProject } from "../../context/TeamProjectContext";
+import { useAuth } from "../../context/AuthContext";
 
 function MyTasks() {
+  const { user } = useAuth();
   const { tasks, submitDeliverable } = useTasks();
+  const { teams = [] } = useTeamProject();
+
+  const sid = String(user?._id || user?.id || "");
+  const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentName = String(
+    user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
+  ).trim().toLowerCase();
+
+  // Find student teams
+  const studentTeams = teams.filter((team) => {
+    if (!sid && !studentRoll && !studentName) return false;
+    const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+    const leadName = String(team.teamLead?.name || team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : team.lead || "").toLowerCase();
+    if (leadId && leadId === sid) return true;
+    if (leadName && studentName && leadName.includes(studentName)) return true;
+
+    if (Array.isArray(team.members)) {
+      return team.members.some((m) => {
+        const mId = String(m._id || m.id || m.studentId || m);
+        const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+        const mName = String(m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m).toLowerCase();
+        return (
+          (sid && mId === sid) ||
+          (studentRoll && mRoll === studentRoll) ||
+          (studentName && mName && (mName === studentName || mName.includes(studentName)))
+        );
+      });
+    }
+    return false;
+  });
+
+  const studentTeamIds = new Set(studentTeams.map((t) => String(t._id || t.id)));
+
+  const studentTasks = tasks.filter((t) => {
+    const assignStudent = String(t.assignedStudentId?._id || t.assignedStudentId || t.assignedStudent || "");
+    const assignTeam = String(t.assignedTeamId?._id || t.assignedTeamId || t.assignedTeam || "");
+    return (assignStudent && assignStudent === sid) || (assignTeam && studentTeamIds.has(assignTeam));
+  });
+
   const [filter, setFilter] = useState("All");
   const [selectedTask, setSelectedTask] = useState(null);
   const [submissionUrl, setSubmissionUrl] = useState("");
   const [submissionNotes, setSubmissionNotes] = useState("");
 
-  const filteredTasks = tasks.filter((task) => {
+  const filteredTasks = studentTasks.filter((task) => {
     if (filter === "All") return true;
     return task.status === filter;
   });

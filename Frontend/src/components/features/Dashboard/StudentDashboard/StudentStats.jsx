@@ -10,13 +10,18 @@ function StudentStats() {
   const { user } = useAuth();
   const { getStudentAttendance } = useAttendance();
   const { tasks = [] } = useTasks();
-  const { projects = [] } = useTeamProject();
+  const { projects = [], teams = [] } = useTeamProject();
   const { announcements = [] } = useAnnouncement();
 
-  const sid = user?._id || user?.id;
+  const sid = String(user?._id || user?.id || "");
+  const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentName = String(
+    user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
+  ).trim().toLowerCase();
+
   const attendanceHistory = sid ? getStudentAttendance(sid) : [];
 
-  let attendancePct = 95;
+  let attendancePct = 0;
   if (attendanceHistory && attendanceHistory.length > 0) {
     const presentCount = attendanceHistory.filter(
       (a) => a.status === "Present" || a.status === "Late"
@@ -24,8 +29,45 @@ function StudentStats() {
     attendancePct = Math.round((presentCount / attendanceHistory.length) * 100);
   }
 
-  const tasksCount = tasks.length;
-  const projectsCount = projects.length;
+  // Find student's teams
+  const studentTeams = teams.filter((team) => {
+    if (!sid && !studentRoll && !studentName) return false;
+    const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+    const leadName = String(team.teamLead?.name || team.teamLead?.firstName ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}` : team.lead || "").toLowerCase();
+    if (leadId && leadId === sid) return true;
+    if (leadName && studentName && leadName.includes(studentName)) return true;
+
+    if (Array.isArray(team.members)) {
+      return team.members.some((m) => {
+        const mId = String(m._id || m.id || m.studentId || m);
+        const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+        const mName = String(m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m).toLowerCase();
+        return (
+          (sid && mId === sid) ||
+          (studentRoll && mRoll === studentRoll) ||
+          (studentName && mName && (mName === studentName || mName.includes(studentName)))
+        );
+      });
+    }
+    return false;
+  });
+
+  const studentTeamIds = new Set(studentTeams.map((t) => String(t._id || t.id)));
+
+  // Filter student projects & tasks
+  const studentProjects = projects.filter((p) => {
+    const pTeamId = String(p.teamId || (typeof p.batch === "object" ? p.batch?._id : p.batch) || "");
+    return pTeamId && studentTeamIds.has(pTeamId);
+  });
+
+  const studentTasks = tasks.filter((t) => {
+    const assignStudent = String(t.assignedStudentId?._id || t.assignedStudentId || t.assignedStudent || "");
+    const assignTeam = String(t.assignedTeamId?._id || t.assignedTeamId || t.assignedTeam || "");
+    return (assignStudent && assignStudent === sid) || (assignTeam && studentTeamIds.has(assignTeam));
+  });
+
+  const tasksCount = studentTasks.length;
+  const projectsCount = studentProjects.length;
   const announcementsCount = announcements.length;
 
   const stats = [
