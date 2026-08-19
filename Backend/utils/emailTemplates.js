@@ -72,7 +72,11 @@ const baseEmailWrapper = (content) => `
 /**
  * 1. Password Reset Email Template
  */
-export const getPasswordResetEmailHtml = ({ firstName = "User", resetLink, expireTime = "1 hour" }) => {
+export const getPasswordResetEmailHtml = ({
+  firstName = "User",
+  resetLink,
+  expireTime = "1 hour",
+}) => {
   const content = `
     <!-- Greeting & Title -->
     <h2 style="margin: 0 0 12px 0; color: #0f172a; font-size: 20px; font-weight: 700;">
@@ -125,7 +129,11 @@ export const getPasswordResetEmailHtml = ({ firstName = "User", resetLink, expir
 /**
  * 2. Account Password Setup Email Template (Link based)
  */
-export const getAccountSetupEmailHtml = ({ firstName = "Student", setupLink, expireTime = "7 days" }) => {
+export const getAccountSetupEmailHtml = ({
+  firstName = "Student",
+  setupLink,
+  expireTime = "7 days",
+}) => {
   const content = `
     <!-- Greeting & Title -->
     <div style="text-align: center; margin-bottom: 20px;">
@@ -181,7 +189,12 @@ export const getAccountSetupEmailHtml = ({ firstName = "Student", setupLink, exp
 /**
  * 3. Student Welcome & Credentials Email Template
  */
-export const getWelcomeAccountEmailHtml = ({ firstName = "Student", email, password, loginLink }) => {
+export const getWelcomeAccountEmailHtml = ({
+  firstName = "Student",
+  email,
+  password,
+  loginLink,
+}) => {
   const content = `
     <!-- Greeting & Title -->
     <div style="text-align: center; margin-bottom: 20px;">
@@ -226,7 +239,7 @@ export const getWelcomeAccountEmailHtml = ({ firstName = "Student", email, passw
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0;">
       <tr>
         <td align="center">
-          <a href="${loginLink || 'http://localhost:5173/login'}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 36px; border-radius: 10px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); text-align: center;">
+          <a href="${loginLink || "http://localhost:5173/login"}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 36px; border-radius: 10px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); text-align: center;">
             Log In to Portal
           </a>
         </td>
@@ -246,7 +259,13 @@ export const getWelcomeAccountEmailHtml = ({ firstName = "Student", email, passw
 /**
  * 4. Staff / Admin Welcome & Credentials Email Template
  */
-export const getAdminWelcomeEmailHtml = ({ firstName = "Admin", email, password, role = "Administrator", loginLink }) => {
+export const getAdminWelcomeEmailHtml = ({
+  firstName = "Admin",
+  email,
+  password,
+  role = "Administrator",
+  loginLink,
+}) => {
   const content = `
     <!-- Greeting & Title -->
     <div style="text-align: center; margin-bottom: 20px;">
@@ -299,7 +318,7 @@ export const getAdminWelcomeEmailHtml = ({ firstName = "Admin", email, password,
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 24px 0;">
       <tr>
         <td align="center">
-          <a href="${loginLink || 'http://localhost:5173/login'}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%); color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 36px; border-radius: 10px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35); text-align: center;">
+          <a href="${loginLink || "http://localhost:5173/login"}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%); color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 36px; border-radius: 10px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35); text-align: center;">
             Access Admin Dashboard
           </a>
         </td>
