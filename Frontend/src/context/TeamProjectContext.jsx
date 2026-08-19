@@ -41,6 +41,9 @@ export const TeamProjectProvider = ({ children }) => {
         batchId: team.batchId || team.batch,
         mentor: team.mentor || team.mentorId,
         teamLead: team.teamLead || team.lead || team.teamLeadId,
+        members: Array.isArray(team.members)
+          ? team.members.map((m) => m?._id || m?.id || m)
+          : [],
         status: team.status || "active",
       };
       const res = await api.post("/teams/create-team", payload);
@@ -65,6 +68,9 @@ export const TeamProjectProvider = ({ children }) => {
         batchId: updatedTeam.batchId?._id || updatedTeam.batchId || updatedTeam.batch?._id || updatedTeam.batch,
         mentor: updatedTeam.mentor?._id || updatedTeam.mentor || updatedTeam.mentorId?._id || updatedTeam.mentorId,
         teamLead: updatedTeam.teamLead?._id || updatedTeam.teamLead || updatedTeam.lead?._id || updatedTeam.lead,
+        members: Array.isArray(updatedTeam.members)
+          ? updatedTeam.members.map((m) => m?._id || m?.id || m)
+          : undefined,
         status: updatedTeam.status || "active",
       };
       Object.keys(payload).forEach((k) => (payload[k] === undefined || payload[k] === "") && delete payload[k]);

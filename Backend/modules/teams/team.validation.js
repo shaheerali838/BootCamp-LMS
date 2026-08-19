@@ -26,6 +26,11 @@ const createTeamValidation = [
     .isMongoId()
     .withMessage("Invalid Team Lead ID"),
 
+  body("members")
+    .optional()
+    .isArray()
+    .withMessage("Members must be an array of student IDs"),
+
   body("status")
     .optional()
     .isIn(["active", "inactive"])
@@ -53,6 +58,11 @@ const updateTeamValidation = [
     .optional()
     .isMongoId()
     .withMessage("Invalid Team Lead ID"),
+
+  body("members")
+    .optional()
+    .isArray()
+    .withMessage("Members must be an array of student IDs"),
 
   body("status")
     .optional()

@@ -1,20 +1,19 @@
 import React, { useState } from "react";
 import {
-  FiClock,
+  FiActivity,
   FiPlus,
   FiTrash2,
   FiEdit2,
   FiFilter,
   FiCheckCircle,
   FiRefreshCw,
-  FiActivity,
+  FiClock,
 } from "react-icons/fi";
 import { useSprints } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 
 function SprintManagement() {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
-  // Access dynamic projects from TeamProjectContext
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
@@ -22,22 +21,47 @@ function SprintManagement() {
   const [editingSprint, setEditingSprint] = useState(null);
 
   const [formData, setFormData] = useState({
-    projectId: projects[0]?.id || 1,
     name: "",
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: "",
     endDate: "",
+    projectId: "",
     status: "Active",
   });
 
+  const getProjectTitle = (pId) => {
+    if (!pId) return "General Project";
+    const projId = pId?._id || pId;
+    const proj = projects.find((p) => String(p._id || p.id) === String(projId));
+    return proj ? (proj.projectName || proj.name || proj.title) : "General Project";
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const filtered = sprints.filter((s) => {
+    const sProjId = s.projectId?._id || s.projectId;
     if (selectedProjectId === "All") return true;
-    return Number(s.projectId) === Number(selectedProjectId);
+    return String(sProjId) === String(selectedProjectId);
   });
 
   const totalSprints = sprints.length;
-  const activeSprints = sprints.filter((s) => s.status === "Active").length;
+  const activeSprints = sprints.filter(
+    (s) => String(s.status).toLowerCase() === "active",
+  ).length;
   const completedSprints = sprints.filter(
-    (s) => s.status === "Completed",
+    (s) => String(s.status).toLowerCase() === "completed",
   ).length;
 
   const [modalError, setModalError] = useState("");
@@ -46,10 +70,10 @@ function SprintManagement() {
     setEditingSprint(null);
     setModalError("");
     setFormData({
-      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
       name: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
+      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
       status: "Active",
     });
     setShowModal(true);
@@ -58,11 +82,16 @@ function SprintManagement() {
   const handleOpenEdit = (sprint) => {
     setEditingSprint(sprint);
     setModalError("");
+    const sProjId = sprint.projectId?._id || sprint.projectId;
     setFormData({
-      projectId: sprint.projectId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
-      name: sprint.sprintName || sprint.name || "",
-      startDate: sprint.startDate ? new Date(sprint.startDate).toISOString().split("T")[0] : "",
-      endDate: sprint.endDate ? new Date(sprint.endDate).toISOString().split("T")[0] : "",
+      name: sprint.sprintName || sprint.name || sprint.title || "",
+      startDate: sprint.startDate
+        ? new Date(sprint.startDate).toISOString().split("T")[0]
+        : "",
+      endDate: sprint.endDate
+        ? new Date(sprint.endDate).toISOString().split("T")[0]
+        : "",
+      projectId: sProjId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
       status: sprint.status || "Active",
     });
     setShowModal(true);
@@ -86,9 +115,12 @@ function SprintManagement() {
     }
 
     const payload = {
-      ...formData,
       name: formData.name.trim(),
       sprintName: formData.name.trim(),
+      projectId: formData.projectId,
+      startDate: formData.startDate,
+      endDate: formData.endDate || undefined,
+      status: formData.status,
     };
 
     try {
@@ -103,14 +135,8 @@ function SprintManagement() {
     }
   };
 
-  const getProjectTitle = (pId) => {
-    const proj = projects.find((p) => Number(p.id) === Number(pId));
-    return proj ? proj.title : `Project #${pId}`;
-  };
-
   return (
     <div className="p-4">
-      {/* Page Header placeholder to match Students.jsx */}
       <div className="mb-5"></div>
 
       {/* Stats */}
@@ -185,7 +211,7 @@ function SprintManagement() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition cursor-pointer"
           >
             <FiPlus size={17} />
             Create Sprint
@@ -208,37 +234,38 @@ function SprintManagement() {
                 key={item._id || item.id}
                 className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
               >
-                <div className="col-span-2 text-sm font-medium text-gray-900">
+                <div className="col-span-2 text-sm font-semibold text-gray-900">
                   {item.sprintName || item.name || item.title || "Sprint"}
                 </div>
 
                 <div>
-                  <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded text-xs">
+                  <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded text-xs font-medium">
                     {getProjectTitle(item.projectId)}
                   </span>
                 </div>
 
                 <div>
-                  <div className="text-xs text-gray-800">
-                    {item.startDate} {item.endDate ? `to ${item.endDate}` : ""}
+                  <div className="text-xs font-semibold text-gray-800">
+                    {formatDate(item.startDate)}
+                    {item.endDate ? ` to ${formatDate(item.endDate)}` : ""}
                   </div>
                   <span
                     className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
-                      item.status === "Active"
-                        ? "bg-green-100 text-green-600"
-                        : item.status === "Planning"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
+                      String(item.status).toLowerCase() === "active"
+                        ? "bg-green-100 text-green-700"
+                        : String(item.status).toLowerCase() === "completed"
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-blue-100 text-blue-700"
                     }`}
                   >
-                    {item.status}
+                    {item.status || "Active"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 text-gray-400">
                   <button
                     onClick={() => handleOpenEdit(item)}
-                    className="hover:text-blue-600 transition"
+                    className="hover:text-blue-600 transition cursor-pointer"
                     title="Edit"
                   >
                     <FiEdit2 size={16} />
@@ -249,7 +276,7 @@ function SprintManagement() {
                         deleteSprint(item._id || item.id);
                       }
                     }}
-                    className="hover:text-red-600 transition"
+                    className="hover:text-red-600 transition cursor-pointer"
                     title="Delete"
                   >
                     <FiTrash2 size={16} />
@@ -280,24 +307,7 @@ function SprintManagement() {
                   <span>{modalError}</span>
                 </div>
               )}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Target Project *
-                </label>
-                <select
-                  value={formData.projectId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, projectId: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
-                >
-                  {projects.map((p) => (
-                    <option key={p._id || p.id} value={p._id || p.id}>
-                      {p.projectName || p.name || p.title || "Project"}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Sprint Name *
@@ -309,17 +319,40 @@ function SprintManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="e.g. Sprint 1: Auth & Wireframes"
+                  placeholder="e.g. Sprint 1 - MVP"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Target Project *
+                </label>
+                <select
+                  value={formData.projectId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, projectId: e.target.value })
+                  }
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.projectName || p.name || p.title || "Project"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Start Date
+                    Start Date *
                   </label>
                   <input
                     type="date"
+                    required
                     value={formData.startDate}
                     onChange={(e) =>
                       setFormData({ ...formData, startDate: e.target.value })
@@ -327,6 +360,7 @@ function SprintManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                   />
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     End Date
@@ -341,6 +375,7 @@ function SprintManagement() {
                   />
                 </div>
               </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Status
@@ -353,21 +388,22 @@ function SprintManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 >
                   <option value="Active">Active</option>
+                  <option value="Planning">Planning</option>
                   <option value="Completed">Completed</option>
-                  <option value="Planned">Planned</option>
                 </select>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
                 >
                   {editingSprint ? "Save Changes" : "Create Sprint"}
                 </button>

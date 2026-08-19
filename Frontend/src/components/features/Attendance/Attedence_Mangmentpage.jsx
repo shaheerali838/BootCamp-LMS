@@ -9,14 +9,17 @@ import {
   FiSave,
 } from "react-icons/fi";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
+import { useTeamProject } from "../../../context/TeamProjectContext";
 
 function AttendanceManagement() {
   const { students = [], fetchStudents } = useStudents();
   const { updateAttendance, getStudentAttendance } = useAttendance();
+  const { teams = [], fetchTeams } = useTeamProject();
 
   React.useEffect(() => {
     if (fetchStudents) fetchStudents();
-  }, [fetchStudents]);
+    if (fetchTeams) fetchTeams();
+  }, [fetchStudents, fetchTeams]);
 
   const [search, setSearch] = useState("");
   const [draftAttendance, setDraftAttendance] = useState({});
@@ -27,6 +30,44 @@ function AttendanceManagement() {
 
   const getStudentName = (student) =>
     student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || student.email || "Student";
+
+  const getStudentTeam = (student) => {
+    const sid = String(student._id || student.id || "");
+    const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
+    const studentName = String(
+      student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
+    ).trim().toLowerCase();
+
+    const found = teams.find((team) => {
+      const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+      const leadName = String(
+        team.teamLead?.name || team.teamLead?.firstName
+          ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}`
+          : team.lead || ""
+      ).toLowerCase();
+
+      if (leadId && leadId === sid) return true;
+      if (leadName && studentName && leadName === studentName) return true;
+
+      if (Array.isArray(team.members)) {
+        return team.members.some((m) => {
+          const mId = String(m._id || m.id || m.studentId || m);
+          const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+          const mName = String(
+            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m
+          ).toLowerCase();
+          return (
+            (sid && mId === sid) ||
+            (studentRoll && mRoll === studentRoll) ||
+            (studentName && mName === studentName)
+          );
+        });
+      }
+      return false;
+    });
+
+    return found ? (found.teamName || found.name) : "No Team";
+  };
 
   const getTodayAttendance = (studentId) => {
     const student = students.find((s) => getStudentId(s) === studentId);
@@ -45,38 +86,35 @@ function AttendanceManagement() {
 
   const getStatus = (student) => {
     const sid = getStudentId(student);
-    if (draftAttendance[sid]?.status !== undefined) {
+    if (draftAttendance[sid]?.status) {
       return draftAttendance[sid].status;
     }
-    return getTodayAttendance(sid).status || "";
+    return getTodayAttendance(sid).status || "Unmarked";
   };
 
   const getCheckInTime = (student) => {
     const sid = getStudentId(student);
-    if (draftAttendance[sid]?.checkInTime !== undefined) {
+    if (draftAttendance[sid]?.checkInTime) {
       return draftAttendance[sid].checkInTime;
     }
-    return (
-      getTodayAttendance(sid).checkInTime ||
-      getTodayAttendance(sid).time ||
-      "--:--"
-    );
+    return getTodayAttendance(sid).checkInTime || "--:--";
   };
 
   const handleStatusChange = (studentId, status) => {
     let checkInTime = "--:--";
 
     if (status === "Present" || status === "Late") {
-      checkInTime = new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      checkInTime = `${hours}:${minutes} ${ampm}`;
     }
 
     setDraftAttendance((prev) => ({
       ...prev,
       [studentId]: {
-        ...prev[studentId],
         status,
         checkInTime,
       },
@@ -105,7 +143,7 @@ function AttendanceManagement() {
     return students.filter((student) => {
       const name = getStudentName(student).toLowerCase();
       const rollNo = (student.rollNumber || student.rollNo || "").toLowerCase();
-      const team = (student.team || "").toLowerCase();
+      const team = getStudentTeam(student).toLowerCase();
 
       return (
         name.includes(value) ||
@@ -113,7 +151,7 @@ function AttendanceManagement() {
         team.includes(value)
       );
     });
-  }, [students, search]);
+  }, [students, teams, search]);
 
   const presentCount = students.filter((student) => getStatus(student) === "Present").length;
   const lateCount = students.filter((student) => getStatus(student) === "Late").length;
@@ -138,125 +176,133 @@ function AttendanceManagement() {
   return (
     <div className="pt-6 px-3 pb-3 min-h-screen mx-auto space-y-3">
       {/* Header */}
-      <div>
-        <div className="mt-2">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Attendance Management
-          </h1>
-          <p className="text-gray-500 text-xs mt-1">
-            Track and manage daily student attendance
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Attendance</h1>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Mark and track daily student presence
           </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 w-fit">
+          <FiCalendar size={14} className="text-[#0476b9]" />
+          <span>{today}</span>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
           <div>
-            <p className="text-[11px] text-gray-500 font-medium uppercase">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Present
-            </p>
-            <p className="text-xl font-bold text-green-600 mt-1">
+            </div>
+            <div className="text-xl font-bold text-green-600 mt-0.5">
               {presentCount}
-            </p>
+            </div>
           </div>
-          <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-            <FiCheckCircle size={18} />
+          <div className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+            <FiCheckCircle size={16} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
           <div>
-            <p className="text-[11px] text-gray-500 font-medium uppercase">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Late
-            </p>
-            <p className="text-xl font-bold text-orange-600 mt-1">{lateCount}</p>
+            </div>
+            <div className="text-xl font-bold text-orange-600 mt-0.5">
+              {lateCount}
+            </div>
           </div>
-          <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
-            <FiClock size={18} />
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-[11px] text-gray-500 font-medium uppercase">
-              Leave
-            </p>
-            <p className="text-xl font-bold text-blue-600 mt-1">{leaveCount}</p>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-            <FiAlertCircle size={18} />
+          <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
+            <FiClock size={16} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
           <div>
-            <p className="text-[11px] text-gray-500 font-medium uppercase">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              On Leave
+            </div>
+            <div className="text-xl font-bold text-blue-600 mt-0.5">
+              {leaveCount}
+            </div>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+            <FiAlertCircle size={16} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               Absent
-            </p>
-            <p className="text-xl font-bold text-red-600 mt-1">{absentCount}</p>
+            </div>
+            <div className="text-xl font-bold text-red-600 mt-0.5">
+              {absentCount}
+            </div>
           </div>
-          <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-red-600">
-            <FiXCircle size={18} />
+          <div className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+            <FiXCircle size={16} />
           </div>
         </div>
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-xs overflow-hidden">
-        {/* Date Selector & Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <FiCalendar size={16} className="text-gray-500" />
-            <span className="text-xs font-semibold text-gray-700">
-              {new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </div>
-
-          <div className="relative">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+        {/* Controls */}
+        <div className="p-3 border-b border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="relative w-full sm:w-72">
             <FiSearch
               size={15}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
             <input
               type="text"
+              placeholder="Search student, roll number, or team..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search student..."
-              className="w-56 pl-9 pr-3 py-2 border border-gray-200 rounded-lg outline-none text-xs text-gray-700 focus:border-blue-500"
+              className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500 transition"
             />
           </div>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+          >
+            <FiSave size={14} />
+            Save Attendance
+          </button>
         </div>
 
-        {/* Columns */}
-        <div className="grid grid-cols-6 px-4 py-3 bg-gray-50 text-[11px] font-medium text-gray-500 uppercase">
-          <span>Roll No</span>
+        {/* Table Header */}
+        <div className="grid grid-cols-6 px-4 py-2.5 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+          <span>Roll No.</span>
           <span className="col-span-2">Student & Team</span>
-          <span>Check-in</span>
+          <span>Time</span>
           <span>Status</span>
-          <span className="text-right">Actions</span>
+          <span className="text-right">Action</span>
         </div>
 
-        {/* Students Rows */}
+        {/* Table Rows */}
         <div className="divide-y divide-gray-100">
           {filteredStudents.map((student) => {
             const sid = getStudentId(student);
+            const studentName = getStudentName(student);
+            const teamName = getStudentTeam(student);
             const status = getStatus(student);
             const checkIn = getCheckInTime(student);
-            const studentName = getStudentName(student);
             const initials =
               student.initials ||
               studentName
-                ?.split(" ")
-                .map((word) => word[0])
+                .split(" ")
+                .map((w) => w[0])
                 .join("")
                 .slice(0, 2)
-                .toUpperCase() || "ST";
+                .toUpperCase() ||
+              "ST";
 
             return (
               <div
@@ -269,14 +315,16 @@ function AttendanceManagement() {
                 </span>
 
                 {/* Student & Team */}
-                <div className="col-span-2 flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
+                <div className="col-span-2 flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
                     {initials}
                   </div>
-                  <div>
-                    <div className="font-bold text-gray-900">{studentName}</div>
-                    <div className="text-[11px] text-gray-400">
-                      {student.team || "No Team"}
+                  <div className="min-w-0">
+                    <div className="font-bold text-gray-900 truncate">{studentName}</div>
+                    <div className={`text-[11px] truncate ${
+                      teamName !== "No Team" ? "text-blue-600 font-medium" : "text-gray-400"
+                    }`}>
+                      {teamName}
                     </div>
                   </div>
                 </div>
@@ -287,56 +335,48 @@ function AttendanceManagement() {
                 {/* Status Badge */}
                 <div>
                   <span
-                    className={`inline-flex px-2.5 py-1 rounded-full text-[10px] ${
-                      status ? getDropdownStyle(status) : "bg-gray-100 text-gray-400"
+                    className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                      status === "Present"
+                        ? "bg-green-100 text-green-700"
+                        : status === "Late"
+                        ? "bg-orange-100 text-orange-700"
+                        : status === "Leave"
+                        ? "bg-blue-100 text-blue-700"
+                        : status === "Absent"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-gray-100 text-gray-400"
                     }`}
                   >
-                    {status || "Unmarked"}
+                    {status}
                   </span>
                 </div>
 
-                {/* Actions Dropdown */}
+                {/* Action Selector */}
                 <div className="flex justify-end">
                   <select
-                    value={status}
-                    onChange={(e) =>
-                      handleStatusChange(sid, e.target.value)
-                    }
-                    className={`appearance-none cursor-pointer px-3 py-1.5 rounded-lg text-xs border outline-none transition ${getDropdownStyle(
-                      status
+                    value={draftAttendance[sid]?.status || ""}
+                    onChange={(e) => handleStatusChange(sid, e.target.value)}
+                    className={`text-xs px-2 py-1 rounded border outline-none cursor-pointer transition ${getDropdownStyle(
+                      draftAttendance[sid]?.status || status
                     )}`}
                   >
-                    <option value="" disabled hidden>
-                      Select Status
-                    </option>
-                    <option className="bg-green-100 text-green-700 border-green-300" value="Present">Present</option>
-                    <option className="bg-orange-100 text-orange-700 border-orange-300" value="Late">Late</option>
-                    <option className="bg-blue-100 text-blue-700 border-blue-300" value="Leave">Leave</option>
-                    <option className="bg-red-100 text-red-700 border-red-300" value="Absent">Absent</option>
+                    <option value="">Mark As...</option>
+                    <option value="Present">Present</option>
+                    <option value="Late">Late</option>
+                    <option value="Leave">Leave</option>
+                    <option value="Absent">Absent</option>
                   </select>
                 </div>
               </div>
             );
           })}
 
-          {/* No Students */}
           {filteredStudents.length === 0 && (
-            <div className="px-4 py-8 text-center text-xs text-gray-500">
-              No student found.
+            <div className="py-12 text-center text-xs text-gray-500">
+              No students found.
             </div>
           )}
         </div>
-      </div>
-
-      {/* Save Attendance */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition shadow-xs cursor-pointer"
-        >
-          <FiSave size={16} />
-          Save Attendance
-        </button>
       </div>
     </div>
   );

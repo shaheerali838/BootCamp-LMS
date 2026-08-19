@@ -79,15 +79,20 @@ export const WorkProvider = ({ children }) => {
   const updateTask = async (id, updatedData) => {
     setTasksLoading(true);
     try {
+      const studentId = updatedData.assignedStudentId?._id || updatedData.assignedStudentId;
+      const teamId = updatedData.assignedTeamId?._id || updatedData.assignedTeamId;
+      const sprintId = updatedData.sprintId?._id || updatedData.sprintId;
+
       const payload = {
-        ...updatedData,
-        assignedStudentId: updatedData.assignedStudentId?._id || updatedData.assignedStudentId || undefined,
-        assignedTeamId: updatedData.assignedTeamId?._id || updatedData.assignedTeamId || undefined,
-        sprintId: updatedData.sprintId?._id || updatedData.sprintId || undefined,
-        status: updatedData.status ? (updatedData.status === "In Progress" ? "in progress" : String(updatedData.status).toLowerCase()) : undefined,
-        priority: updatedData.priority ? String(updatedData.priority).toLowerCase() : undefined,
+        title: updatedData.title,
+        description: updatedData.description,
+        assignedStudentId: studentId || null,
+        assignedTeamId: teamId || null,
+        sprintId: sprintId || null,
+        status: updatedData.status || undefined,
+        priority: updatedData.priority || undefined,
+        dueDate: updatedData.dueDate || undefined,
       };
-      Object.keys(payload).forEach((k) => (payload[k] === undefined || payload[k] === "") && delete payload[k]);
 
       const res = await api.put(`/tasks/update-task/${id}`, payload);
       // Invalidate & refetch

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FiSearch,
@@ -11,16 +11,19 @@ import {
 } from "react-icons/fi";
 
 import { useStudent } from "../context/AcademicContext";
+import { useTeamProject } from "../context/TeamProjectContext";
 import AddStudentModal from "../components/features/Students/AddStudentModal";
 
 function Students() {
   const { students, fetchStudents, addStudent } = useStudent();
+  const { teams = [], fetchTeams } = useTeamProject();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchStudents) fetchStudents();
-  }, [fetchStudents]);
+    if (fetchTeams) fetchTeams();
+  }, [fetchStudents, fetchTeams]);
 
   const getStudentName = (s) =>
     s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
@@ -36,11 +39,49 @@ function Students() {
       .toUpperCase() || "ST";
   };
 
+  const getStudentTeam = (student) => {
+    const sid = String(student._id || student.id || "");
+    const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
+    const studentName = String(
+      student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
+    ).trim().toLowerCase();
+
+    const found = teams.find((team) => {
+      const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+      const leadName = String(
+        team.teamLead?.name || team.teamLead?.firstName
+          ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}`
+          : team.lead || ""
+      ).toLowerCase();
+
+      if (leadId && leadId === sid) return true;
+      if (leadName && studentName && leadName === studentName) return true;
+
+      if (Array.isArray(team.members)) {
+        return team.members.some((m) => {
+          const mId = String(m._id || m.id || m.studentId || m);
+          const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
+          const mName = String(
+            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m
+          ).toLowerCase();
+          return (
+            (sid && mId === sid) ||
+            (studentRoll && mRoll === studentRoll) ||
+            (studentName && mName === studentName)
+          );
+        });
+      }
+      return false;
+    });
+
+    return found ? (found.teamName || found.name) : "Unassigned";
+  };
+
   const filteredStudents = students.filter((student) => {
     const value = search.toLowerCase();
     const name = getStudentName(student).toLowerCase();
     const roll = (student.rollNumber || student.rollNo || "").toLowerCase();
-    const team = (student.team || "").toLowerCase();
+    const team = getStudentTeam(student).toLowerCase();
     const email = (student.email || "").toLowerCase();
 
     return (
@@ -52,27 +93,15 @@ function Students() {
   });
 
   const totalStudents = students.length;
-
   const activeStudents = students.filter(
-    (student) => (student.status || "").toLowerCase() === "active"
+    (s) => (s.status || "").toLowerCase() === "active"
   ).length;
-
-  const atRiskStudents = students.filter(
-    (student) => (student.status || "").toLowerCase() === "at risk" || (student.attendance && student.attendance < 75)
-  ).length;
-
-  const handleAddStudent = (newStudent) => {
-    addStudent(newStudent);
-  };
+  const inactiveStudents = totalStudents - activeStudents;
 
   return (
     <div className="p-4">
-      {/* Page Header */}
-      <div className="mb-5"></div>
-
-      {/* Stats */}
+      {/* Top Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-        {/* Total */}
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
@@ -82,70 +111,63 @@ function Students() {
               Total Students
             </p>
           </div>
-
           <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
             <FiUsers size={23} className="text-blue-600" />
           </div>
         </div>
 
-        {/* Active */}
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
               {activeStudents}
             </h2>
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-              Active
+              Active Students
             </p>
           </div>
-
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
             <FiCheckCircle size={23} className="text-green-600" />
           </div>
         </div>
 
-        {/* At Risk */}
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
-              {atRiskStudents}
+              {inactiveStudents}
             </h2>
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-              At Risk
+              Inactive / Pending
             </p>
           </div>
-
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <FiAlertTriangle size={23} className="text-red-500" />
+          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+            <FiAlertTriangle size={23} className="text-amber-600" />
           </div>
         </div>
       </div>
 
-      {/* Student Table Card */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        {/* Search Header */}
+      {/* Main Table Card */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+        {/* Search & Add Button Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          {/* Search */}
           <div className="relative w-80">
             <FiSearch
-              size={18}
+              size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
             <input
               type="text"
+              placeholder="Search by name, roll no, or team..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or roll no..."
-              className="w-full pl-10 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500 transition"
             />
           </div>
 
-          {/* Add Student Button */}
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
           >
-            <FiPlus size={17} />
+            <FiPlus size={16} />
             Add Student
           </button>
         </div>
@@ -164,6 +186,7 @@ function Students() {
         {filteredStudents.map((student) => {
           const studentName = getStudentName(student);
           const studentInitials = getStudentInitials(student);
+          const studentTeam = getStudentTeam(student);
           const attVal = student.attendance !== undefined ? student.attendance : 90;
           const isActive = (student.status || "").toLowerCase() === "active";
 
@@ -173,23 +196,25 @@ function Students() {
               className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
             >
               {/* Roll No */}
-              <span className="text-xs text-gray-600">
+              <span className="text-xs font-semibold text-gray-700">
                 {student.rollNumber || student.rollNo || "N/A"}
               </span>
 
               {/* Name */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[11px] font-semibold">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
                   {studentInitials}
                 </div>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-xs font-bold text-gray-900">
                   {studentName}
                 </span>
               </div>
 
               {/* Team */}
-              <span className="text-xs text-gray-500">
-                {student.team || "Unassigned"}
+              <span className={`text-xs font-medium ${
+                studentTeam !== "Unassigned" ? "text-blue-600 font-semibold" : "text-gray-400"
+              }`}>
+                {studentTeam}
               </span>
 
               {/* Attendance */}
@@ -204,7 +229,7 @@ function Students() {
                     }}
                   />
                 </div>
-                <span className="text-xs text-gray-700">
+                <span className="text-xs text-gray-700 font-semibold">
                   {attVal}%
                 </span>
               </div>
@@ -212,10 +237,10 @@ function Students() {
               {/* Status */}
               <div>
                 <span
-                  className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                  className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
                     isActive
-                      ? "bg-green-100 text-green-600"
-                      : "bg-red-100 text-red-500"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-600"
                   }`}
                 >
                   {student.status || "Active"}
@@ -223,14 +248,13 @@ function Students() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-4">
-                {/* View */}
+              <div className="flex items-center gap-2 text-gray-400">
                 <Link
                   to={`/students/${student._id || student.id}`}
-                  title="View Student Details"
-                  className="text-gray-400 hover:text-blue-600 transition"
+                  className="hover:text-blue-600 transition p-1"
+                  title="View Details"
                 >
-                  <FiEye size={17} />
+                  <FiEye size={15} />
                 </Link>
               </div>
             </div>
@@ -238,18 +262,20 @@ function Students() {
         })}
 
         {filteredStudents.length === 0 && (
-          <div className="py-12 text-center text-gray-400 text-sm">
+          <div className="py-12 text-center text-xs text-gray-500">
             No students found.
           </div>
         )}
       </div>
 
       {/* Add Student Modal */}
-      <AddStudentModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onAddStudent={handleAddStudent}
-      />
+      {showModal && (
+        <AddStudentModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onAdd={addStudent}
+        />
+      )}
     </div>
   );
 }
