@@ -12,23 +12,7 @@ import ForgetPassword from "./pages/Auth/ForgetPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import { FiLoader } from "react-icons/fi";
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <FiLoader className="animate-spin text-amber-600" size={32} />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
+import { ProtectedRoute, PublicOnlyRoute } from "./routes/ProtectedRoute";
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -54,7 +38,13 @@ function AppLayout() {
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* ================= PUBLIC AUTH ROUTES (IN AUTH LAYOUT) ================= */}
-      <Route element={<AuthLayout />}>
+      <Route
+        element={
+          <PublicOnlyRoute>
+            <AuthLayout />
+          </PublicOnlyRoute>
+        }
+      >
         <Route path="/login" element={<LoginPages />} />
         <Route path="/forgot-password" element={<ForgetPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
@@ -67,7 +57,9 @@ function AppLayout() {
         path="/*"
         element={
           <ProtectedRoute>
-            <DashboardLayout />
+            <AppProvider>
+              <DashboardLayout />
+            </AppProvider>
           </ProtectedRoute>
         }
       />
@@ -78,9 +70,7 @@ function AppLayout() {
 function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <AppLayout />
-      </AppProvider>
+      <AppLayout />
     </AuthProvider>
   );
 }

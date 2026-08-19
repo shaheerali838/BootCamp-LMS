@@ -40,11 +40,7 @@ function BatchPerformance() {
     };
   });
 
-  const chartData = data.length > 0 ? data : [
-    { name: "Batch 10", studentsCount: 45, attendance: 92, performance: 88 },
-    { name: "Batch 11", studentsCount: 60, attendance: 95, performance: 94 },
-    { name: "Batch 12", studentsCount: 30, attendance: 89, performance: 85 },
-  ];
+  const chartData = data;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
@@ -89,6 +85,12 @@ function BatchPerformance() {
             </div>
           </div>
         ))}
+
+        {chartData.length === 0 && (
+          <div className="py-8 text-center text-xs text-gray-400">
+            No batch performance records found.
+          </div>
+        )}
       </div>
     </div>
   );

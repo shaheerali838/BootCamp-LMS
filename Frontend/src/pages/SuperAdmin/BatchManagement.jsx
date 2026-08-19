@@ -10,11 +10,12 @@ import {
   FiAlertCircle,
   FiArchive,
 } from "react-icons/fi";
-import { useBatches } from "../../context/AcademicContext";
+import { useBatches, useStudent } from "../../context/AcademicContext";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } =
     useBatches();
+  const { students = [] } = useStudent();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingBatch, setEditingBatch] = useState(null);
@@ -103,7 +104,11 @@ function BatchManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save batch. Please check inputs.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save batch. Please check inputs.",
+      );
     }
   };
 
@@ -113,7 +118,7 @@ function BatchManagement() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 mt-5">
       {error && (
         <div className="mb-5 bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2 text-sm">
           <FiAlertCircle size={18} />
@@ -220,7 +225,18 @@ function BatchManagement() {
                   {formatDate(item.startDate)} - {formatDate(item.endDate)}
                 </span>
                 <span className="text-xs font-medium text-gray-700">
-                  {item.students?.length || 0} Students
+                  {item.totalStudents ??
+                    (item.students?.length !== undefined
+                      ? item.students.length
+                      : students.filter(
+                          (s) =>
+                            (s.batchId?._id ||
+                              s.batchId ||
+                              s.batch?._id ||
+                              s.batch) === item._id ||
+                            s.batchName === item.batchName,
+                        ).length)}{" "}
+                  Students
                 </span>
                 <div>
                   <span
@@ -372,10 +388,16 @@ function BatchManagement() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 flex items-center gap-2 transition"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition"
                 >
-                  {loading && <FiLoader className="animate-spin" />}
-                  {editingBatch ? "Update Batch" : "Add Batch"}
+                  {loading ? (
+                    <>
+                      <FiLoader className="animate-spin" size={14} />
+                      <span>{editingBatch ? "Updating Batch..." : "Adding Batch..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingBatch ? "Update Batch" : "Add Batch"}</span>
+                  )}
                 </button>
               </div>
             </form>

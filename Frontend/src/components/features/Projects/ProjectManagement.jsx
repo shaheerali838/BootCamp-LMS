@@ -7,6 +7,7 @@ import {
   FiUsers,
   FiLayers,
   FiUserCheck,
+  FiLoader,
 } from "react-icons/fi";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useStudents } from "../../../context/AcademicContext";
@@ -33,13 +34,7 @@ function ProjectManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [search, setSearch] = useState("");
-
-
-  // --------------------------------
-  // PAGINATION
-  // --------------------------------
-  const projectsPerPage = 3;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
 
   // --------------------------------
   // FORM DATA
@@ -59,78 +54,27 @@ function ProjectManagement() {
   // --------------------------------
   const totalMembers = teams.reduce(
     (total, team) =>
-      total + (team.members?.length || 0) + (team.teamLead || team.lead ? 1 : 0),
-    0
+      total +
+      (team.members?.length || 0) +
+      (team.teamLead || team.lead ? 1 : 0),
+    0,
   );
 
   // --------------------------------
   // TOTAL LEADERS
   // --------------------------------
-  const totalLeaders = teams.filter(
-    (team) => Boolean(team.teamLead || team.lead)
+  const totalLeaders = teams.filter((team) =>
+    Boolean(team.teamLead || team.lead),
   ).length;
 
   // --------------------------------
   // SEARCH PROJECTS
   // --------------------------------
   const filteredProjects = projects.filter((project) =>
-    (
-      project.name ||
-      project.projectName ||
-      ""
-    )
+    (project.name || project.projectName || "")
       .toLowerCase()
-      .includes(search.toLowerCase())
+      .includes(search.toLowerCase()),
   );
-
-  // --------------------------------
-  // PAGINATION
-  // --------------------------------
-  const totalPages = Math.ceil(
-    filteredProjects.length / projectsPerPage
-  );
-
-  const startIndex =
-    (currentPage - 1) * projectsPerPage;
-
-  const currentProjects =
-    filteredProjects.slice(
-      startIndex,
-      startIndex + projectsPerPage
-    );
-
-  // --------------------------------
-  // FIX CURRENT PAGE
-  // --------------------------------
-  useEffect(() => {
-    if (
-      totalPages > 0 &&
-      currentPage > totalPages
-    ) {
-      setCurrentPage(totalPages);
-    }
-
-    if (
-      totalPages === 0 &&
-      currentPage !== 1
-    ) {
-      setCurrentPage(1);
-    }
-  }, [totalPages, currentPage]);
-
-  // --------------------------------
-  // GO TO PAGE
-  // --------------------------------
-  const goToPage = (page) => {
-    if (
-      page < 1 ||
-      page > totalPages
-    ) {
-      return;
-    }
-
-    setCurrentPage(page);
-  };
 
   // --------------------------------
   // RESET FORM
@@ -174,47 +118,26 @@ function ProjectManagement() {
 
     // Find selected team
     const selectedTeam = teams.find(
-      (team) =>
-        String(
-          team._id || team.id
-        ) ===
-        String(selectedTeamId)
+      (team) => String(team._id || team.id) === String(selectedTeamId),
     );
 
     setFormData({
-      projectName:
-        project.projectName ||
-        project.name ||
-        "",
+      projectName: project.projectName || project.name || "",
 
-      description:
-        project.description || "",
+      description: project.description || "",
 
-      startDate:
-        project.startDate
-          ? String(
-            project.startDate
-          ).slice(0, 10)
-          : "",
+      startDate: project.startDate
+        ? String(project.startDate).slice(0, 10)
+        : "",
 
-      deadline:
-        project.deadline
-          ? String(
-            project.deadline
-          ).slice(0, 10)
-          : "",
+      deadline: project.deadline ? String(project.deadline).slice(0, 10) : "",
 
       batch: selectedTeamId,
 
-      status:
-        project.status ||
-        "pending",
+      status: project.status || "pending",
 
       // Load members from selected team
-      members:
-        selectedTeam?.members ||
-        project.members ||
-        [],
+      members: selectedTeam?.members || project.members || [],
     });
 
     setShowForm(true);
@@ -233,23 +156,16 @@ function ProjectManagement() {
   // HANDLE INPUT CHANGE
   // --------------------------------
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-    } = e.target;
+    const { name, value } = e.target;
 
     // --------------------------------
     // WHEN TEAM CHANGES
     // GET ONLY MEMBERS OF THAT TEAM
     // --------------------------------
     if (name === "batch") {
-      const selectedTeam =
-        teams.find(
-          (team) =>
-            String(
-              team._id || team.id
-            ) === String(value)
-        );
+      const selectedTeam = teams.find(
+        (team) => String(team._id || team.id) === String(value),
+      );
 
       setFormData({
         ...formData,
@@ -258,9 +174,7 @@ function ProjectManagement() {
 
         // Only members already
         // inside selected team
-        members:
-          selectedTeam?.members ||
-          [],
+        members: selectedTeam?.members || [],
       });
 
       return;
@@ -275,7 +189,7 @@ function ProjectManagement() {
   // --------------------------------
   // SUBMIT PROJECT
   // --------------------------------
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // --------------------------------
@@ -288,9 +202,7 @@ function ProjectManagement() {
       !formData.deadline ||
       !formData.batch
     ) {
-      alert(
-        "Please fill all required fields"
-      );
+      alert("Please fill all required fields");
 
       return;
     }
@@ -298,13 +210,8 @@ function ProjectManagement() {
     // --------------------------------
     // DATE VALIDATION
     // --------------------------------
-    if (
-      new Date(formData.deadline) <
-      new Date(formData.startDate)
-    ) {
-      alert(
-        "Deadline must be after start date"
-      );
+    if (new Date(formData.deadline) < new Date(formData.startDate)) {
+      alert("Deadline must be after start date");
 
       return;
     }
@@ -313,77 +220,58 @@ function ProjectManagement() {
     // PROJECT DATA
     // --------------------------------
     const projectData = {
-      projectName:
-        formData.projectName,
+      projectName: formData.projectName,
 
-      name:
-        formData.projectName,
+      name: formData.projectName,
 
-      description:
-        formData.description,
+      description: formData.description,
 
-      startDate:
-        formData.startDate,
+      startDate: formData.startDate,
 
-      deadline:
-        formData.deadline,
+      deadline: formData.deadline,
 
-      batch:
-        formData.batch,
+      batch: formData.batch,
 
-      teamId:
-        formData.batch,
+      teamId: formData.batch,
 
-      status:
-        formData.status,
+      status: formData.status,
 
       // IMPORTANT:
       // Only members from selected team
-      members:
-        formData.members,
+      members: formData.members,
     };
 
-    // --------------------------------
-    // UPDATE PROJECT
-    // --------------------------------
-    if (editingProject) {
-      const projectId =
-        editingProject.id ||
-        editingProject._id;
-
-      updateProject(
-        projectId,
-        projectData
-      );
+    setSubmitting(true);
+    try {
+      if (editingProject) {
+        const projectId = editingProject.id || editingProject._id;
+        await updateProject(projectId, projectData);
+      } else {
+        await addProject(projectData);
+      }
+      closeForm();
+    } catch (err) {
+      console.error("Project save error:", err);
+      alert(err?.response?.data?.message || err?.message || "Failed to save project.");
+    } finally {
+      setSubmitting(false);
     }
-
-    // --------------------------------
-    // CREATE PROJECT
-    // --------------------------------
-    else {
-      addProject(projectData);
-
-      // Go to first page
-      setCurrentPage(1);
-    }
-
-    closeForm();
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-2">
-
       {/* -------------------------------- */}
       {/* PAGE HEADER */}
       {/* -------------------------------- */}
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-3 px-3">
-
         <div>
           <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-1">
             <span>{isSuperAdmin ? "Super Admin" : "Admin"}</span>
             <span>›</span>
-            <span className="font-semibold text-gray-800">Project Management</span>
+            <span className="font-semibold text-gray-800">
+              Project Management
+            </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-800">
             Project Management
@@ -393,7 +281,6 @@ function ProjectManagement() {
             Create, manage and track your projects.
           </p>
         </div>
-
       </div>
 
       {/* -------------------------------- */}
@@ -401,111 +288,64 @@ function ProjectManagement() {
       {/* -------------------------------- */}
 
       <div className="bg-white border flex items-center justify-between border-gray-200 rounded-2xl shadow-sm p-5 mb-3">
-
         {/* STATISTICS */}
 
         <div className="flex flex-wrap items-center gap-3">
-
           {/* TOTAL PROJECTS */}
 
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3 min-w-[130px]">
-
+          <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3 min-w-32.5">
             <div className="flex items-center gap-2">
+              <FiFolder size={16} className="text-[#0476b9]" />
 
-              <FiFolder
-                size={16}
-                className="text-[#0476b9]"
-              />
-
-              <p className="text-xs text-gray-500">
-                Total Projects
-              </p>
-
+              <p className="text-xs text-gray-500">Total Projects</p>
             </div>
 
             <p className="text-2xl font-bold text-[#0476b9]">
               {projects.length}
             </p>
-
           </div>
 
           {/* TOTAL TEAMS */}
 
-          <div className="bg-green-50 border border-green-100 rounded-xl px-5 py-3 min-w-[130px]">
-
+          <div className="bg-green-50 border border-green-100 rounded-xl px-5 py-3 min-w-32.5">
             <div className="flex items-center gap-2">
+              <FiLayers size={16} className="text-green-600" />
 
-              <FiLayers
-                size={16}
-                className="text-green-600"
-              />
-
-              <p className="text-xs text-gray-500">
-                Total Teams
-              </p>
-
+              <p className="text-xs text-gray-500">Total Teams</p>
             </div>
 
-            <p className="text-2xl font-bold text-green-600">
-              {teams.length}
-            </p>
-
+            <p className="text-2xl font-bold text-green-600">{teams.length}</p>
           </div>
 
           {/* TOTAL LEADERS */}
 
-          <div className="bg-purple-50 border border-purple-100 rounded-xl px-5 py-3 min-w-[130px]">
-
+          <div className="bg-purple-50 border border-purple-100 rounded-xl px-5 py-3 min-w-32.5">
             <div className="flex items-center gap-2">
+              <FiUserCheck size={16} className="text-purple-600" />
 
-              <FiUserCheck
-                size={16}
-                className="text-purple-600"
-              />
-
-              <p className="text-xs text-gray-500">
-                Total Leaders
-              </p>
-
+              <p className="text-xs text-gray-500">Total Leaders</p>
             </div>
 
-            <p className="text-2xl font-bold text-purple-600">
-              {totalLeaders}
-            </p>
-
+            <p className="text-2xl font-bold text-purple-600">{totalLeaders}</p>
           </div>
 
           {/* TOTAL MEMBERS */}
 
-          <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-3 min-w-[130px]">
-
+          <div className="bg-orange-50 border border-orange-100 rounded-xl px-5 py-3 min-w-32.5">
             <div className="flex items-center gap-2">
+              <FiUsers size={16} className="text-orange-600" />
 
-              <FiUsers
-                size={16}
-                className="text-orange-600"
-              />
-
-              <p className="text-xs text-gray-500">
-                Total Members
-              </p>
-
+              <p className="text-xs text-gray-500">Total Members</p>
             </div>
 
-            <p className="text-2xl font-bold text-orange-600">
-              {totalMembers}
-            </p>
-
+            <p className="text-2xl font-bold text-orange-600">{totalMembers}</p>
           </div>
-
         </div>
 
         {/* SEARCH + ADD */}
 
         <div className="flex flex-col sm:flex-row gap-3">
-
           <div className="relative flex-1">
-
             <FiSearch
               size={20}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -516,15 +356,12 @@ function ProjectManagement() {
               placeholder="Search projects..."
               value={search}
               onChange={(e) => {
-                setSearch(
-                  e.target.value
-                );
+                setSearch(e.target.value);
 
                 setCurrentPage(1);
               }}
               className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-[#0476b9] focus:ring-0.5 focus:ring-[#0476b9]"
             />
-
           </div>
 
           <button
@@ -533,12 +370,9 @@ function ProjectManagement() {
             className="flex items-center justify-center gap-2 bg-[#0476b9] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
           >
             <FiPlus size={18} />
-
             Add Project
           </button>
-
         </div>
-
       </div>
 
       {/* -------------------------------- */}
@@ -546,24 +380,15 @@ function ProjectManagement() {
       {/* -------------------------------- */}
 
       {filteredProjects.length === 0 ? (
-
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-10 text-center mt-3">
-
-          <FiFolder
-            size={40}
-            className="mx-auto text-gray-300"
-          />
+          <FiFolder size={40} className="mx-auto text-gray-300" />
 
           <h2 className="text-xl font-semibold text-gray-700 mt-3">
-            {search
-              ? "No Projects Found"
-              : "No Projects Yet"}
+            {search ? "No Projects Found" : "No Projects Yet"}
           </h2>
 
           <p className="text-gray-500 mt-2">
-            {search
-              ? "Try another search."
-              : "Create your first project."}
+            {search ? "Try another search." : "Create your first project."}
           </p>
 
           {!search && (
@@ -575,135 +400,43 @@ function ProjectManagement() {
               + Create Project
             </button>
           )}
-
         </div>
-
       ) : (
-
         <>
-
           {/* -------------------------------- */}
-          {/* PROJECT CARDS */}
+          {/* PROJECT CARDS (Continuous Scrollable) */}
           {/* -------------------------------- */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-12 mt-3">
+            {filteredProjects.map((project) => {
+              const projectTeamId =
+                project.teamId?._id ||
+                project.teamId?.id ||
+                (typeof project.teamId === "string" ? project.teamId : null) ||
+                project.batch?._id ||
+                project.batch?.id ||
+                (typeof project.batch === "string" ? project.batch : null) ||
+                project.batchId;
 
-            {currentProjects.map(
-              (project) => {
-                const projectTeamId =
-                  project.teamId?._id ||
-                  project.teamId?.id ||
-                  (typeof project.teamId === "string" ? project.teamId : null) ||
-                  project.batch?._id ||
-                  project.batch?.id ||
-                  (typeof project.batch === "string" ? project.batch : null) ||
-                  project.batchId;
+              const team =
+                teams.find(
+                  (t) => String(t._id || t.id) === String(projectTeamId),
+                ) ||
+                (project.teamId && typeof project.teamId === "object"
+                  ? project.teamId
+                  : null);
 
-                const team =
-                  teams.find(
-                    (t) =>
-                      String(t._id || t.id) === String(projectTeamId)
-                  ) ||
-                  (project.teamId && typeof project.teamId === "object"
-                    ? project.teamId
-                    : null);
-
-                return (
-                  <ProjectCard
-                    key={
-                      project._id ||
-                      project.id
-                    }
-                    project={project}
-                    team={team}
-                    onEdit={handleEdit}
-                  />
-                );
-              }
-            )}
-
+              return (
+                <ProjectCard
+                  key={project._id || project.id}
+                  project={project}
+                  team={team}
+                  onEdit={handleEdit}
+                />
+              );
+            })}
           </div>
-
-          {/* -------------------------------- */}
-          {/* PAGINATION */}
-          {/* -------------------------------- */}
-
-          {totalPages > 1 && (
-
-            <div className="flex items-center justify-center gap-2 mt-6 mb-6">
-
-              {/* PREVIOUS */}
-
-              <button
-                type="button"
-                onClick={() =>
-                  goToPage(
-                    currentPage - 1
-                  )
-                }
-                disabled={
-                  currentPage === 1
-                }
-                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
-              >
-                Previous
-              </button>
-
-              {/* PAGE NUMBERS */}
-
-              {Array.from(
-                {
-                  length: totalPages,
-                },
-                (_, index) =>
-                  index + 1
-              ).map((page) => (
-
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() =>
-                    goToPage(page)
-                  }
-                  className={`w-10 h-10 rounded-lg font-semibold transition ${currentPage === page
-                      ? "bg-[#0476b9] text-white"
-                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                    }`}
-                >
-                  {page}
-                </button>
-
-              ))}
-
-              {/* NEXT */}
-
-              <button
-                type="button"
-                onClick={() =>
-                  goToPage(
-                    currentPage + 1
-                  )
-                }
-                disabled={
-                  currentPage === totalPages
-                }
-                className={`px-4 py-2 rounded-lg font-semibold border transition ${currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
-              >
-                Next
-              </button>
-
-            </div>
-
-          )}
-
         </>
-
       )}
 
       {/* -------------------------------- */}
@@ -711,33 +444,21 @@ function ProjectManagement() {
       {/* -------------------------------- */}
 
       {showForm && (
-
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-
           <div className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-
             {/* MODAL HEADER */}
 
             <div className="flex items-center justify-between mb-5">
-
               <div>
-
                 <h2 className="text-2xl font-bold text-gray-800">
-
-                  {editingProject
-                    ? "Edit Project"
-                    : "Create Project"}
-
+                  {editingProject ? "Edit Project" : "Create Project"}
                 </h2>
 
                 <p className="text-sm text-gray-500 mt-1">
-
                   {editingProject
                     ? "Update project information."
                     : "Create a new project."}
-
                 </p>
-
               </div>
 
               <button
@@ -747,13 +468,11 @@ function ProjectManagement() {
               >
                 ×
               </button>
-
             </div>
 
             {/* FORM */}
 
             <form onSubmit={handleSubmit}>
-
               {/* PROJECT NAME */}
 
               <label className="block text-sm font-semibold text-gray-700">
@@ -763,9 +482,7 @@ function ProjectManagement() {
               <input
                 type="text"
                 name="projectName"
-                value={
-                  formData.projectName
-                }
+                value={formData.projectName}
                 onChange={handleChange}
                 placeholder="Enter project name"
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
@@ -779,9 +496,7 @@ function ProjectManagement() {
 
               <textarea
                 name="description"
-                value={
-                  formData.description
-                }
+                value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter project description"
                 rows="4"
@@ -797,9 +512,7 @@ function ProjectManagement() {
               <input
                 type="date"
                 name="startDate"
-                value={
-                  formData.startDate
-                }
+                value={formData.startDate}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
@@ -813,9 +526,7 @@ function ProjectManagement() {
               <input
                 type="date"
                 name="deadline"
-                value={
-                  formData.deadline
-                }
+                value={formData.deadline}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               />
@@ -828,36 +539,19 @@ function ProjectManagement() {
 
               <select
                 name="batch"
-                value={
-                  formData.batch
-                }
+                value={formData.batch}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               >
+                <option value="">Select Team</option>
 
-                <option value="">
-                  Select Team
-                </option>
-
-                {teams.map(
-                  (team) => (
-
-                    <option
-                      key={
-                        team._id ||
-                        team.id
-                      }
-                      value={
-                        team._id ||
-                        team.id
-                      }
-                    >
-                      {team.teamName || team.name || `Team ${team._id || team.id}`}
-                    </option>
-
-                  )
-                )}
-
+                {teams.map((team) => (
+                  <option key={team._id || team.id} value={team._id || team.id}>
+                    {team.teamName ||
+                      team.name ||
+                      `Team ${team._id || team.id}`}
+                  </option>
+                ))}
               </select>
 
               {/* -------------------------------- */}
@@ -866,109 +560,128 @@ function ProjectManagement() {
               {/* PROJECT MEMBERS */}
               {/* -------------------------------- */}
 
-              {formData.batch && (() => {
-                const selectedTeam = teams.find(
-                  (t) => String(t._id || t.id) === String(formData.batch)
-                );
+              {formData.batch &&
+                (() => {
+                  const selectedTeam = teams.find(
+                    (t) => String(t._id || t.id) === String(formData.batch),
+                  );
 
-                const list = [];
-                if (selectedTeam?.teamLead) {
-                  list.push({
-                    raw: selectedTeam.teamLead,
-                    isLead: true,
-                  });
-                }
-                if (Array.isArray(selectedTeam?.members)) {
-                  selectedTeam.members.forEach((m) => {
-                    const mId = String(m._id || m.id || m);
-                    const leadId = String(selectedTeam.teamLead?._id || selectedTeam.teamLead?.id || selectedTeam.teamLead || "");
-                    if (mId !== leadId) {
-                      list.push({ raw: m, isLead: false });
+                  const list = [];
+                  if (selectedTeam?.teamLead) {
+                    list.push({
+                      raw: selectedTeam.teamLead,
+                      isLead: true,
+                    });
+                  }
+                  if (Array.isArray(selectedTeam?.members)) {
+                    selectedTeam.members.forEach((m) => {
+                      const mId = String(m._id || m.id || m);
+                      const leadId = String(
+                        selectedTeam.teamLead?._id ||
+                          selectedTeam.teamLead?.id ||
+                          selectedTeam.teamLead ||
+                          "",
+                      );
+                      if (mId !== leadId) {
+                        list.push({ raw: m, isLead: false });
+                      }
+                    });
+                  }
+
+                  const resolveMember = (item) => {
+                    const raw = item.raw;
+                    if (
+                      typeof raw === "object" &&
+                      (raw.firstName || raw.name)
+                    ) {
+                      const name = raw.firstName
+                        ? `${raw.firstName} ${raw.lastName || ""}`.trim()
+                        : raw.name;
+                      const roll =
+                        raw.rollNumber || raw.rollNo || raw.email || "";
+                      return { name, roll };
                     }
-                  });
-                }
+                    const rawId = String(raw?._id || raw?.id || raw);
+                    const found = students.find(
+                      (s) => String(s._id || s.id) === rawId,
+                    );
+                    if (found) {
+                      const name = found.firstName
+                        ? `${found.firstName} ${found.lastName || ""}`.trim()
+                        : found.name;
+                      const roll =
+                        found.rollNumber || found.rollNo || found.email || "";
+                      return { name, roll };
+                    }
+                    return { name: "Team Member", roll: "" };
+                  };
 
-                const resolveMember = (item) => {
-                  const raw = item.raw;
-                  if (typeof raw === "object" && (raw.firstName || raw.name)) {
-                    const name = raw.firstName
-                      ? `${raw.firstName} ${raw.lastName || ""}`.trim()
-                      : raw.name;
-                    const roll = raw.rollNumber || raw.rollNo || raw.email || "";
-                    return { name, roll };
-                  }
-                  const rawId = String(raw?._id || raw?.id || raw);
-                  const found = students.find((s) => String(s._id || s.id) === rawId);
-                  if (found) {
-                    const name = found.firstName
-                      ? `${found.firstName} ${found.lastName || ""}`.trim()
-                      : found.name;
-                    const roll = found.rollNumber || found.rollNo || found.email || "";
-                    return { name, roll };
-                  }
-                  return { name: "Team Member", roll: "" };
-                };
+                  return (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-sm font-semibold text-gray-700">
+                          Project Members
+                        </label>
+                        <span className="text-xs text-gray-500 font-medium">
+                          {list.length} Members
+                        </span>
+                      </div>
 
-                return (
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-sm font-semibold text-gray-700">
-                        Project Members
-                      </label>
-                      <span className="text-xs text-gray-500 font-medium">
-                        {list.length} Members
-                      </span>
-                    </div>
+                      <div className="border border-gray-200 rounded-lg bg-gray-50 p-3 max-h-48 overflow-y-auto">
+                        {list.length > 0 ? (
+                          <div className="space-y-2">
+                            {list.map((item, idx) => {
+                              const { name, roll } = resolveMember(item);
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2"
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div
+                                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                        item.isLead
+                                          ? "bg-blue-600 text-white"
+                                          : "bg-gray-100 text-[#0476b9]"
+                                      }`}
+                                    >
+                                      {name.charAt(0).toUpperCase()}
+                                    </div>
 
-                    <div className="border border-gray-200 rounded-lg bg-gray-50 p-3 max-h-48 overflow-y-auto">
-                      {list.length > 0 ? (
-                        <div className="space-y-2">
-                          {list.map((item, idx) => {
-                            const { name, roll } = resolveMember(item);
-                            return (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2"
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                                    item.isLead ? "bg-blue-600 text-white" : "bg-gray-100 text-[#0476b9]"
-                                  }`}>
-                                    {name.charAt(0).toUpperCase()}
-                                  </div>
-
-                                  <div className="min-w-0">
-                                    <span className="text-xs font-semibold text-gray-800 truncate block">
-                                      {name}
-                                    </span>
-                                    {roll && (
-                                      <span className="text-[10px] text-gray-400 block truncate">
-                                        {roll}
+                                    <div className="min-w-0">
+                                      <span className="text-xs font-semibold text-gray-800 truncate block">
+                                        {name}
                                       </span>
-                                    )}
+                                      {roll && (
+                                        <span className="text-[10px] text-gray-400 block truncate">
+                                          {roll}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
 
-                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                                  item.isLead
-                                    ? "bg-blue-50 text-blue-700 border border-blue-100"
-                                    : "bg-gray-100 text-gray-500"
-                                }`}>
-                                  {item.isLead ? "Team Lead" : "Member"}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-500 py-1">
-                          No members assigned to this team yet.
-                        </p>
-                      )}
+                                  <span
+                                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                      item.isLead
+                                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                        : "bg-gray-100 text-gray-500"
+                                    }`}
+                                  >
+                                    {item.isLead ? "Team Lead" : "Member"}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 py-1">
+                            No members assigned to this team yet.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
 
               {/* STATUS */}
 
@@ -978,55 +691,48 @@ function ProjectManagement() {
 
               <select
                 name="status"
-                value={
-                  formData.status
-                }
+                value={formData.status}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg p-2.5 mt-1 outline-none focus:border-[#0476b9]"
               >
+                <option value="pending">Pending</option>
 
-                <option value="pending">
-                  Pending
-                </option>
+                <option value="in progress">In Progress</option>
 
-                <option value="in progress">
-                  In Progress
-                </option>
-
-                <option value="completed">
-                  Completed
-                </option>
-
+                <option value="completed">Completed</option>
               </select>
 
               {/* BUTTONS */}
 
               <div className="flex gap-3 mt-6">
-
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
+                  disabled={submitting}
+                  className="flex-1 border border-gray-300 py-2.5 rounded-lg font-semibold hover:bg-gray-50 text-sm disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="flex-1 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f]"
+                  disabled={submitting}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#0476b9] text-white py-2.5 rounded-lg font-semibold hover:bg-[#03669f] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-
-                  {editingProject
-                    ? "Update Project"
-                    : "Create Project"}
-
+                  {submitting ? (
+                    <>
+                      <FiLoader size={16} className="animate-spin" />
+                      <span>{editingProject ? "Updating Project..." : "Creating Project..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingProject ? "Update Project" : "Create Project"}</span>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }

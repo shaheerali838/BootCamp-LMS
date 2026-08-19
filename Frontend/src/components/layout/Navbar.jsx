@@ -1,4 +1,9 @@
-import React, { useState } from "react";
+// =========================================================================
+// Top Navbar Component
+// Includes dynamic Breadcrumb and active User Profile quick badge with avatar & role
+// =========================================================================
+
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Breadcrumb from "../common/Breadcrumb";
 import { useSidebar } from "../../context/SidebarContext";
@@ -11,6 +16,7 @@ import {
   UserCheck,
   GraduationCap,
   KeyRound,
+  X,
 } from "lucide-react";
 
 function Navbar() {
@@ -18,10 +24,38 @@ function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on click outside or Escape key
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showDropdown]);
 
   // ================= ROLE & PROFILE DISPLAY RESOLUTION (ADDED) =================
   const rawRole = user?.role || (user?.rollNumber ? "STUDENT" : "ADMIN");
-  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+  const role = String(rawRole)
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
 
   const isSuperAdmin = role === "superadmin";
   const isStudent = role === "student";
@@ -33,7 +67,11 @@ function Navbar() {
       ? "Student"
       : "Admin";
 
-  const RoleIcon = isSuperAdmin ? Shield : isStudent ? GraduationCap : UserCheck;
+  const RoleIcon = isSuperAdmin
+    ? Shield
+    : isStudent
+      ? GraduationCap
+      : UserCheck;
 
   const fullName =
     `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
@@ -63,8 +101,8 @@ function Navbar() {
       {/* Left: Breadcrumbs navigation */}
       <Breadcrumb />
 
-      {/* ================= RIGHT: USER PROFILE QUICK BADGE (ADDED) ================= */}
-      <div className="relative">
+      {/* ================= RIGHT: USER PROFILE QUICK BADGE ================= */}
+      <div className="relative" ref={dropdownRef}>
         <button
           type="button"
           onClick={() => setShowDropdown(!showDropdown)}
@@ -88,7 +126,11 @@ function Navbar() {
                       : "bg-blue-600"
                 }`}
               >
-                {user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={16} />}
+                {user?.firstName ? (
+                  user.firstName.charAt(0).toUpperCase()
+                ) : (
+                  <User size={16} />
+                )}
               </div>
             )}
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
@@ -96,7 +138,7 @@ function Navbar() {
 
           {/* User Name & Role Pill (Hidden on very small screens) */}
           <div className="hidden sm:flex flex-col text-left">
-            <span className="text-xs font-bold text-gray-800 leading-tight max-w-[130px] truncate">
+            <span className="text-xs font-bold text-gray-800 leading-tight max-w-32.5 truncate">
               {fullName}
             </span>
             <span
@@ -125,16 +167,45 @@ function Navbar() {
         {showDropdown && (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-gray-200 shadow-xl py-2 z-50 animate-fade-in"
+            className="absolute right-0 mt-2 w-60 rounded-2xl bg-white border border-gray-200 shadow-xl py-2 z-50 animate-fade-in"
           >
-            {/* Header info */}
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-xs font-bold text-gray-900 truncate">
-                {fullName}
-              </p>
-              <p className="text-[11px] text-gray-500 truncate">
-                {user?.email || "No email"}
-              </p>
+            {/* Header info with Close Button */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 shadow-2xs">
+                  {avatarImage ? (
+                    <img src={avatarImage} alt={fullName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className={`w-full h-full flex items-center justify-center text-white font-bold text-[11px] ${
+                        isSuperAdmin
+                          ? "bg-purple-700"
+                          : isStudent
+                            ? "bg-emerald-600"
+                            : "bg-blue-600"
+                      }`}
+                    >
+                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : fullName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-900 truncate">
+                    {fullName}
+                  </p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {user?.email || "No email"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDropdown(false)}
+                className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-lg transition shrink-0 cursor-pointer"
+                title="Close"
+              >
+                <X size={15} />
+              </button>
             </div>
 
             {/* Links */}

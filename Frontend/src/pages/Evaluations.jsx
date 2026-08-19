@@ -138,8 +138,12 @@ function Evaluations() {
             >
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm">
-                    {student.firstName?.[0] || student.name?.[0] || "S"}
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
+                    {student.profilePicture || student.profileImage || student.image ? (
+                      <img src={student.profilePicture || student.profileImage || student.image} alt={student.firstName || "Student"} className="w-full h-full object-cover" />
+                    ) : (
+                      student.firstName?.[0] || student.name?.[0] || "S"
+                    )}
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-gray-900">
@@ -182,13 +186,22 @@ function Evaluations() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <h2 className="text-base font-bold text-gray-900">
-                  Assess: {selectedStudent.firstName || selectedStudent.name}
-                </h2>
-                <p className="text-xs text-gray-500">
-                  Roll: {selectedStudent.rollNumber || selectedStudent.rollNo} • Calculate live scorecard
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm overflow-hidden shrink-0 border border-blue-200">
+                  {selectedStudent.profilePicture || selectedStudent.profileImage || selectedStudent.image ? (
+                    <img src={selectedStudent.profilePicture || selectedStudent.profileImage || selectedStudent.image} alt="Student" className="w-full h-full object-cover" />
+                  ) : (
+                    selectedStudent.firstName?.[0] || selectedStudent.name?.[0] || "S"
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">
+                    Assess: {selectedStudent.firstName ? `${selectedStudent.firstName} ${selectedStudent.lastName || ""}`.trim() : selectedStudent.name}
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Roll: {selectedStudent.rollNumber || selectedStudent.rollNo} • Calculate live scorecard
+                  </p>
+                </div>
               </div>
               <button
                 type="button"

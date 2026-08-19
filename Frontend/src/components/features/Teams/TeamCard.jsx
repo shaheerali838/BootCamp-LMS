@@ -38,6 +38,11 @@ function TeamCard({ team, onEdit }) {
         team.lead ||
         null;
 
+    const batchName =
+        team.batchId?.batchName ||
+        (typeof team.batch === "object" ? team.batch?.batchName : null) ||
+        null;
+
     const handleDelete = () => {
         const confirmDelete = window.confirm(
             `Are you sure you want to delete ${teamName}?`
@@ -49,83 +54,103 @@ function TeamCard({ team, onEdit }) {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs hover:shadow-md transition w-full">
-            <div className="flex items-center justify-between">
-                <div className="w-full">
-                    <h2 className="text-xl font-bold text-gray-800 truncate">
-                        {teamName}
-                    </h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between h-full">
+            <div>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                        <h2 className="text-base font-bold text-gray-900 truncate">
+                            {teamName}
+                        </h2>
 
-                    <p className="text-gray-500 text-sm mt-4">
-                        Description
-                    </p>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                            {batchName && (
+                                <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md text-[11px] font-semibold border border-blue-100">
+                                    {batchName}
+                                </span>
+                            )}
+                            {teamLeadName && (
+                                <span className="bg-gray-50 text-gray-700 px-2 py-0.5 rounded-md text-[11px] font-medium border border-gray-200">
+                                    Lead: <strong>{teamLeadName}</strong>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
-                    <div className="w-full h-20 border border-gray-300 rounded-md p-2 mt-1">
-                        <p className="h-full w-full text-gray-500 text-sm overflow-y-auto overflow-x-hidden break-all">
-                            {team?.description || "No description available"}
+                {/* Members */}
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span>Members</span>
+                        <span className="font-semibold text-gray-700">{members.length}</span>
+                    </div>
+
+                    <div className="flex items-center -space-x-2">
+                        {members.slice(0, 4).map((member, idx) => {
+                            const avatar = member.profilePicture || member.profileImage || member.image;
+                            const memberName = member.name || member.firstName || "Member";
+                            return (
+                                <div
+                                    key={member._id || member.id || idx}
+                                    title={memberName}
+                                    className="w-8 h-8 rounded-full bg-[#0476b9] text-white flex items-center justify-center text-xs font-semibold border-2 border-white shadow-2xs overflow-hidden shrink-0"
+                                >
+                                    {avatar ? (
+                                        <img src={avatar} alt={memberName} className="w-full h-full object-cover" />
+                                    ) : (
+                                        getInitial(memberName)
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {members.length > 4 && (
+                            <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-[10px] font-bold border-2 border-white shadow-2xs shrink-0">
+                                +{members.length - 4}
+                            </div>
+                        )}
+                        {members.length === 0 && (
+                            <span className="text-xs text-gray-400 italic">No assigned members</span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Project Stats */}
+                <div className="grid grid-cols-3 gap-1.5 mt-4">
+                    <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-2 text-center">
+                        <p className="text-emerald-700 font-bold text-sm">
+                            {completed}
+                        </p>
+                        <p className="text-[10px] text-gray-500 font-medium">
+                            Completed
                         </p>
                     </div>
 
-                    {teamLeadName && (
-                        <p className="text-gray-500 text-xs mt-2">
-                            Lead:{" "}
-                            <span className="font-semibold text-gray-700">
-                                {teamLeadName}
-                            </span>
+                    <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-2 text-center">
+                        <p className="text-blue-700 font-bold text-sm">
+                            {progress}
                         </p>
-                    )}
-                </div>
-            </div>
-
-            <p className="text-gray-500 text-sm py-2">
-                Members: {members.length}
-            </p>
-
-            <div className="flex -space-x-2">
-                {members.slice(0, 4).map((member, idx) => (
-                    <div
-                        key={member._id || member.id || idx}
-                        className="w-9 h-9 rounded-full bg-[#0476b9] text-white flex items-center justify-center text-sm font-semibold border-2 border-white"
-                    >
-                        {getInitial(member.name || member.firstName)}
+                        <p className="text-[10px] text-gray-500 font-medium">
+                            Progress
+                        </p>
                     </div>
-                ))}
-            </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-5">
-                <div className="bg-green-50 rounded-lg p-2 text-center">
-                    <p className="text-green-600 font-bold">
-                        {completed}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        Completed
-                    </p>
-                </div>
-
-                <div className="bg-blue-50 rounded-lg p-2 text-center">
-                    <p className="text-blue-600 font-bold">
-                        {progress}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        Progress
-                    </p>
-                </div>
-
-                <div className="bg-yellow-50 rounded-lg p-2 text-center">
-                    <p className="text-yellow-600 font-bold">
-                        {pending}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        Pending
-                    </p>
+                    <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-2 text-center">
+                        <p className="text-amber-700 font-bold text-sm">
+                            {pending}
+                        </p>
+                        <p className="text-[10px] text-gray-500 font-medium">
+                            Pending
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
+            {/* Actions */}
+            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                 <button
                     type="button"
                     onClick={() => navigate(`/teams/${teamId}`)}
-                    className="flex-1 border border-[#0476b9] text-[#0476b9] py-2 rounded-lg hover:bg-[#0476b9] hover:text-white transition cursor-pointer"
+                    className="flex-1 border border-[#0476b9] text-[#0476b9] py-1.5 px-3 rounded-lg text-xs font-semibold hover:bg-[#0476b9] hover:text-white transition cursor-pointer text-center"
                 >
                     View Details
                 </button>
@@ -134,18 +159,18 @@ function TeamCard({ team, onEdit }) {
                     type="button"
                     onClick={() => onEdit(team)}
                     title="Edit Team"
-                    className="w-11 h-10 flex items-center justify-center border border-gray-300 text-gray-600 rounded-lg hover:bg-[#0476b9] hover:text-white hover:border-[#0476b9] transition cursor-pointer"
+                    className="w-9 h-8 flex items-center justify-center border border-gray-200 text-gray-600 rounded-lg hover:bg-[#0476b9] hover:text-white hover:border-[#0476b9] transition cursor-pointer"
                 >
-                    <FiEdit2 size={18} />
+                    <FiEdit2 size={14} />
                 </button>
 
                 <button
                     type="button"
                     onClick={handleDelete}
                     title="Delete Team"
-                    className="w-11 h-10 flex items-center justify-center border border-red-300 text-red-500 rounded-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition cursor-pointer"
+                    className="w-9 h-8 flex items-center justify-center border border-red-200 text-red-500 rounded-lg hover:bg-red-500 hover:text-white hover:border-red-500 transition cursor-pointer"
                 >
-                    <FiTrash2 size={18} />
+                    <FiTrash2 size={14} />
                 </button>
             </div>
         </div>

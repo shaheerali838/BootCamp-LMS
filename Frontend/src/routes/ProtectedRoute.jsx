@@ -1,50 +1,91 @@
-// import React from "react";
-// import { Navigate } from "react-router-dom";
-// import {useAuth} from '../context/AuthContext'
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { FiLoader } from "react-icons/fi";
 
-// const ProtectedRoute = ({
-//   children,
-//   allowedRoles = [],
-// }) => {
-//   const {
-//     user,
-//     isAuthenticated,
-//     loading,
-//   } = useAuth();
+/**
+ * Normalizes user role to canonical uppercase format:
+ * 'SUPERADMIN', 'ADMIN', 'MENTOR', 'STUDENT'
+ */
+export const getNormalizedRole = (user) => {
+  if (!user) return "";
+  const rawRole = user.role || (user.rollNumber || user.rollNo ? "STUDENT" : "ADMIN");
+  const cleaned = String(rawRole).toUpperCase().replace(/[\s_]+/g, "");
+  if (cleaned === "SUPERADMIN" || cleaned === "SUPER_ADMIN") return "SUPERADMIN";
+  if (cleaned === "MENTOR") return "MENTOR";
+  if (cleaned === "STUDENT") return "STUDENT";
+  return "ADMIN";
+};
 
-//   // Wait for authentication check
-//   if (loading) {
-//     return (
-//       <div>
-//         <h2>Loading...</h2>
-//       </div>
-//     );
-//   }
+/**
+ * Gets the home dashboard landing URL for the given user
+ */
+export const getRoleDashboard = (user) => {
+  const role = getNormalizedRole(user);
+  if (role === "SUPERADMIN") return "/superadmin/dashboard";
+  if (role === "STUDENT") return "/student/dashboard";
+  return "/dashboard";
+};
 
-//   // User is not logged in
-//   if (!isAuthenticated) {
-//     return (
-//       <Navigate
-//         to="/login"
-//         replace
-//       />
-//     );
-//   }
+/**
+ * ProtectedRoute:
+ * - Verifies user is authenticated (redirects to /login if unauthenticated)
+ * - Verifies user has one of the allowedRoles (redirects to their role dashboard if unauthorized)
+ */
+export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
-//   // Check role
-//   if (
-//     allowedRoles.length > 0 &&
-//     !allowedRoles.includes(user?.role)
-//   ) {
-//     return (
-//       <Navigate
-//         to="/unauthorized"
-//         replace
-//       />
-//     );
-//   }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <FiLoader className="animate-spin text-[#0476b9]" size={32} />
+      </div>
+    );
+  }
 
-//   return children;
-// };
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-// export default ProtectedRoute;
+  if (allowedRoles.length > 0) {
+    const userRole = getNormalizedRole(user);
+    const normalizedAllowed = allowedRoles.map((r) =>
+      String(r).toUpperCase().replace(/[\s_]+/g, "")
+    );
+
+    const hasPermission =
+      normalizedAllowed.includes(userRole) ||
+      (userRole === "SUPERADMIN" && (normalizedAllowed.includes("ADMIN") || normalizedAllowed.includes("MENTOR")));
+
+    if (!hasPermission) {
+      return <Navigate to={getRoleDashboard(user)} replace />;
+    }
+  }
+
+  return children;
+};
+
+/**
+ * PublicOnlyRoute:
+ * - If user is already logged in, redirects them directly to their role dashboard
+ */
+export const PublicOnlyRoute = ({ children }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <FiLoader className="animate-spin text-[#0476b9]" size={32} />
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return <Navigate to={getRoleDashboard(user)} replace />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;

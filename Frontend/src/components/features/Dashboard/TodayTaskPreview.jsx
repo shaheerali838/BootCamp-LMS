@@ -17,7 +17,7 @@ function TodayTaskPreview() {
 
   const displayedTasks = tasks.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const formatDate = (dateStr) => {
@@ -56,7 +56,7 @@ function TodayTaskPreview() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-xs h-[380px] overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-xs h-95 overflow-hidden">
       {/* Main Content */}
       <div className="flex flex-col flex-1 min-h-0">
         {/* Header */}
@@ -100,7 +100,7 @@ function TodayTaskPreview() {
 
                 <span
                   className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusStyle(
-                    task.status
+                    task.status,
                   )}`}
                 >
                   {task.status || "Pending"}
@@ -111,7 +111,10 @@ function TodayTaskPreview() {
               <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-50 text-[11px]">
                 <span className="text-gray-500 font-medium flex items-center gap-1">
                   <FiClock size={12} className="text-blue-500" />
-                  Due: <strong className="text-gray-700">{formatDate(task.dueDate)}</strong>
+                  Due:{" "}
+                  <strong className="text-gray-700">
+                    {formatDate(task.dueDate)}
+                  </strong>
                 </span>
 
                 <span className="font-semibold text-gray-600 uppercase text-[10px] px-1.5 py-0.5 bg-gray-50 rounded border border-gray-100">

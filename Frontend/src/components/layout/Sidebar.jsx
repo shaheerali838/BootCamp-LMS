@@ -179,38 +179,16 @@ const SUPERADMIN_NAV = [
   },
 ];
 
-/* ============================================================
-   Helper — normalise backend role string to a display key
-   Backend returns: "admin", "superadmin", "student" (lowercase)
-   LoginPages normalises to uppercase, but user object stores
-   whatever the DB has.  We just lowercase and strip spaces/_.
-   ============================================================ */
-function normaliseRole(user, pathname = "") {
-  if (!user) {
-    if (pathname.startsWith("/student")) return "student";
-    if (pathname.startsWith("/superadmin")) return "superadmin";
-    return "admin";
-  }
-
-  const rawRole = user.role || (user.rollNumber || user.rollNo ? "STUDENT" : "");
-  const r = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
-
-  if (r === "superadmin") return "superadmin";
-  if (r === "student") return "student";
-  if (r === "admin") return "admin";
-
-  if (user.rollNumber || user.rollNo || pathname.startsWith("/student")) return "student";
-  if (pathname.startsWith("/superadmin")) return "superadmin";
-  return "admin";
-}
+import { getNormalizedRole } from "../../routes/ProtectedRoute";
 
 /* ============================================================
    Role colours & labels
    ============================================================ */
 const ROLE_META = {
-  superadmin: { bg: "bg-purple-700", label: "SA", fullLabel: "Super Admin" },
-  admin: { bg: "bg-blue-600", label: "A", fullLabel: "Admin" },
-  student: { bg: "bg-emerald-600", label: "S", fullLabel: "Student" },
+  SUPERADMIN: { bg: "bg-purple-700", label: "SA", fullLabel: "Super Admin" },
+  ADMIN: { bg: "bg-blue-600", label: "A", fullLabel: "Admin" },
+  MENTOR: { bg: "bg-blue-600", label: "M", fullLabel: "Mentor" },
+  STUDENT: { bg: "bg-emerald-600", label: "S", fullLabel: "Student" },
 };
 
 /* ============================================================
@@ -219,18 +197,18 @@ const ROLE_META = {
 const Sidebar = () => {
   const { pathname } = useLocation();
   const { isOpen, setIsOpen } = useSidebar();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  // ✅ Real authenticated user role — source of truth
+  // ✅ Real authenticated user role — strict source of truth
   const { user } = useAuth();
-  const role = normaliseRole(user, pathname);
+  const role = getNormalizedRole(user) || "ADMIN";
 
-  const meta = ROLE_META[role];
+  const meta = ROLE_META[role] || ROLE_META.ADMIN;
 
   const navItems =
-    role === "superadmin"
+    role === "SUPERADMIN"
       ? SUPERADMIN_NAV
-      : role === "student"
+      : role === "STUDENT"
         ? STUDENT_NAV
         : ADMIN_NAV;
 

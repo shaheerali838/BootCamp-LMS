@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { FiX, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { FiX, FiAlertCircle, FiEye, FiEyeOff, FiCamera, FiUser, FiLoader } from "react-icons/fi";
 import { useBatches } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
 
@@ -12,6 +12,7 @@ function AddStudentModal({
 }) {
   const { batches = [] } = useBatches();
   const { mentors = [], admins = [], fetchMentors } = useAdmins();
+  const fileInputRef = useRef(null);
 
   const availableMentors = useMemo(() => {
     return (mentors.length > 0 ? mentors : admins).filter((m) => {
@@ -21,6 +22,8 @@ function AddStudentModal({
   }, [mentors, admins]);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [profileImage, setProfileImage] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -52,6 +55,8 @@ function AddStudentModal({
 
     if (editingStudent) {
       const nameParts = (editingStudent.name || "").split(" ");
+      setProfileImage(editingStudent.profilePicture || editingStudent.profileImage || editingStudent.image || "");
+      setSelectedFile(null);
       setFormData({
         firstName:
           editingStudent.firstName || nameParts[0] || "",
@@ -86,6 +91,8 @@ function AddStudentModal({
         status: editingStudent.status || "active",
       });
     } else {
+      setProfileImage("");
+      setSelectedFile(null);
       setFormData({
         firstName: "",
         lastName: "",
@@ -103,6 +110,26 @@ function AddStudentModal({
       });
     }
   }, [isOpen, editingStudent]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file (JPG, PNG, WEBP).");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be less than 10MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImage(previewUrl);
+    setError("");
+  };
 
   // Sync batchId and mentorId once batches/mentors finish loading if not yet set
   useEffect(() => {
@@ -202,6 +229,11 @@ function AddStudentModal({
       rollNo: formData.rollNumber.trim(),
       phone: formData.phoneNumber.trim(),
       initials,
+      ...(selectedFile
+        ? { profilePicture: selectedFile }
+        : profileImage
+        ? { profilePicture: profileImage }
+        : {}),
     };
 
     if (editingStudent && !formData.password) {
@@ -255,6 +287,43 @@ function AddStudentModal({
               <span>{error}</span>
             </div>
           )}
+
+          {/* Student Photo Upload */}
+          <div className="flex flex-col items-center justify-center pb-2">
+            <div className="relative group">
+              <div className="w-20 h-20 rounded-full border-2 border-blue-200 bg-blue-50 overflow-hidden flex items-center justify-center shadow-inner">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Student Preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FiUser size={32} className="text-blue-400" />
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload student photo"
+                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow transition cursor-pointer"
+              >
+                <FiCamera size={13} />
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1.5 font-medium">
+              Student Photo (Uploaded to Cloudinary)
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* First Name */}
@@ -481,15 +550,16 @@ function AddStudentModal({
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting
-                ? editingStudent
-                  ? "Updating..."
-                  : "Enrolling..."
-                : editingStudent
-                ? "Update Student"
-                : "Enroll Student"}
+              {submitting ? (
+                <>
+                  <FiLoader size={14} className="animate-spin" />
+                  <span>{editingStudent ? "Updating Student..." : "Enrolling Student..."}</span>
+                </>
+              ) : (
+                <span>{editingStudent ? "Update Student" : "Enroll Student"}</span>
+              )}
             </button>
           </div>
         </form>

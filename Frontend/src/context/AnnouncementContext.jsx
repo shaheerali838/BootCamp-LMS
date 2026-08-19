@@ -18,7 +18,10 @@ export const AnnouncementProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await api.get("/announcements/get-all-announcements");
-      setAnnouncements(res.data.data || []);
+      const list = (res.data.data || []).sort(
+        (a, b) => new Date(b.createdAt || b.createdAtDate || 0) - new Date(a.createdAt || a.createdAtDate || 0)
+      );
+      setAnnouncements(list);
       setError(null);
     } catch (err) {
       if (err.response?.status === 401) {

@@ -248,6 +248,7 @@ function TeamDetail() {
                   {(() => {
                     const rawLead = team.teamLead || team.lead;
                     let leadName = "";
+                    let leadAvatar = "";
                     if (typeof rawLead === "object" && rawLead) {
                       leadName = (
                         `${rawLead.firstName || ""} ${rawLead.lastName || ""}`.trim() ||
@@ -255,6 +256,7 @@ function TeamDetail() {
                         rawLead.email ||
                         ""
                       );
+                      leadAvatar = rawLead.profilePicture || rawLead.profileImage || rawLead.image || "";
                     } else if (rawLead) {
                       const found = students.find((s) => String(s._id || s.id) === String(rawLead));
                       if (found) {
@@ -264,6 +266,7 @@ function TeamDetail() {
                           found.email ||
                           ""
                         );
+                        leadAvatar = found.profilePicture || found.profileImage || found.image || "";
                       } else if (typeof rawLead === "string" && !rawLead.match(/^[0-9a-fA-F]{24}$/)) {
                         leadName = rawLead;
                       }
@@ -272,8 +275,12 @@ function TeamDetail() {
 
                     return (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold">
-                          {displayName.charAt(0).toUpperCase()}
+                        <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
+                          {leadAvatar ? (
+                            <img src={leadAvatar} alt={displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            displayName.charAt(0).toUpperCase()
+                          )}
                         </div>
 
                         <div>
@@ -368,16 +375,24 @@ function TeamDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {team.members.map((member) => {
                     const mId = member._id || member.id || member;
+                    const foundStudent = students.find((s) => String(s._id || s.id) === String(mId));
                     const mName =
                       typeof member === "object"
                         ? member.firstName
                           ? `${member.firstName} ${member.lastName || ""}`.trim()
                           : member.name
+                        : foundStudent
+                        ? `${foundStudent.firstName || ""} ${foundStudent.lastName || ""}`.trim() || foundStudent.name
                         : "Team Member";
                     const mRoll =
                       typeof member === "object"
                         ? member.rollNumber || member.rollNo || member.email
+                        : foundStudent
+                        ? foundStudent.rollNumber || foundStudent.rollNo || foundStudent.email
                         : "";
+                    const mAvatar =
+                      (typeof member === "object" ? member.profilePicture || member.profileImage || member.image : null) ||
+                      (foundStudent ? foundStudent.profilePicture || foundStudent.profileImage || foundStudent.image : "");
 
                     return (
                       <div
@@ -385,8 +400,12 @@ function TeamDetail() {
                         className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-200 hover:shadow-sm transition"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-11 h-11 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold shrink-0">
-                            {mName?.charAt(0)?.toUpperCase() || "M"}
+                          <div className="w-11 h-11 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-bold shrink-0 overflow-hidden border border-gray-100 shadow-2xs">
+                            {mAvatar ? (
+                              <img src={mAvatar} alt={mName} className="w-full h-full object-cover" />
+                            ) : (
+                              mName?.charAt(0)?.toUpperCase() || "M"
+                            )}
                           </div>
 
                           <div className="min-w-0">

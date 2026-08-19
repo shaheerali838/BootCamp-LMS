@@ -10,8 +10,10 @@ import {
   findStudentByRollNumber,
 } from "./student.service.js";
 import sendEmail from "../../utils/sendEmail.js";
+import { getWelcomeAccountEmailHtml } from "../../utils/emailTemplates.js";
+import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
-// ---------- CREATE STUDENT ----------
+// CREATE STUDENT 
 export const createStudent = async (req, res) => {
   try {
     const { email, rollNumber, password } = req.body;
@@ -32,23 +34,52 @@ export const createStudent = async (req, res) => {
       });
     }
 
-    const student = await createStudentService(req.body);
+    const studentPayload = { ...req.body };
+
+    // Upload profile photo to Cloudinary if provided
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${Date.now()}`,
+        });
+        studentPayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo upload error:", uploadErr);
+      }
+    } else if (
+      studentPayload.profilePicture &&
+      typeof studentPayload.profilePicture === "string" &&
+      studentPayload.profilePicture.startsWith("data:image/")
+    ) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(studentPayload.profilePicture, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${Date.now()}`,
+        });
+        studentPayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo base64 upload error:", uploadErr);
+      }
+    }
+
+    // Step 3: Service call to save student
+    const student = await createStudentService(studentPayload);
 
     // Send Welcome Email
     try {
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       await sendEmail({
         to: student.email,
-        subject: "Welcome to the LMS Bootcamp",
-        html: `
-          <h3>Welcome, ${student.firstName}!</h3>
-          <p>Your student account has been successfully created.</p>
-          <p><strong>Your Login Credentials:</strong></p>
-          <ul>
-            <li>Email: ${student.email}</li>
-            <li>Password: ${password}</li>
-          </ul>
-          <p>Please log in and change your password as soon as possible.</p>
-        `,
+        subject: "Welcome to Saylani Bootcamp LMS - Your Student Account Credentials",
+        html: getWelcomeAccountEmailHtml({
+          firstName: student.firstName || "Student",
+          email: student.email,
+          password: password,
+          loginLink: `${clientUrl}/login`,
+        }),
       });
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError.message);
@@ -163,7 +194,38 @@ export const updateStudent = async (req, res) => {
       }
     }
 
-    const updatedStudent = await updateStudentService(id, req.body);
+    const updatePayload = { ...req.body };
+
+    // Upload profile photo to Cloudinary if provided
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${id}_${Date.now()}`,
+        });
+        updatePayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo update error:", uploadErr);
+      }
+    } else if (
+      updatePayload.profilePicture &&
+      typeof updatePayload.profilePicture === "string" &&
+      updatePayload.profilePicture.startsWith("data:image/")
+    ) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(updatePayload.profilePicture, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${id}_${Date.now()}`,
+        });
+        updatePayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo update base64 error:", uploadErr);
+      }
+    }
+
+    const updatedStudent = await updateStudentService(id, updatePayload);
 
     if (!updatedStudent) {
       return res.status(404).json({

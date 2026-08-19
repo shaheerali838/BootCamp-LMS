@@ -10,6 +10,11 @@ import {
   generateResetToken,
 } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
+import {
+  getPasswordResetEmailHtml,
+  getAccountSetupEmailHtml,
+} from "../../utils/emailTemplates.js";
+import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 // ---------- LOGIN ----------
 export const login = async (req, res) => {
@@ -235,7 +240,7 @@ export const refreshToken = async (req, res) => {
   }
 };
 
-// ---------- FORGOT PASSWORD ----------
+// FORGOT PASSWORD 
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -264,15 +269,12 @@ export const forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Password Reset Request</h2>
-          <p>Hello ${user.firstName},</p>
-          <p>Click the link below to reset your password:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-        </div>
-      `,
+      subject: "Password Reset Request - Saylani Bootcamp LMS",
+      html: getPasswordResetEmailHtml({
+        firstName: user.firstName || "User",
+        resetLink,
+        expireTime: "1 hour",
+      }),
     });
 
     return res.status(200).json({
@@ -287,7 +289,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// ---------- RESET PASSWORD ----------
+// RESET PASSWORD 
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -308,7 +310,7 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       user = await Student.findOne({
         resetPasswordTokenHash: hashedToken,
-        resetPasswordExpiresAt: { $gt: new Date() },
+        resetPasswordExpiresAt: { $gt: new Date() },  //gt => mongodb operater hai
       });
     }
 
@@ -322,6 +324,7 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     user.tokenVersion = (user.tokenVersion || 0) + 1;
 
+    //  Tokens ko null kar do taake link doosri baar kaam na kare
     user.resetPasswordTokenHash = null;
     user.resetPasswordExpiresAt = null;
 
@@ -343,6 +346,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
 // ---------- CHANGE PASSWORD ----------
 export const changePassword = async (req, res) => {
   try {
@@ -356,6 +360,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
+    //  Check karo user ne purana password sahi enter kiya hai ya nahi
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({
@@ -448,16 +453,12 @@ export const register = async (req, res) => {
 
     await sendEmail({
       to: student.email,
-      subject: "Welcome to Bootcamp LMS - Setup Your Password",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Welcome to Bootcamp LMS, ${student.firstName}!</h2>
-          <p>Your student account has been successfully created.</p>
-          <p>Please click the link below to set up your password and log in:</p>
-          <p><a href="${setupLink}">${setupLink}</a></p>
-          <p><i>This link will expire in 7 days.</i></p>
-        </div>
-      `,
+      subject: "Welcome to Saylani Bootcamp LMS - Set Up Your Password",
+      html: getAccountSetupEmailHtml({
+        firstName: student.firstName || "Student",
+        setupLink,
+        expireTime: "7 days",
+      }),
     });
 
     const studentResponse = student.toObject();
@@ -534,7 +535,7 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    const {
+    let {
       firstName,
       lastName,
       phoneNumber,
@@ -548,8 +549,39 @@ export const updateProfile = async (req, res) => {
     if (firstName) user.firstName = firstName.trim();
     if (lastName) user.lastName = lastName.trim();
     if (phoneNumber || phone) user.phoneNumber = (phoneNumber || phone).trim();
-    if (profilePicture !== undefined) user.profilePicture = profilePicture;
-    if (profileImage !== undefined && profilePicture === undefined) user.profilePicture = profileImage;
+
+    // 1. If file is uploaded via multipart/form-data
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/profiles",
+          resource_type: "image",
+          public_id: `profile_${user._id}_${Date.now()}`,
+        });
+        user.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary profile upload error:", uploadErr);
+      }
+    }
+    // 2. If Base64 string or image URL is passed in request body
+    else if (profilePicture || profileImage) {
+      const pic = profilePicture || profileImage;
+      if (typeof pic === "string" && pic.startsWith("data:image/")) {
+        try {
+          const uploadResult = await cloudinary.uploader.upload(pic, {
+            folder: "saylani_lms/profiles",
+            resource_type: "image",
+            public_id: `profile_${user._id}_${Date.now()}`,
+          });
+          user.profilePicture = uploadResult.secure_url || uploadResult.url;
+        } catch (uploadErr) {
+          console.error("Cloudinary profile base64 upload error:", uploadErr);
+          user.profilePicture = pic;
+        }
+      } else if (typeof pic === "string") {
+        user.profilePicture = pic;
+      }
+    }
 
     // Student-specific fields update
     if (user.role === "STUDENT" || user.rollNumber) {
