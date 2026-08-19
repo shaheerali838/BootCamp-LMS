@@ -100,7 +100,6 @@ const studentSchema = new mongoose.Schema(
 
 const Student = mongoose.model("Student", studentSchema);
 
-// Auto sync indexes: removes any legacy unique indexes (like user_1, studentCode_1) not in current schema
 if (mongoose.connection.readyState === 1) {
   Student.syncIndexes().catch(() => {});
 } else {
@@ -110,4 +109,3 @@ if (mongoose.connection.readyState === 1) {
 }
 
 export default Student;
-
