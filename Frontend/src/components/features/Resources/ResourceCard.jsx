@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { FiDownload, FiTrash2, FiEdit2, FiExternalLink } from "react-icons/fi";
+import { downloadResourceFile } from "../../../utils/downloadHelper";
 
 function ResourceCard({ resource, onDelete, onEdit }) {
+  const [downloading, setDownloading] = useState(false);
   const title = resource.title || resource.name || "Resource File";
   const type = (resource.fileType || resource.type || "PDF").toUpperCase();
   const size = resource.fileSize || resource.size || "PDF";
-  const fileUrl = resource.file || resource.url;
+  const fileUrl = resource.file || resource.fileUrl || resource.url || resource.link;
+  const fileName = resource.fileName || title;
   const categoryName =
     typeof resource.category === "object"
       ? resource.category?.categoryName
@@ -40,23 +43,19 @@ function ResourceCard({ resource, onDelete, onEdit }) {
     }
   };
 
-  const handleDownloadOrView = () => {
+  const handleDownloadOrView = async () => {
     if (!fileUrl) {
       alert("This resource does not have an attached file.");
       return;
     }
 
-    if (typeof fileUrl === "string") {
-      window.open(fileUrl, "_blank", "noopener,noreferrer");
-    } else if (fileUrl instanceof Blob || fileUrl instanceof File) {
-      const url = URL.createObjectURL(fileUrl);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = resource.fileName || title;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    setDownloading(true);
+    try {
+      await downloadResourceFile(fileUrl, fileName, type);
+    } catch (err) {
+      console.error("Download error:", err);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -103,10 +102,15 @@ function ResourceCard({ resource, onDelete, onEdit }) {
 
         <button
           onClick={handleDownloadOrView}
-          title="Open / Download from Cloudinary"
-          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1"
+          disabled={downloading}
+          title="Download Resource"
+          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition flex items-center gap-1 cursor-pointer"
         >
-          <FiDownload size={16} />
+          {downloading ? (
+            <span className="text-[10px] font-bold text-blue-600 animate-pulse">...</span>
+          ) : (
+            <FiDownload size={16} />
+          )}
         </button>
 
         {onDelete && (

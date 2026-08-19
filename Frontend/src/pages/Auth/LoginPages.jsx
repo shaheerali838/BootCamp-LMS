@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import img from "/imges/images.jpg?url";
 import { useAuth } from "../../context/AuthContext";
 import { FiLoader } from "react-icons/fi";
+import { getRoleDashboard } from "../../routes/ProtectedRoute";
 
 function LoginPages() {
   const navigate = useNavigate();
@@ -76,21 +77,13 @@ function LoginPages() {
         localStorage.removeItem("rememberMe");
       }
 
-      const userRole = (
-        response.data?.data?.user?.role ||
-        response.data?.user?.role ||
-        "STUDENT"
-      )
-        .toUpperCase()
-        .replace(/[\s_]+/g, "");
+      const loggedUser =
+        response.data?.data?.user ||
+        response.data?.user ||
+        response.user ||
+        {};
 
-      if (userRole === "SUPERADMIN") {
-        navigate("/superadmin/dashboard", { replace: true });
-      } else if (userRole === "ADMIN") {
-        navigate("/dashboard", { replace: true });
-      } else {
-        navigate("/student/dashboard", { replace: true });
-      }
+      navigate(getRoleDashboard(loggedUser), { replace: true });
 
       if (!rememberMe) {
         setFormData({

@@ -6,8 +6,8 @@ import {
   FiVideo,
   FiBookOpen,
   FiExternalLink,
-} from "react-icons/fi";
 import { useResources } from "../../context/SystemContext";
+import { downloadResourceFile } from "../../utils/downloadHelper";
 
 function Resources() {
   const {
@@ -77,12 +77,26 @@ function Resources() {
     });
   }, [resources, search, category]);
 
-  const handleDownload = (res) => {
-    const fileUrl = res.file || res.url;
-    if (fileUrl) {
-      window.open(fileUrl, "_blank", "noopener,noreferrer");
-    } else {
-      alert("No file available for download.");
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownload = async (res) => {
+    const fileUrl = res.file || res.fileUrl || res.url || res.link;
+    const fileName = res.fileName || res.title || res.name || "Resource";
+    const fileType = res.fileType || res.type || "PDF";
+    const resId = res._id || res.id;
+
+    if (!fileUrl) {
+      alert("No file available for download on this resource.");
+      return;
+    }
+
+    setDownloadingId(resId);
+    try {
+      await downloadResourceFile(fileUrl, fileName, fileType);
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -144,12 +158,13 @@ function Resources() {
       {/* Grid of Resources */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredResources.map((res) => {
+          const resId = res._id || res.id;
           const title = res.title || res.name || "Resource";
           const cat =
             typeof res.category === "object"
               ? res.category?.categoryName
               : res.category || "General";
-          const type = res.fileType || res.type || "PDF";
+          const type = (res.fileType || res.type || "PDF").toUpperCase();
           const size = res.fileSize || res.size || "PDF";
           const date = res.createdAt
             ? new Date(res.createdAt).toLocaleDateString("en-US", {
@@ -159,9 +174,11 @@ function Resources() {
               })
             : res.date || "Recently";
 
+          const isDownloading = downloadingId === resId;
+
           return (
             <div
-              key={res._id || res.id}
+              key={resId}
               className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs hover:shadow-md transition flex items-center justify-between group"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -187,10 +204,15 @@ function Resources() {
 
               <button
                 onClick={() => handleDownload(res)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition shrink-0 ml-2 cursor-pointer"
-                title="View / Download PDF"
+                disabled={isDownloading}
+                className="p-2 text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition shrink-0 ml-2 cursor-pointer flex items-center gap-1"
+                title="Download Resource"
               >
-                <FiDownload size={18} />
+                {isDownloading ? (
+                  <span className="text-[10px] font-bold text-blue-600 animate-pulse">Downloading...</span>
+                ) : (
+                  <FiDownload size={18} />
+                )}
               </button>
             </div>
           );

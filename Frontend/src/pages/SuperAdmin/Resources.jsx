@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { FiBookOpen, FiPlus, FiTrash2, FiSearch, FiFileText, FiDownload, FiExternalLink } from "react-icons/fi";
 import { useResources } from "../../context/SystemContext";
 import UploadResourceModal from "../../components/features/Resources/UploadResourceModal";
+import { downloadResourceFile } from "../../utils/downloadHelper";
 
 function Resources() {
   const { resources = [], deleteResource, addResource } = useResources();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const filtered = resources.filter((r) => {
     const title = r.title || r.name || "";
@@ -25,11 +27,24 @@ function Resources() {
     }
   };
 
-  const handleOpenDoc = (fileUrl) => {
-    if (fileUrl) {
-      window.open(fileUrl, "_blank", "noopener,noreferrer");
-    } else {
-      alert("No file URL available.");
+  const handleOpenDoc = async (item) => {
+    const fileUrl = item.file || item.fileUrl || item.url || item.link;
+    const fileName = item.fileName || item.title || item.name || "Resource";
+    const fileType = item.fileType || item.type || "PDF";
+    const itemId = item._id || item.id;
+
+    if (!fileUrl) {
+      alert("No file URL available on this resource.");
+      return;
+    }
+
+    setDownloadingId(itemId);
+    try {
+      await downloadResourceFile(fileUrl, fileName, fileType);
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -107,11 +122,16 @@ function Resources() {
                 <span className="text-xs text-gray-700 font-medium">{fileType} • {fileSize}</span>
                 <div className="flex items-center justify-end gap-2 text-gray-400">
                   <button
-                    onClick={() => handleOpenDoc(item.file || item.url)}
-                    className="p-1.5 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                    title="View / Download File"
+                    onClick={() => handleOpenDoc(item)}
+                    disabled={downloadingId === id}
+                    className="p-1.5 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-50 rounded-lg transition cursor-pointer"
+                    title="Download File"
                   >
-                    <FiExternalLink size={16} />
+                    {downloadingId === id ? (
+                      <span className="text-[10px] font-bold text-blue-600 animate-pulse">...</span>
+                    ) : (
+                      <FiDownload size={16} />
+                    )}
                   </button>
                   <button
                     onClick={() => handleDelete(id)}
