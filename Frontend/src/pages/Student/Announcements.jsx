@@ -134,9 +134,9 @@ const Announcements = () => {
           ) : (
             <>
               <div className="w-full flex flex-col gap-4">
-                {currentAnnouncements.map((announcement) => (
+                {currentAnnouncements.map((announcement, idx) => (
                   <AnnouncementCard
-                    key={announcement._id || announcement.id}
+                    key={announcement._id || announcement.id || idx}
                     announcement={announcement}
                     showActions={false}
                   />

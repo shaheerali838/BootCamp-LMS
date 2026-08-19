@@ -1,5 +1,4 @@
 import TeamProject from "../../model/teamProject.model.js";
-import { checkDuplicateAssignment as checkDuplicateAssignmentService } from "./teamProject.service.js";
 
 // Check Team Project Exists
 const checkTeamProjectExists = async (req, res, next) => {
@@ -14,7 +13,6 @@ const checkTeamProjectExists = async (req, res, next) => {
     }
 
     req.teamProject = teamProject;
-
     next();
   } catch (error) {
     res.status(500).json({
@@ -27,9 +25,17 @@ const checkTeamProjectExists = async (req, res, next) => {
 // Check Duplicate Assignment
 const checkDuplicateAssignment = async (req, res, next) => {
   try {
-    const { teamId, projectId } = req.body;
+    const teamId = req.body.teamId || req.params.teamId;
+    const projectId = req.body.projectId || req.params.projectId;
 
-    const existingAssignment = await checkDuplicateAssignmentService(teamId, projectId);
+    if (!teamId || !projectId) return next();
+
+    const query = { teamId, projectId };
+    if (req.params.id) {
+      query._id = { $ne: req.params.id };
+    }
+
+    const existingAssignment = await TeamProject.findOne(query);
 
     if (existingAssignment) {
       return res.status(400).json({

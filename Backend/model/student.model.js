@@ -100,12 +100,16 @@ const studentSchema = new mongoose.Schema(
 
 const Student = mongoose.model("Student", studentSchema);
 
-// Auto sync indexes when connection opens: removes legacy unique indexes not in current schema
-mongoose.connection.once("open", () => {
+if (mongoose.connection.readyState === 1) {
   Student.syncIndexes().catch((err) => {
     console.log("Student index sync notice:", err.message);
   });
-});
+} else {
+  mongoose.connection.once("open", () => {
+    Student.syncIndexes().catch((err) => {
+      console.log("Student index sync notice:", err.message);
+    });
+  });
+}
 
 export default Student;
-

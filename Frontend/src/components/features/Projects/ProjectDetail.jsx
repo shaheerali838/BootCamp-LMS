@@ -11,6 +11,7 @@ import {
   FiEdit3,
 } from "react-icons/fi";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { useStudents } from "../../../context/AcademicContext";
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -21,6 +22,7 @@ function ProjectDetail() {
     teams,
     updateProjectStatus,
   } = useTeamProject();
+  const { students = [] } = useStudents();
 
   const project = projects.find(
     (project) =>
@@ -593,63 +595,81 @@ function ProjectDetail() {
 
                     </div>
 
-                    {team.members?.length > 0 ? (
+                    {(() => {
+                      const allMembers = [];
+                      if (team.teamLead) {
+                        allMembers.push({ raw: team.teamLead, isLead: true });
+                      }
+                      if (Array.isArray(team.members)) {
+                        const leadId = String(team.teamLead?._id || team.teamLead?.id || team.teamLead || "");
+                        team.members.forEach((m) => {
+                          const mId = String(m?._id || m?.id || m);
+                          if (mId !== leadId) {
+                            allMembers.push({ raw: m, isLead: false });
+                          }
+                        });
+                      }
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      const resolveStudent = (raw) => {
+                        if (typeof raw === "object" && (raw.firstName || raw.name)) {
+                          const name = raw.firstName
+                            ? `${raw.firstName} ${raw.lastName || ""}`.trim()
+                            : raw.name;
+                          const roll = raw.rollNumber || raw.rollNo || raw.email || "";
+                          return { name, roll };
+                        }
+                        const rawId = String(raw?._id || raw?.id || raw);
+                        const found = students.find((s) => String(s._id || s.id) === rawId);
+                        if (found) {
+                          const name = found.firstName
+                            ? `${found.firstName} ${found.lastName || ""}`.trim()
+                            : found.name;
+                          const roll = found.rollNumber || found.rollNo || found.email || "";
+                          return { name, roll };
+                        }
+                        return { name: "Team Member", roll: "" };
+                      };
 
-                        {team.members.map(
-                          (member) => (
+                      if (allMembers.length === 0) {
+                        return (
+                          <div className="text-center border border-dashed border-gray-300 rounded-xl p-6">
+                            <FiUsers size={28} className="mx-auto text-gray-300" />
+                            <p className="text-sm text-gray-500 mt-2">
+                              No members assigned to this team.
+                            </p>
+                          </div>
+                        );
+                      }
 
-                            <div
-                              key={
-                                member.id ||
-                                member._id
-                              }
-                              className="flex items-center gap-3 border border-gray-200 rounded-xl p-3 hover:border-blue-200 hover:bg-blue-50/30 transition"
-                            >
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {allMembers.map((item, idx) => {
+                            const { name, roll } = resolveStudent(item.raw);
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-3 border border-gray-200 rounded-xl p-3 hover:border-blue-200 hover:bg-blue-50/30 transition"
+                              >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold shrink-0 text-white ${
+                                  item.isLead ? "bg-blue-600" : "bg-[#0476b9]"
+                                }`}>
+                                  {name.charAt(0).toUpperCase()}
+                                </div>
 
-                              <div className="w-10 h-10 rounded-full bg-[#0476b9] text-white flex items-center justify-center font-semibold shrink-0">
-                                {member.name
-                                  ?.charAt(0)
-                                  ?.toUpperCase() ||
-                                  "M"}
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-gray-800 truncate text-sm">
+                                    {name}
+                                  </p>
+                                  <p className="text-xs text-gray-400">
+                                    {item.isLead ? "Team Lead" : roll || "Team Member"}
+                                  </p>
+                                </div>
                               </div>
-
-                              <div className="min-w-0">
-
-                                <p className="font-semibold text-gray-800 truncate">
-                                  {member.name}
-                                </p>
-
-                                <p className="text-xs text-gray-400">
-                                  Team Member
-                                </p>
-
-                              </div>
-
-                            </div>
-
-                          )
-                        )}
-
-                      </div>
-
-                    ) : (
-
-                      <div className="text-center border border-dashed border-gray-300 rounded-xl p-6">
-
-                        <FiUsers
-                          size={28}
-                          className="mx-auto text-gray-300"
-                        />
-
-                        <p className="text-sm text-gray-500 mt-2">
-                          No members assigned to this team.
-                        </p>
-
-                      </div>
-
-                    )}
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
 
                   </div>
 

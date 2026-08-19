@@ -41,6 +41,9 @@ export const TeamProjectProvider = ({ children }) => {
         batchId: team.batchId || team.batch,
         mentor: team.mentor || team.mentorId,
         teamLead: team.teamLead || team.lead || team.teamLeadId,
+        members: Array.isArray(team.members)
+          ? team.members.map((m) => m?._id || m?.id || m)
+          : [],
         status: team.status || "active",
       };
       const res = await api.post("/teams/create-team", payload);
@@ -62,11 +65,16 @@ export const TeamProjectProvider = ({ children }) => {
     try {
       const payload = {
         teamName: updatedTeam.teamName || updatedTeam.name,
-        batchId: updatedTeam.batchId || updatedTeam.batch,
-        mentor: updatedTeam.mentor || updatedTeam.mentorId,
-        teamLead: updatedTeam.teamLead || updatedTeam.lead,
+        batchId: updatedTeam.batchId?._id || updatedTeam.batchId || updatedTeam.batch?._id || updatedTeam.batch,
+        mentor: updatedTeam.mentor?._id || updatedTeam.mentor || updatedTeam.mentorId?._id || updatedTeam.mentorId,
+        teamLead: updatedTeam.teamLead?._id || updatedTeam.teamLead || updatedTeam.lead?._id || updatedTeam.lead,
+        members: Array.isArray(updatedTeam.members)
+          ? updatedTeam.members.map((m) => m?._id || m?.id || m)
+          : undefined,
         status: updatedTeam.status || "active",
       };
+      Object.keys(payload).forEach((k) => (payload[k] === undefined || payload[k] === "") && delete payload[k]);
+
       const res = await api.put(`/teams/update-team/${id}`, payload);
       // Invalidate & refetch authoritative list
       await fetchTeams();
@@ -127,12 +135,14 @@ export const TeamProjectProvider = ({ children }) => {
     setProjectsLoading(true);
     try {
       const payload = {
-        name: project.name || project.projectName || "Untitled Project",
+        projectName: project.projectName || project.name || "Untitled Project",
+        name: project.projectName || project.name || "Untitled Project",
         description: project.description || "",
         startDate: project.startDate || undefined,
         deadline: project.deadline || undefined,
-        batchId: project.batchId || project.batch || undefined,
-        status: project.status || "Pending",
+        teamId: project.teamId || project.batch || project.batchId || undefined,
+        batch: project.batch || project.batchId || undefined,
+        status: (project.status || "pending").toLowerCase(),
       };
       const res = await api.post("/projects/create-project", payload);
       // Invalidate & refetch
@@ -151,7 +161,13 @@ export const TeamProjectProvider = ({ children }) => {
   const updateProject = async (id, updatedProject) => {
     setProjectsLoading(true);
     try {
-      const res = await api.put(`/projects/update-project/${id}`, updatedProject);
+      const payload = {
+        ...updatedProject,
+        projectName: updatedProject.projectName || updatedProject.name,
+        teamId: updatedProject.teamId || updatedProject.batch || updatedProject.batchId,
+        status: updatedProject.status ? String(updatedProject.status).toLowerCase() : undefined,
+      };
+      const res = await api.put(`/projects/update-project/${id}`, payload);
       // Invalidate & refetch
       await fetchProjects();
       setProjectsError(null);
@@ -186,7 +202,17 @@ export const TeamProjectProvider = ({ children }) => {
   };
 
   const getTeamProjects = (teamId) =>
-    projects.filter((p) => String(p.teamId) === String(teamId));
+    projects.filter((p) => {
+      const pTeamId =
+        p.teamId?._id ||
+        p.teamId?.id ||
+        (typeof p.teamId === "string" ? p.teamId : null) ||
+        p.batch?._id ||
+        p.batch?.id ||
+        (typeof p.batch === "string" ? p.batch : null) ||
+        p.batchId;
+      return String(pTeamId) === String(teamId);
+    });
 
   // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {

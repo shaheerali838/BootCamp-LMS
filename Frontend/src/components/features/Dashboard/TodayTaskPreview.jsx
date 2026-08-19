@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiClock } from "react-icons/fi";
 import { useTasks } from "../../../context/WorkContext";
 
 function TodayTaskPreview() {
-  const { tasks } = useTasks();
+  const { tasks = [], fetchTasks } = useTasks();
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    if (fetchTasks) fetchTasks();
+  }, [fetchTasks]);
+
   const itemsPerPage = 3;
-
   const totalPages = Math.ceil(tasks.length / itemsPerPage) || 1;
-
   const currentPage = Math.min(page, totalPages);
 
   const displayedTasks = tasks.slice(
@@ -18,30 +20,43 @@ function TodayTaskPreview() {
     currentPage * itemsPerPage
   );
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Not set";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const getStatusStyle = (status) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-700";
+    const s = String(status || "").toLowerCase();
+    switch (s) {
+      case "completed":
+      case "done":
+        return "bg-green-100 text-green-700 border border-green-200";
 
-      case "On Track":
-        return "bg-blue-100 text-blue-700";
+      case "in progress":
+      case "inprogress":
+        return "bg-blue-100 text-blue-700 border border-blue-200";
 
-      case "In Progress":
-        return "bg-orange-100 text-orange-700";
-
-      case "Needs Attention":
-        return "bg-red-100 text-red-700";
-
-      case "Pending":
-        return "bg-gray-100 text-gray-700";
+      case "in review":
+      case "inreview":
+        return "bg-purple-100 text-purple-700 border border-purple-200";
 
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-amber-100 text-amber-700 border border-amber-200";
     }
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-sm h-[380px] overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-xs h-[380px] overflow-hidden">
       {/* Main Content */}
       <div className="flex flex-col flex-1 min-h-0">
         {/* Header */}
@@ -52,7 +67,7 @@ function TodayTaskPreview() {
             </h2>
 
             <p className="text-xs text-gray-500 mt-0.5">
-              Tasks assigned across active courses
+              Tasks assigned across active courses ({tasks.length} total)
             </p>
           </div>
 
@@ -65,11 +80,11 @@ function TodayTaskPreview() {
         </div>
 
         {/* Tasks List */}
-        <div className="space-y-2 mt-2.5 flex-1 min-h-0 overflow-hidden">
+        <div className="space-y-2 mt-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
           {displayedTasks.map((task) => (
             <div
               key={task._id || task.id}
-              className="border border-gray-100 rounded-lg p-2 hover:bg-gray-50/50 transition"
+              className="border border-gray-100 rounded-lg p-2.5 hover:bg-gray-50/70 transition bg-white shadow-2xs"
             >
               {/* Title + Status */}
               <div className="flex items-start justify-between gap-3">
@@ -78,7 +93,7 @@ function TodayTaskPreview() {
                     {task.title}
                   </h3>
 
-                  <p className="text-[11px] text-gray-400 mt-0.5">
+                  <p className="text-[11px] text-gray-400 mt-0.5 truncate">
                     Assigned by {task.assignedBy || "Admin"}
                   </p>
                 </div>
@@ -88,17 +103,18 @@ function TodayTaskPreview() {
                     task.status
                   )}`}
                 >
-                  {task.status}
+                  {task.status || "Pending"}
                 </span>
               </div>
 
               {/* Due Date + Priority */}
-              <div className="flex items-center justify-between mt-1.5 text-[11px]">
-                <span className="text-gray-400 font-medium">
-                  Due: {task.dueDate}
+              <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-50 text-[11px]">
+                <span className="text-gray-500 font-medium flex items-center gap-1">
+                  <FiClock size={12} className="text-blue-500" />
+                  Due: <strong className="text-gray-700">{formatDate(task.dueDate)}</strong>
                 </span>
 
-                <span className="font-semibold text-gray-600">
+                <span className="font-semibold text-gray-600 uppercase text-[10px] px-1.5 py-0.5 bg-gray-50 rounded border border-gray-100">
                   {task.priority || "Medium"}
                 </span>
               </div>
@@ -107,8 +123,8 @@ function TodayTaskPreview() {
 
           {/* Empty State */}
           {displayedTasks.length === 0 && (
-            <div className="py-6 text-center text-xs text-gray-500">
-              No tasks available.
+            <div className="py-12 text-center text-xs text-gray-500">
+              No tasks created yet.
             </div>
           )}
         </div>
@@ -116,26 +132,23 @@ function TodayTaskPreview() {
 
       {/* Pagination */}
       <div className="shrink-0 mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-        {/* Previous */}
         <button
           disabled={currentPage === 1}
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition"
+          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition cursor-pointer"
         >
           <FiChevronLeft size={14} />
           Prev
         </button>
 
-        {/* Page Number */}
         <span className="font-semibold text-gray-700">
           Page {currentPage} of {totalPages}
         </span>
 
-        {/* Next */}
         <button
           disabled={currentPage >= totalPages}
           onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition"
+          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 font-medium transition cursor-pointer"
         >
           Next
           <FiChevronRight size={14} />

@@ -3,63 +3,49 @@ import { body } from "express-validator";
 const createMilestoneValidation = [
   body("projectId")
     .notEmpty()
-    .withMessage("Project ID is required")
-    .isMongoId()
-    .withMessage("Invalid Project ID"),
+    .withMessage("Project ID is required"),
 
   body("milestoneName")
-    .trim()
-    .notEmpty()
-    .withMessage("Milestone name is required")
-    .isLength({ min: 3, max: 100 })
-    .withMessage("Milestone name must be between 3 and 100 characters"),
+    .optional()
+    .trim(),
+
+  body("title")
+    .optional()
+    .trim(),
 
   body("description")
-    .trim()
-    .notEmpty()
-    .withMessage("Description is required")
-    .isLength({ min: 10, max: 500 })
-    .withMessage("Description must be between 10 and 500 characters"),
+    .optional()
+    .trim(),
 
   body("dueDate")
     .notEmpty()
-    .withMessage("Due date is required")
-    .isISO8601()
-    .withMessage("Invalid due date format"),
+    .withMessage("Due date is required"),
 
   body("status")
-    .optional()
-    .isIn(["Pending", "In Progress", "Completed"])
-    .withMessage("Status must be Pending, In Progress, or Completed"),
+    .optional(),
 ];
 
 const updateMilestoneValidation = [
   body("projectId")
-    .optional()
-    .isMongoId()
-    .withMessage("Invalid Project ID"),
+    .optional(),
 
   body("milestoneName")
     .optional()
-    .trim()
-    .isLength({ min: 3, max: 100 })
-    .withMessage("Milestone name must be between 3 and 100 characters"),
+    .trim(),
+
+  body("title")
+    .optional()
+    .trim(),
 
   body("description")
     .optional()
-    .trim()
-    .isLength({ min: 10, max: 500 })
-    .withMessage("Description must be between 10 and 500 characters"),
+    .trim(),
 
   body("dueDate")
-    .optional()
-    .isISO8601()
-    .withMessage("Invalid due date format"),
+    .optional(),
 
   body("status")
-    .optional()
-    .isIn(["Pending", "In Progress", "Completed"])
-    .withMessage("Status must be Pending, In Progress, or Completed"),
+    .optional(),
 ];
 
 export {

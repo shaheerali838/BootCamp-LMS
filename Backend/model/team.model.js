@@ -27,6 +27,13 @@ const teamSchema = new mongoose.Schema(
       required: true,
     },
 
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+      },
+    ],
+
     status: {
       type: String,
       enum: ["active", "inactive"],

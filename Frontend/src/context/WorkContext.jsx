@@ -79,7 +79,22 @@ export const WorkProvider = ({ children }) => {
   const updateTask = async (id, updatedData) => {
     setTasksLoading(true);
     try {
-      const res = await api.put(`/tasks/update-task/${id}`, updatedData);
+      const studentId = updatedData.assignedStudentId?._id || updatedData.assignedStudentId;
+      const teamId = updatedData.assignedTeamId?._id || updatedData.assignedTeamId;
+      const sprintId = updatedData.sprintId?._id || updatedData.sprintId;
+
+      const payload = {
+        title: updatedData.title,
+        description: updatedData.description,
+        assignedStudentId: studentId || null,
+        assignedTeamId: teamId || null,
+        sprintId: sprintId || null,
+        status: updatedData.status || undefined,
+        priority: updatedData.priority || undefined,
+        dueDate: updatedData.dueDate || undefined,
+      };
+
+      const res = await api.put(`/tasks/update-task/${id}`, payload);
       // Invalidate & refetch
       await fetchTasks();
       setTasksError(null);
@@ -171,14 +186,16 @@ export const WorkProvider = ({ children }) => {
   const updateMilestone = async (id, updatedData) => {
     setMilestonesLoading(true);
     try {
+      const projId = updatedData.projectId?._id || updatedData.projectId;
       const payload = {
         title: updatedData.milestoneName || updatedData.title,
+        milestoneName: updatedData.milestoneName || updatedData.title,
         description: updatedData.description,
-        projectId: updatedData.projectId,
+        projectId: projId || undefined,
         dueDate: updatedData.dueDate,
         status: updatedData.status,
       };
-      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+      Object.keys(payload).forEach((k) => (payload[k] === undefined || payload[k] === "") && delete payload[k]);
 
       const res = await api.put(`/milestones/update-milestone/${id}`, payload);
       // Invalidate & refetch
@@ -239,12 +256,15 @@ export const WorkProvider = ({ children }) => {
   const addSprint = async (newSprint) => {
     setSprintsLoading(true);
     try {
+      const pId = newSprint.projectId?._id || newSprint.projectId || newSprint.milestoneId?._id || newSprint.milestoneId;
       const payload = {
-        name: newSprint.name,
-        projectId: newSprint.projectId,
+        name: newSprint.name || newSprint.sprintName || "Sprint",
+        sprintName: newSprint.sprintName || newSprint.name || "Sprint",
+        projectId: pId || undefined,
+        milestoneId: newSprint.milestoneId?._id || newSprint.milestoneId || undefined,
         startDate: newSprint.startDate,
         endDate: newSprint.endDate || undefined,
-        status: newSprint.status || "Active",
+        status: (newSprint.status || "active").toLowerCase(),
       };
       const res = await api.post("/sprints/create-sprint", payload);
       // Invalidate & refetch
@@ -263,7 +283,18 @@ export const WorkProvider = ({ children }) => {
   const updateSprint = async (id, updatedData) => {
     setSprintsLoading(true);
     try {
-      const res = await api.put(`/sprints/update-sprint/${id}`, updatedData);
+      const pId = updatedData.projectId?._id || updatedData.projectId || updatedData.milestoneId?._id || updatedData.milestoneId;
+      const payload = {
+        ...updatedData,
+        name: updatedData.sprintName || updatedData.name,
+        sprintName: updatedData.sprintName || updatedData.name,
+        projectId: pId || undefined,
+        milestoneId: updatedData.milestoneId?._id || updatedData.milestoneId || undefined,
+        status: updatedData.status ? String(updatedData.status).toLowerCase() : undefined,
+      };
+      Object.keys(payload).forEach((k) => (payload[k] === undefined || payload[k] === "") && delete payload[k]);
+
+      const res = await api.put(`/sprints/update-sprint/${id}`, payload);
       // Invalidate & refetch
       await fetchSprints();
       setSprintsError(null);

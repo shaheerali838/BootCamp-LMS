@@ -48,7 +48,11 @@ export const createStudentService = async (studentData) => {
     }
   }
 
-  const hashedPassword = await bcrypt.hash(studentData.password, 10);
+  const rawPassword =
+    studentData.password && studentData.password.trim()
+      ? studentData.password.trim()
+      : "Student@123";
+  const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
   const student = await Student.create({
     ...studentData,
@@ -57,6 +61,7 @@ export const createStudentService = async (studentData) => {
     lastName: studentData.lastName.trim(),
     email: studentData.email.toLowerCase().trim(),
     phoneNumber: studentData.phoneNumber.trim(),
+    status: studentData.status || "active",
     password: hashedPassword,
   });
 
@@ -171,7 +176,7 @@ export const updateStudentStatusService = async (id, status) => {
   return await Student.findByIdAndUpdate(
     id,
     { status },
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   ).select("-password");
 };
 

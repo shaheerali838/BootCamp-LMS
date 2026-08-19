@@ -28,7 +28,7 @@ const updateEvaluation = async (id, data) => {
     id,
     data,
     {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     }
   )

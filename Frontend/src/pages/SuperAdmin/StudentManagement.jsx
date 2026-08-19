@@ -1,57 +1,37 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { FiUsers, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
-import { useStudent, useBatches } from "../../context/AcademicContext";
-import { useAdmins } from "../../context/SystemContext";
+import { useStudent } from "../../context/AcademicContext";
+import AddStudentModal from "../../components/features/Students/AddStudentModal";
 
 function StudentManagement() {
-  const { students, fetchStudents, addStudent, updateStudent, deleteStudent } = useStudent();
-  const { batches = [], fetchBatches } = useBatches();
-  const { admins = [], mentors = [], fetchAdmins, fetchMentors } = useAdmins();
-
-  const availableMentors = useMemo(() => {
-    return (mentors.length > 0 ? mentors : admins).filter((m) => {
-      const r = (m.role || "").toUpperCase().replace(/[\s_]+/g, "");
-      return r !== "SUPERADMIN";
-    });
-  }, [mentors, admins]);
+  const { students, fetchStudents, addStudent, updateStudent, deleteStudent } =
+    useStudent();
 
   React.useEffect(() => {
     if (fetchStudents) fetchStudents();
-    if (fetchBatches) fetchBatches();
-    if (fetchAdmins) fetchAdmins();
-    if (fetchMentors) fetchMentors();
-  }, [fetchStudents, fetchBatches, fetchAdmins, fetchMentors]);
+  }, [fetchStudents]);
 
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    rollNumber: "",
-    email: "",
-    phoneNumber: "",
-    password: "Student@123",
-    gender: "male",
-    dateOfBirth: "2002-01-01",
-    batchId: "",
-    mentorId: "",
-    status: "active",
-  });
-
   const getStudentName = (s) =>
-    s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || s.email || "Student";
+    s.name ||
+    `${s.firstName || ""} ${s.lastName || ""}`.trim() ||
+    s.email ||
+    "Student";
 
   const getStudentInitials = (s) => {
     if (s.initials) return s.initials;
     const n = getStudentName(s);
-    return n
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "ST";
+    return (
+      n
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase() || "ST"
+    );
   };
 
   const filtered = students.filter((s) => {
@@ -62,113 +42,21 @@ function StudentManagement() {
     return name.includes(q) || roll.includes(q) || email.includes(q);
   });
 
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
   const handleOpenAdd = () => {
     setEditingStudent(null);
-    setError("");
-    setFormData({
-      firstName: "",
-      lastName: "",
-      rollNumber: `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
-      email: "",
-      phoneNumber: "",
-      password: "Student@123",
-      gender: "male",
-      dateOfBirth: "2002-01-01",
-      batchId: batches[0] ? (batches[0]._id || batches[0].id) : "",
-      mentorId: availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : "",
-      status: "active",
-    });
     setShowModal(true);
   };
 
   const handleOpenEdit = (student) => {
     setEditingStudent(student);
-    setError("");
-    const nameParts = (student.name || "").split(" ");
-    setFormData({
-      firstName: student.firstName || nameParts[0] || "",
-      lastName: student.lastName || nameParts.slice(1).join(" ") || "",
-      rollNumber: student.rollNumber || student.rollNo || "",
-      email: student.email || "",
-      phoneNumber: student.phoneNumber || student.phone || "",
-      password: "",
-      gender: student.gender || "male",
-      dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().split("T")[0] : "2002-01-01",
-      batchId: student.batchId || (batches[0] ? (batches[0]._id || batches[0].id) : ""),
-      mentorId: student.mentorId || (availableMentors[0] ? (availableMentors[0]._id || availableMentors[0].id) : ""),
-      status: student.status || "active",
-    });
     setShowModal(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!formData.firstName.trim()) {
-      setError("First Name is required.");
-      return;
-    }
-    if (!formData.lastName.trim()) {
-      setError("Last Name is required.");
-      return;
-    }
-    if (!formData.email.trim()) {
-      setError("Email address is required.");
-      return;
-    }
-    if (!formData.rollNumber.trim()) {
-      setError("Roll number is required.");
-      return;
-    }
-    if (!formData.phoneNumber.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
-    if (!formData.dateOfBirth) {
-      setError("Date of birth is required.");
-      return;
-    }
-    if (!formData.batchId) {
-      setError("Please select a Batch. If no batches exist, create one first.");
-      return;
-    }
-    if (!formData.mentorId) {
-      setError("Please select an Assigned Mentor. If no mentors exist, add one first.");
-      return;
-    }
-
-    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-    const initials = getStudentInitials({ name: fullName });
-
-    const payload = {
-      ...formData,
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      email: formData.email.trim().toLowerCase(),
-      phoneNumber: formData.phoneNumber.trim(),
-      rollNumber: formData.rollNumber.trim(),
-      name: fullName,
-      rollNo: formData.rollNumber.trim(),
-      phone: formData.phoneNumber.trim(),
-      initials,
-    };
-
-    try {
-      setSubmitting(true);
-      if (editingStudent) {
-        await updateStudent(editingStudent._id || editingStudent.id, payload);
-      } else {
-        await addStudent(payload);
-      }
-      setShowModal(false);
-    } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Failed to save student.");
-    } finally {
-      setSubmitting(false);
+  const handleSaveStudent = async (payload) => {
+    if (editingStudent) {
+      await updateStudent(editingStudent._id || editingStudent.id, payload);
+    } else {
+      await addStudent(payload);
     }
   };
 
@@ -183,7 +71,8 @@ function StudentManagement() {
               SuperAdmin Student Management
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Full system authority to enroll, modify, or remove student accounts
+              Full system authority to enroll, modify, or remove student
+              accounts
             </p>
           </div>
           <button
@@ -199,7 +88,10 @@ function StudentManagement() {
       {/* Search */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
         <div className="relative max-w-md">
-          <FiSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <FiSearch
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
           <input
             type="text"
             value={search}
@@ -223,11 +115,17 @@ function StudentManagement() {
           {filtered.map((item) => {
             const studentName = getStudentName(item);
             const studentInitials = getStudentInitials(item);
-            const isStatusActive = (item.status || "").toLowerCase() === "active";
+            const isStatusActive =
+              (item.status || "").toLowerCase() === "active";
 
             return (
-              <div key={item._id || item.id} className="grid grid-cols-6 px-5 py-4 items-center hover:bg-gray-50 text-sm">
-                <span className="font-semibold text-gray-700 text-xs">{item.rollNumber || item.rollNo || "N/A"}</span>
+              <div
+                key={item._id || item.id}
+                className="grid grid-cols-6 px-5 py-4 items-center hover:bg-gray-50 text-sm"
+              >
+                <span className="font-semibold text-gray-700 text-xs">
+                  {item.rollNumber || item.rollNo || "N/A"}
+                </span>
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
                     {studentInitials}
@@ -237,7 +135,9 @@ function StudentManagement() {
                     <div className="text-xs text-gray-400">{item.email}</div>
                   </div>
                 </div>
-                <span className="text-xs text-gray-600 capitalize">{item.gender || "Unspecified"}</span>
+                <span className="text-xs text-gray-600 capitalize">
+                  {item.gender || "Unspecified"}
+                </span>
                 <div>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
@@ -259,7 +159,11 @@ function StudentManagement() {
                   </button>
                   <button
                     onClick={() => {
-                      if (window.confirm("Are you sure you want to remove this student?")) {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to remove this student?",
+                        )
+                      ) {
                         deleteStudent(item._id || item.id);
                       }
                     }}
@@ -281,199 +185,15 @@ function StudentManagement() {
       </div>
 
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">
-                {editingStudent ? "Edit Student Account" : "Enroll New Student"}
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-4 text-xs">
-              {error && (
-                <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2">
-                  <span>⚠️</span>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    placeholder="e.g. Ayesha"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    placeholder="e.g. Siddiqui"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Roll Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.rollNumber}
-                    onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="student@smit.edu"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.phoneNumber}
-                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                    placeholder="03000000000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Gender *
-                  </label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Date of Birth *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Enrolled Batch *
-                  </label>
-                  <select
-                    value={formData.batchId}
-                    onChange={(e) => setFormData({ ...formData, batchId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="">Select Batch</option>
-                    {batches.map((b) => (
-                      <option key={b._id || b.id} value={b._id || b.id}>
-                        {b.batchName || b.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Assigned Mentor *
-                  </label>
-                  <select
-                    value={formData.mentorId}
-                    onChange={(e) => setFormData({ ...formData, mentorId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="">Select Mentor</option>
-                    {availableMentors.map((a) => (
-                      <option key={a._id || a.id} value={a._id || a.id}>
-                        {a.firstName ? `${a.firstName} ${a.lastName || ""}` : a.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">
-                    Account Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? "Saving..." : "Save Student"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddStudentModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingStudent(null);
+        }}
+        editingStudent={editingStudent}
+        onAddStudent={handleSaveStudent}
+      />
     </div>
   );
 }

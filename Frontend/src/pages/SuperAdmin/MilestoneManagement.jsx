@@ -15,7 +15,6 @@ import { useTeamProject } from "../../context/TeamProjectContext";
 function MilestoneManagement() {
   const { milestones, addMilestone, updateMilestone, deleteMilestone } =
     useMilestones();
-  // Access dynamic projects from TeamProjectContext
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
@@ -32,25 +31,46 @@ function MilestoneManagement() {
   });
 
   const getProjectTitle = (projId) => {
-    const p = projects.find((item) => (item._id || item.id) === projId);
+    if (!projId) return "General Project";
+    const pId = projId?._id || projId;
+    const p = projects.find((item) => String(item._id || item.id) === String(pId));
     return p ? (p.projectName || p.name || p.title) : "General Project";
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "No date set";
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   const filtered = milestones.filter((m) => {
+    const mProjId = m.projectId?._id || m.projectId;
     const matchProject =
-      selectedProjectId === "All" || m.projectId === selectedProjectId;
+      selectedProjectId === "All" || String(mProjId) === String(selectedProjectId);
+    const title = (m.milestoneName || m.title || "").toLowerCase();
+    const desc = (m.description || "").toLowerCase();
     const matchSearch =
-      (m.milestoneName || m.title || "").toLowerCase().includes(search.toLowerCase()) ||
-      (m.description || "").toLowerCase().includes(search.toLowerCase());
+      title.includes(search.toLowerCase()) || desc.includes(search.toLowerCase());
     return matchProject && matchSearch;
   });
 
   const totalMilestones = milestones.length;
   const completedMilestones = milestones.filter(
-    (m) => m.status === "Completed",
+    (m) => String(m.status).toLowerCase() === "completed",
   ).length;
   const pendingMilestones = milestones.filter(
-    (m) => m.status === "Pending" || m.status === "In Progress",
+    (m) =>
+      String(m.status).toLowerCase() === "pending" ||
+      String(m.status).toLowerCase() === "in progress",
   ).length;
 
   const [modalError, setModalError] = useState("");
@@ -71,11 +91,14 @@ function MilestoneManagement() {
   const handleOpenEdit = (milestone) => {
     setEditingMilestone(milestone);
     setModalError("");
+    const mProjId = milestone.projectId?._id || milestone.projectId;
     setFormData({
       title: milestone.milestoneName || milestone.title || "",
       description: milestone.description || "",
-      dueDate: milestone.dueDate ? new Date(milestone.dueDate).toISOString().split("T")[0] : "",
-      projectId: milestone.projectId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      dueDate: milestone.dueDate
+        ? new Date(milestone.dueDate).toISOString().split("T")[0]
+        : "",
+      projectId: mProjId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
       status: milestone.status || "Pending",
     });
     setShowModal(true);
@@ -89,19 +112,21 @@ function MilestoneManagement() {
       setModalError("Milestone Title is required.");
       return;
     }
-    if (!formData.description.trim()) {
-      setModalError("Description is required.");
-      return;
-    }
     if (!formData.projectId) {
       setModalError("Please select a Target Project. If none exist, create a Project first.");
       return;
     }
+    if (!formData.dueDate) {
+      setModalError("Due Date is required.");
+      return;
+    }
 
     const payload = {
-      ...formData,
       title: formData.title.trim(),
       milestoneName: formData.title.trim(),
+      projectId: formData.projectId,
+      dueDate: formData.dueDate,
+      status: formData.status,
       description: formData.description.trim(),
     };
 
@@ -155,11 +180,11 @@ function MilestoneManagement() {
               {pendingMilestones}
             </h2>
             <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-              Pending / Active
+              Pending / In Progress
             </p>
           </div>
           <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-            <FiClock size={23} className="text-amber-500" />
+            <FiClock size={23} className="text-amber-600" />
           </div>
         </div>
       </div>
@@ -214,28 +239,37 @@ function MilestoneManagement() {
                 key={item._id || item.id}
                 className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
               >
-                <div className="col-span-2 text-sm font-medium text-gray-900">
-                  {item.title || item.milestoneName}
+                <div className="col-span-2">
+                  <div className="text-sm font-semibold text-gray-900">
+                    {item.milestoneName || item.title || item.name || "Untitled Milestone"}
+                  </div>
+                  {item.description && (
+                    <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                      {item.description}
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 rounded text-xs">
+                  <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded text-xs font-medium">
                     {getProjectTitle(item.projectId)}
                   </span>
                 </div>
 
                 <div>
-                  <div className="text-xs text-gray-800">{item.dueDate}</div>
+                  <div className="text-xs font-semibold text-gray-800">
+                    {formatDate(item.dueDate)}
+                  </div>
                   <span
                     className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
-                      item.status === "Completed"
-                        ? "bg-green-100 text-green-600"
-                        : item.status === "In Progress"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600"
+                      String(item.status).toLowerCase() === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : String(item.status).toLowerCase() === "in progress"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {item.status}
+                    {item.status || "Pending"}
                   </span>
                 </div>
 
@@ -284,24 +318,7 @@ function MilestoneManagement() {
                   <span>{modalError}</span>
                 </div>
               )}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Target Project *
-                </label>
-                <select
-                  value={formData.projectId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, projectId: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
-                >
-                  {projects.map((p) => (
-                    <option key={p._id || p.id} value={p._id || p.id}>
-                      {p.projectName || p.name || p.title || "Project"}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Milestone Title *
@@ -313,31 +330,54 @@ function MilestoneManagement() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="e.g. UI Wireframes Completion"
+                  placeholder="e.g. Design Wireframes"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Description *
+                  Target Project *
+                </label>
+                <select
+                  value={formData.projectId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, projectId: e.target.value })
+                  }
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((p) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>
+                      {p.projectName || p.name || p.title || "Project"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Description
                 </label>
                 <textarea
-                  required
-                  rows="2"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Details and criteria for this milestone..."
+                  rows="2"
+                  placeholder="Optional details about this milestone..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Due Date
+                  Due Date *
                 </label>
                 <input
                   type="date"
+                  required
                   value={formData.dueDate}
                   onChange={(e) =>
                     setFormData({ ...formData, dueDate: e.target.value })
@@ -345,6 +385,7 @@ function MilestoneManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Status
@@ -361,17 +402,18 @@ function MilestoneManagement() {
                   <option value="Completed">Completed</option>
                 </select>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer"
+                  className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition cursor-pointer"
                 >
                   {editingMilestone ? "Save Changes" : "Create Milestone"}
                 </button>

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import {
   createProject,
   getAllProjects,
@@ -8,11 +9,34 @@ import {
   getProjectsByBatch,
   getProjectsByStatus,
 } from "./project.service.js";
+import TeamProject from "../../model/teamProject.model.js";
 
 // Create Project
 const createProjectHandler = async (req, res) => {
   try {
-    const project = await createProject(req.body);
+    const rawTeamId = req.body.teamId || req.body.batch || req.body.batchId;
+    const teamId =
+      rawTeamId && mongoose.Types.ObjectId.isValid(rawTeamId)
+        ? rawTeamId
+        : undefined;
+
+    const payload = {
+      ...req.body,
+      projectName: req.body.projectName || req.body.name,
+      createdBy: req.user?._id || req.body.createdBy,
+      teamId,
+      status: (req.body.status || "pending").toLowerCase(),
+    };
+
+    const project = await createProject(payload);
+
+    if (teamId) {
+      await TeamProject.findOneAndUpdate(
+        { projectId: project._id },
+        { teamId, projectId: project._id, assignedDate: new Date() },
+        { upsert: true, returnDocument: "after" },
+      ).catch(() => {});
+    }
 
     res.status(201).json({
       success: true,
@@ -72,13 +96,41 @@ const getProjectByIdHandler = async (req, res) => {
 // Update Project
 const updateProjectHandler = async (req, res) => {
   try {
-    const project = await updateProject(req.params.id, req.body);
+    const rawTeamId = req.body.teamId || req.body.batch || req.body.batchId;
+    const teamId =
+      rawTeamId && mongoose.Types.ObjectId.isValid(rawTeamId)
+        ? rawTeamId
+        : undefined;
+
+    const payload = {
+      ...req.body,
+    };
+
+    if (req.body.name && !req.body.projectName) {
+      payload.projectName = req.body.name;
+    }
+    if (teamId) {
+      payload.teamId = teamId;
+    }
+    if (req.body.status) {
+      payload.status = req.body.status.toLowerCase();
+    }
+
+    const project = await updateProject(req.params.id, payload);
 
     if (!project) {
       return res.status(404).json({
         success: false,
         message: "Project not found",
       });
+    }
+
+    if (teamId) {
+      await TeamProject.findOneAndUpdate(
+        { projectId: project._id },
+        { teamId, projectId: project._id, assignedDate: new Date() },
+        { upsert: true, returnDocument: "after" },
+      ).catch(() => {});
     }
 
     res.status(200).json({
@@ -105,6 +157,8 @@ const deleteProjectHandler = async (req, res) => {
         message: "Project not found",
       });
     }
+
+    await TeamProject.deleteMany({ projectId: req.params.id }).catch(() => {});
 
     res.status(200).json({
       success: true,

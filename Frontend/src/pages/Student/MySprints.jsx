@@ -94,7 +94,9 @@ function MySprints() {
                 <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">
                   {getProjectName(s.projectId)}
                 </span>
-                <h3 className="text-base font-bold text-gray-900 mt-2.5">{s.name}</h3>
+                <h3 className="text-base font-bold text-gray-900 mt-2.5">
+                  {s.sprintName || s.name || s.title || "Sprint"}
+                </h3>
               </div>
               <span
                 className={`text-xs font-semibold px-2.5 py-1 rounded-full ${

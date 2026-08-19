@@ -219,9 +219,9 @@ const Announcement = () => {
             </div>
           ) : (
             <div className="w-full flex flex-col gap-4">
-              {filteredAnnouncements.map((announcement) => (
+              {filteredAnnouncements.map((announcement, idx) => (
                 <AnnouncementCard
-                  key={announcement._id || announcement.id}
+                  key={announcement._id || announcement.id || idx}
                   announcement={announcement}
                   onEdit={handleEdit}
                   onDelete={() => handleDelete(announcement._id || announcement.id)}

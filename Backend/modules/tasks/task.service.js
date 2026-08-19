@@ -1,15 +1,34 @@
 import Task from "../../model/task.model.js";
 
 const createTask = async (task) => {
-  return await Task.create(task);
+  const newTask = await Task.create(task);
+  return await Task.findById(newTask._id)
+    .populate("assignedTeamId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    )
+    .populate("sprintId");
 };
 
 const getTasks = async () => {
-  return await Task.find();
+  return await Task.find()
+    .populate("assignedTeamId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    )
+    .populate("sprintId");
 };
 
 const getTaskById = async (id) => {
-  return await Task.findById(id);
+  return await Task.findById(id)
+    .populate("assignedTeamId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    )
+    .populate("sprintId");
 };
 
 const getTasksBySprintId = async (sprintId) => {
@@ -22,7 +41,13 @@ const getTasksBySprintId = async (sprintId) => {
 };
 
 const updateTask = async (id, task) => {
-  return await Task.findByIdAndUpdate(id, task, { new: true });
+  return await Task.findByIdAndUpdate(id, task, { returnDocument: "after" })
+    .populate("assignedTeamId")
+    .populate(
+      "assignedStudentId",
+      "-password -resetPasswordTokenHash -resetPasswordExpiresAt",
+    )
+    .populate("sprintId");
 };
 
 const deleteTask = async (id) => {
