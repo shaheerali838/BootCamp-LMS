@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 export const findStudentByEmail = async (email, excludeId = null) => {
   const query = { email: email.toLowerCase() };
   if (excludeId) {
-    query._id = { $ne: excludeId };
+    query._id = { $ne: excludeId };  // $ne = Not Equal (Update ke waqt apna ID chhor kar doosron mein dhoondo)
   }
   return await Student.findOne(query);
 };
@@ -40,6 +40,7 @@ export const createStudentService = async (studentData) => {
 
 // Get all students with pagination, search, and populate
 export const getStudentsService = async ({ page = 1, limit = 10, search = "" }) => {
+  // pagination skip formula
   const skip = (page - 1) * limit;
   let query = {};
 
