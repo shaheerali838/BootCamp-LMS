@@ -6,7 +6,7 @@ import AssignTaskModal from "../components/features/Tasks/AssignTaskModal";
 import { useTasks } from "../context/WorkContext";
 
 function Task() {
-  const { tasks, fetchTasks, addTask, updateTask } = useTasks();
+  const { tasks, fetchTasks, addTask, updateTask, deleteTask } = useTasks();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [taskToAssign, setTaskToAssign] = useState(null);
@@ -19,11 +19,16 @@ function Task() {
     const value = search.toLowerCase();
 
     return tasks.filter((task) => {
+      const title = (task.title || "").toLowerCase();
+      const desc = (task.description || "").toLowerCase();
+      const by = (task.assignedBy || "").toLowerCase();
+      const status = (task.status || "").toLowerCase();
+
       return (
-        (task.title || "").toLowerCase().includes(value) ||
-        (task.assignedBy || "").toLowerCase().includes(value) ||
-        (task.assignedTo || "").toLowerCase().includes(value) ||
-        (task.status || "").toLowerCase().includes(value)
+        title.includes(value) ||
+        desc.includes(value) ||
+        by.includes(value) ||
+        status.includes(value)
       );
     });
   }, [tasks, search]);
@@ -38,11 +43,22 @@ function Task() {
     setShowModal(true);
   };
 
-  const handleSaveTask = (taskData) => {
+  const handleOpenEditModal = (task) => {
+    setTaskToAssign(task);
+    setShowModal(true);
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      await deleteTask(taskId);
+    }
+  };
+
+  const handleSaveTask = async (taskData) => {
     if (taskToAssign) {
-      updateTask(taskData.id, taskData);
+      await updateTask(taskData.id || taskData._id, taskData);
     } else {
-      addTask(taskData);
+      await addTask(taskData);
     }
   };
 
@@ -50,20 +66,19 @@ function Task() {
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-
         {/* Title */}
         <div className="flex items-center justify-between mt-3">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Tasks</h1>
             <p className="text-sm text-gray-500 mt-1">
-              Create and manage tasks assigned to students
+              Create, assign, edit, and manage tasks for students and teams
             </p>
           </div>
 
           {/* Create Task Button */}
           <button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition shadow-sm"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-sm cursor-pointer"
           >
             <FiPlus size={18} />
             Create Task
@@ -82,19 +97,21 @@ function Task() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tasks..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+            placeholder="Search tasks by title, description, or status..."
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
           />
         </div>
       </div>
 
-      {/* Tasks */}
+      {/* Tasks List */}
       <div className="space-y-4">
         {filteredTasks.map((task) => (
           <TaskCard
             key={task._id || task.id}
             task={task}
             onAssign={handleOpenAssignModalForCard}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDeleteTask}
           />
         ))}
       </div>
@@ -107,7 +124,7 @@ function Task() {
         </div>
       )}
 
-      {/* Create / Assign Task Modal */}
+      {/* Create / Edit / Assign Task Modal */}
       {showModal && (
         <AssignTaskModal
           taskToAssign={taskToAssign}

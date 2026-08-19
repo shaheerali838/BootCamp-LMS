@@ -9,6 +9,7 @@ import {
   FiUserCheck,
 } from "react-icons/fi";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { useStudents } from "../../../context/AcademicContext";
 import ProjectCard from "./PorjectCard";
 
 function ProjectManagement() {
@@ -22,6 +23,7 @@ function ProjectManagement() {
     fetchTeams,
     fetchProjects,
   } = useTeamProject();
+  const { students = [] } = useStudents();
 
   useEffect(() => {
     if (fetchTeams) fetchTeams();
@@ -862,74 +864,113 @@ function ProjectManagement() {
 
               {/* -------------------------------- */}
               {/* PROJECT MEMBERS */}
-              {/* ONLY TEAM MEMBERS */}
+              {/* -------------------------------- */}
+              {/* PROJECT MEMBERS */}
               {/* -------------------------------- */}
 
-              {formData.batch && (
+              {formData.batch && (() => {
+                const selectedTeam = teams.find(
+                  (t) => String(t._id || t.id) === String(formData.batch)
+                );
 
-                <div className="mt-4">
+                const list = [];
+                if (selectedTeam?.teamLead) {
+                  list.push({
+                    raw: selectedTeam.teamLead,
+                    isLead: true,
+                  });
+                }
+                if (Array.isArray(selectedTeam?.members)) {
+                  selectedTeam.members.forEach((m) => {
+                    const mId = String(m._id || m.id || m);
+                    const leadId = String(selectedTeam.teamLead?._id || selectedTeam.teamLead?.id || selectedTeam.teamLead || "");
+                    if (mId !== leadId) {
+                      list.push({ raw: m, isLead: false });
+                    }
+                  });
+                }
 
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Project Members
-                  </label>
+                const resolveMember = (item) => {
+                  const raw = item.raw;
+                  if (typeof raw === "object" && (raw.firstName || raw.name)) {
+                    const name = raw.firstName
+                      ? `${raw.firstName} ${raw.lastName || ""}`.trim()
+                      : raw.name;
+                    const roll = raw.rollNumber || raw.rollNo || raw.email || "";
+                    return { name, roll };
+                  }
+                  const rawId = String(raw?._id || raw?.id || raw);
+                  const found = students.find((s) => String(s._id || s.id) === rawId);
+                  if (found) {
+                    const name = found.firstName
+                      ? `${found.firstName} ${found.lastName || ""}`.trim()
+                      : found.name;
+                    const roll = found.rollNumber || found.rollNo || found.email || "";
+                    return { name, roll };
+                  }
+                  return { name: "Team Member", roll: "" };
+                };
 
-                  <div className="mt-2 border border-gray-200 rounded-lg bg-gray-50 p-3">
+                return (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Project Members
+                      </label>
+                      <span className="text-xs text-gray-500 font-medium">
+                        {list.length} Members
+                      </span>
+                    </div>
 
-                    {formData.members.length >
-                      0 ? (
+                    <div className="border border-gray-200 rounded-lg bg-gray-50 p-3 max-h-48 overflow-y-auto">
+                      {list.length > 0 ? (
+                        <div className="space-y-2">
+                          {list.map((item, idx) => {
+                            const { name, roll } = resolveMember(item);
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                    item.isLead ? "bg-blue-600 text-white" : "bg-gray-100 text-[#0476b9]"
+                                  }`}>
+                                    {name.charAt(0).toUpperCase()}
+                                  </div>
 
-                      <div className="space-y-2">
+                                  <div className="min-w-0">
+                                    <span className="text-xs font-semibold text-gray-800 truncate block">
+                                      {name}
+                                    </span>
+                                    {roll && (
+                                      <span className="text-[10px] text-gray-400 block truncate">
+                                        {roll}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
 
-                        {formData.members.map(
-                          (member) => (
-
-                            <div
-                              key={
-                                member.id ||
-                                member._id
-                              }
-                              className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2"
-                            >
-
-                              <div className="flex items-center gap-2">
-
-                                <FiUsers
-                                  size={16}
-                                  className="text-[#0476b9]"
-                                />
-
-                                <span className="text-sm font-medium text-gray-700">
-                                  {
-                                    member.name
-                                  }
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                  item.isLead
+                                    ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                    : "bg-gray-100 text-gray-500"
+                                }`}>
+                                  {item.isLead ? "Team Lead" : "Member"}
                                 </span>
-
                               </div>
-
-                              <span className="text-xs text-gray-400">
-                                Team Member
-                              </span>
-
-                            </div>
-
-                          )
-                        )}
-
-                      </div>
-
-                    ) : (
-
-                      <p className="text-sm text-gray-500">
-                        No members found in this team.
-                      </p>
-
-                    )}
-
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 py-1">
+                          No members assigned to this team yet.
+                        </p>
+                      )}
+                    </div>
                   </div>
-
-                </div>
-
-              )}
+                );
+              })()}
 
               {/* STATUS */}
 

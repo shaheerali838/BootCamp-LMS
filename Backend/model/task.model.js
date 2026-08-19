@@ -5,19 +5,16 @@ const taskSchema = new mongoose.Schema(
     sprintId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sprint",
-      required: true,
     },
 
     assignedStudentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
-      required: true,
     },
 
     assignedTeamId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Team",
-      required: true,
     },
 
     title: {
@@ -34,13 +31,13 @@ const taskSchema = new mongoose.Schema(
 
     priority: {
       type: String,
-      required: true,
+      default: "Medium",
       trim: true,
     },
 
     status: {
       type: String,
-      required: true,
+      default: "Pending",
       trim: true,
     },
 

@@ -9,12 +9,31 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
   const { teams = [] } = useTeamProject();
   const { sprints = [] } = useSprints();
 
+  const getInitialAssignedType = () => {
+    if (!taskToAssign) return teams.length > 0 ? "team" : "student";
+    if (taskToAssign.assignedStudentId) return "student";
+    return "team";
+  };
+
+  const getInitialAssignedId = () => {
+    if (!taskToAssign) {
+      return teams[0]?._id || teams[0]?.id || students[0]?._id || students[0]?.id || "";
+    }
+    if (taskToAssign.assignedStudentId) {
+      return taskToAssign.assignedStudentId?._id || taskToAssign.assignedStudentId;
+    }
+    if (taskToAssign.assignedTeamId) {
+      return taskToAssign.assignedTeamId?._id || taskToAssign.assignedTeamId;
+    }
+    return teams[0]?._id || teams[0]?.id || students[0]?._id || students[0]?.id || "";
+  };
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     sprintId: "",
-    assignedType: "team", // "team" or "student"
-    assignedId: "",
+    assignedType: getInitialAssignedType(),
+    assignedId: getInitialAssignedId(),
     dueDate: new Date().toISOString().split("T")[0],
     priority: "Medium",
     status: "Pending",
@@ -22,13 +41,20 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
 
   useEffect(() => {
     if (taskToAssign) {
+      const isStudent = Boolean(taskToAssign.assignedStudentId);
+      const targetId = isStudent
+        ? taskToAssign.assignedStudentId?._id || taskToAssign.assignedStudentId
+        : taskToAssign.assignedTeamId?._id || taskToAssign.assignedTeamId || (teams[0]?._id || teams[0]?.id || "");
+
       setFormData({
         title: taskToAssign.title || "",
         description: taskToAssign.description || "",
-        sprintId: taskToAssign.sprintId || (sprints[0]?._id || sprints[0]?.id || ""),
-        assignedType: taskToAssign.assignedStudentId ? "student" : "team",
-        assignedId: taskToAssign.assignedStudentId || taskToAssign.assignedTeamId || (teams[0]?._id || teams[0]?.id || ""),
-        dueDate: taskToAssign.dueDate ? new Date(taskToAssign.dueDate).toISOString().split("T")[0] : "",
+        sprintId: taskToAssign.sprintId?._id || taskToAssign.sprintId || "",
+        assignedType: isStudent ? "student" : "team",
+        assignedId: targetId || "",
+        dueDate: taskToAssign.dueDate
+          ? new Date(taskToAssign.dueDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         priority: taskToAssign.priority || "Medium",
         status: taskToAssign.status || "Pending",
       });
@@ -37,8 +63,8 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
         title: "",
         description: "",
         sprintId: sprints[0]?._id || sprints[0]?.id || "",
-        assignedType: "team",
-        assignedId: teams[0]?._id || teams[0]?.id || "",
+        assignedType: teams.length > 0 ? "team" : "student",
+        assignedId: teams[0]?._id || teams[0]?.id || students[0]?._id || students[0]?.id || "",
         dueDate: new Date().toISOString().split("T")[0],
         priority: "Medium",
         status: "Pending",
@@ -74,13 +100,13 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
       return;
     }
 
-    const assignedTeamId = formData.assignedType === "team" ? formData.assignedId : (teams[0]?._id || teams[0]?.id);
-    const assignedStudentId = formData.assignedType === "student" ? formData.assignedId : (students[0]?._id || students[0]?.id);
+    const assignedTeamId = formData.assignedType === "team" ? formData.assignedId : undefined;
+    const assignedStudentId = formData.assignedType === "student" ? formData.assignedId : undefined;
 
     const payload = {
       title: formData.title.trim(),
       description: formData.description.trim(),
-      sprintId: formData.sprintId || (sprints[0]?._id || sprints[0]?.id || undefined),
+      sprintId: formData.sprintId || undefined,
       assignedTeamId,
       assignedStudentId,
       dueDate: formData.dueDate,
@@ -102,7 +128,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
       }
       onClose();
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Failed to assign task.");
+      setError(err?.response?.data?.message || err?.message || "Failed to save task.");
     }
   };
 
@@ -119,12 +145,12 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
             <div>
               <h2 className="text-base font-bold text-gray-900">
                 {taskToAssign
-                  ? `Assign Task: ${taskToAssign.title}`
+                  ? `Edit Task: ${taskToAssign.title || "Task"}`
                   : "Create New Task"}
               </h2>
 
               <p className="text-xs text-gray-500">
-                Define task deliverables, priority, and assignees
+                Define deliverables, priority, timeline, and assignment
               </p>
             </div>
           </div>
@@ -146,6 +172,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
               <span>{error}</span>
             </div>
           )}
+
           {/* Task Title */}
           <div>
             <label className="block font-semibold text-gray-700 mb-1">
@@ -199,7 +226,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
               </select>
             </div>
 
-            {/* Assignment Type */}
+            {/* Assignment Target */}
             <div>
               <label className="block font-semibold text-gray-700 mb-1">
                 Assign Target *
@@ -207,18 +234,34 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
               <div className="flex gap-2 mb-1">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, assignedType: "team", assignedId: teams[0]?._id || teams[0]?.id || "" })}
-                  className={`flex-1 py-1 rounded border text-xs font-semibold ${
-                    formData.assignedType === "team" ? "bg-blue-600 text-white border-blue-600" : "bg-gray-50 text-gray-600"
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      assignedType: "team",
+                      assignedId: teams[0]?._id || teams[0]?.id || "",
+                    })
+                  }
+                  className={`flex-1 py-1 rounded border text-xs font-semibold cursor-pointer ${
+                    formData.assignedType === "team"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                   }`}
                 >
                   Team
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, assignedType: "student", assignedId: students[0]?._id || students[0]?.id || "" })}
-                  className={`flex-1 py-1 rounded border text-xs font-semibold ${
-                    formData.assignedType === "student" ? "bg-blue-600 text-white border-blue-600" : "bg-gray-50 text-gray-600"
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      assignedType: "student",
+                      assignedId: students[0]?._id || students[0]?.id || "",
+                    })
+                  }
+                  className={`flex-1 py-1 rounded border text-xs font-semibold cursor-pointer ${
+                    formData.assignedType === "student"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                   }`}
                 >
                   Individual Student
@@ -230,8 +273,10 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
                   name="assignedId"
                   value={formData.assignedId}
                   onChange={handleChange}
+                  required
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
                 >
+                  <option value="">Select Team</option>
                   {teams.map((t) => (
                     <option key={t._id || t.id} value={t._id || t.id}>
                       {t.teamName || t.name}
@@ -243,11 +288,13 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
                   name="assignedId"
                   value={formData.assignedId}
                   onChange={handleChange}
+                  required
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
                 >
+                  <option value="">Select Student</option>
                   {students.map((s) => (
                     <option key={s._id || s.id} value={s._id || s.id}>
-                      {s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim()} ({s.rollNumber || s.rollNo || "Student"})
+                      {s.firstName ? `${s.firstName} ${s.lastName || ""}` : s.name} ({s.rollNumber || s.rollNo || s.email})
                     </option>
                   ))}
                 </select>
@@ -271,8 +318,26 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
               </select>
             </div>
 
-            {/* Due Date */}
+            {/* Status */}
             <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Task Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500"
+              >
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="In Review">In Review</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div className="md:col-span-2">
               <label className="block font-semibold text-gray-700 mb-1">
                 Due Date *
               </label>

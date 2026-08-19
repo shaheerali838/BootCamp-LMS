@@ -3,7 +3,11 @@ import Team from "../../model/team.model.js";
 // Create Team
 const createTeam = async (teamData) => {
   const team = await Team.create(teamData);
-  return team;
+  return await Team.findById(team._id)
+    .populate("batchId", "batchName")
+    .populate("mentor", "firstName lastName email")
+    .populate("teamLead", "firstName lastName email rollNumber")
+    .populate("members", "firstName lastName email rollNumber");
 };
 
 // Get All Teams
@@ -11,7 +15,8 @@ const getAllTeams = async () => {
   return await Team.find()
     .populate("batchId", "batchName")
     .populate("mentor", "firstName lastName email")
-    .populate("teamLead", "firstName lastName email");
+    .populate("teamLead", "firstName lastName email rollNumber")
+    .populate("members", "firstName lastName email rollNumber");
 };
 
 // Get Team By ID
@@ -19,7 +24,8 @@ const getTeamById = async (id) => {
   return await Team.findById(id)
     .populate("batchId", "batchName")
     .populate("mentor", "firstName lastName email")
-    .populate("teamLead", "firstName lastName email");
+    .populate("teamLead", "firstName lastName email rollNumber")
+    .populate("members", "firstName lastName email rollNumber");
 };
 
 // Update Team
@@ -34,7 +40,8 @@ const updateTeam = async (id, data) => {
   )
     .populate("batchId", "batchName")
     .populate("mentor", "firstName lastName email")
-    .populate("teamLead", "firstName lastName email");
+    .populate("teamLead", "firstName lastName email rollNumber")
+    .populate("members", "firstName lastName email rollNumber");
 };
 
 // Delete Team
@@ -52,7 +59,8 @@ const searchTeam = async (keyword) => {
   })
     .populate("batchId", "batchName")
     .populate("mentor", "firstName lastName email")
-    .populate("teamLead", "firstName lastName email");
+    .populate("teamLead", "firstName lastName email rollNumber")
+    .populate("members", "firstName lastName email rollNumber");
 };
 
 export {
@@ -63,4 +71,3 @@ export {
   deleteTeam,
   searchTeam,
 };
-

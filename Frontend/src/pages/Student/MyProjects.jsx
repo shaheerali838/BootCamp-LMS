@@ -487,28 +487,35 @@ function MyProjects() {
 
                 {selectedProject.members.length > 0 ? (
                   <div className="space-y-2">
-                    {selectedProject.members.map((member, index) => (
-                      <div
-                        key={member.id || member._id || index}
-                        className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-3"
-                      >
-                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                          <FiUsers size={15} />
-                        </div>
+                    {selectedProject.members.map((member, index) => {
+                      const memberName = typeof member === "object"
+                        ? (member.firstName ? `${member.firstName} ${member.lastName || ""}`.trim() : member.name || member.rollNumber || member.email || "Member")
+                        : String(member);
+                      const memberRoll = typeof member === "object"
+                        ? (member.rollNumber || member.rollNo || "")
+                        : "";
 
-                        <div>
-                          <p className="text-xs font-semibold text-gray-800">
-                            {typeof member === "object"
-                              ? member.name || member.label || "Member"
-                              : member}
-                          </p>
+                      return (
+                        <div
+                          key={member.id || member._id || index}
+                          className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-lg p-3"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            {memberName.charAt(0).toUpperCase()}
+                          </div>
 
-                          <p className="text-[10px] text-gray-400">
-                            Team Member
-                          </p>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-gray-800 truncate">
+                              {memberName}
+                            </p>
+
+                            <p className="text-[10px] text-gray-400 truncate">
+                              {memberRoll ? `Roll: ${memberRoll}` : "Team Member"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-xs text-gray-400">No members assigned.</p>
