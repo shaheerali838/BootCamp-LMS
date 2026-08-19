@@ -273,91 +273,219 @@ export const AcademicProvider = ({ children }) => {
     }
   };
 
-  // ── Attendance (local) ─────────────────────────────────────
-  const [attendance, setAttendance] = useState(initialAttendanceData);
+  // ── Attendance (Database Connected) ─────────────────────────
+  const [rawAttendance, setRawAttendance] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [attendanceError, setAttendanceError] = useState(null);
+  const [myAttendanceStats, setMyAttendanceStats] = useState({
+    totalDays: 0,
+    presentDays: 0,
+    lateDays: 0,
+    leaveDays: 0,
+    absentDays: 0,
+    attendancePercentage: 100,
+  });
 
-  const updateAttendance = (
+  const fetchAttendance = useCallback(async (params = {}) => {
+    const token = accessToken || localStorage.getItem("accessToken");
+    const rawUser =
+      user ||
+      (() => {
+        try {
+          return JSON.parse(localStorage.getItem("user"));
+        } catch {
+          return null;
+        }
+      })();
+    const role = (rawUser?.role || "").toUpperCase();
+
+    if (!token) return;
+
+    setAttendanceLoading(true);
+    try {
+      if (role === "STUDENT") {
+        const response = await api.get("/attendance/my-attendance");
+        if (response.data.success) {
+          const { stats, records } = response.data.data;
+          setMyAttendanceStats(stats || {
+            totalDays: 0,
+            presentDays: 0,
+            lateDays: 0,
+            leaveDays: 0,
+            absentDays: 0,
+            attendancePercentage: 100,
+          });
+          setRawAttendance(records || []);
+        }
+      } else {
+        const response = await api.get("/attendance", { params });
+        if (response.data.success) {
+          setRawAttendance(response.data.data || []);
+        }
+      }
+      setAttendanceError(null);
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setRawAttendance([]);
+        return;
+      }
+      console.error("Failed to fetch attendance:", err);
+      setAttendanceError(err.response?.data?.message || "Failed to fetch attendance");
+    } finally {
+      setAttendanceLoading(false);
+    }
+  }, [accessToken, user]);
+
+  // Grouped structured attendance compatible with all existing views
+  const attendance = useMemo(() => {
+    const studentMap = {};
+
+    // First populate all known students
+    students.forEach((s) => {
+      const sId = String(s._id || s.id);
+      studentMap[sId] = {
+        studentId: sId,
+        id: sId,
+        student: s,
+        rollNo: s.rollNumber || s.rollNo || "",
+        name: s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || "Student",
+        attendance: [],
+      };
+    });
+
+    // Populate actual database records
+    rawAttendance.forEach((rec) => {
+      const sId = String(rec.studentId?._id || rec.studentId || rec.student || "");
+      if (!sId) return;
+
+      if (!studentMap[sId]) {
+        studentMap[sId] = {
+          studentId: sId,
+          id: sId,
+          student: rec.studentId || null,
+          rollNo: rec.studentId?.rollNumber || "",
+          name: rec.studentId ? `${rec.studentId.firstName || ""} ${rec.studentId.lastName || ""}`.trim() : "Student",
+          attendance: [],
+        };
+      }
+
+      studentMap[sId].attendance.push({
+        _id: rec._id,
+        date: rec.date,
+        status: rec.status,
+        time: rec.checkInTime || "--:--",
+        checkInTime: rec.checkInTime || "--:--",
+        checkOutTime: rec.checkOutTime || "--:--",
+        remarks: rec.remarks || "",
+      });
+    });
+
+    return Object.values(studentMap);
+  }, [students, rawAttendance]);
+
+  const markAttendance = async (recordsToMark) => {
+    setAttendanceLoading(true);
+    try {
+      const payload = Array.isArray(recordsToMark) ? { records: recordsToMark } : recordsToMark;
+      const response = await api.post("/attendance/mark", payload);
+      await fetchAttendance();
+      setAttendanceError(null);
+      return response.data;
+    } catch (err) {
+      console.error("Failed to mark attendance:", err);
+      setAttendanceError(err.response?.data?.message || "Failed to save attendance");
+      throw err;
+    } finally {
+      setAttendanceLoading(false);
+    }
+  };
+
+  const updateAttendance = async (
     studentId,
     date,
     status,
-    time,
-    checkOutTime = null,
+    time = "09:00 AM",
+    checkOutTime = "--:--",
+    remarks = ""
   ) => {
-    setAttendance((prev) => {
-      const studentExists = prev.some(
-        (s) => s.studentId === studentId || s.id === studentId,
-      );
-      if (!studentExists) {
-        return [
-          ...prev,
+    try {
+      const payload = {
+        records: [
           {
             studentId,
-            attendance: [
-              {
-                date,
-                status,
-                time: time || "--:--",
-                checkInTime: time || "--:--",
-                checkOutTime: checkOutTime || "--:--",
-              },
-            ],
+            date: date || new Date().toISOString().split("T")[0],
+            status,
+            checkInTime: time,
+            checkOutTime,
+            remarks,
           },
-        ];
-      }
-      return prev.map((student) => {
-        if (student.studentId !== studentId && student.id !== studentId)
-          return student;
-        const existing = student.attendance?.find((item) => item.date === date);
-        if (existing) {
-          return {
-            ...student,
-            attendance: student.attendance.map((item) =>
-              item.date === date
-                ? {
-                    ...item,
-                    status,
-                    time: time || item.time || "--:--",
-                    checkInTime: time || item.checkInTime || "--:--",
-                    checkOutTime:
-                      checkOutTime !== null
-                        ? checkOutTime
-                        : item.checkOutTime || "--:--",
-                  }
-                : item,
-            ),
-          };
-        }
-        return {
-          ...student,
-          attendance: [
-            ...(student.attendance || []),
-            {
-              date,
-              status,
-              time: time || "--:--",
-              checkInTime: time || "--:--",
-              checkOutTime: checkOutTime || "--:--",
-            },
-          ],
-        };
-      });
-    });
+        ],
+      };
+      await api.post("/attendance/mark", payload);
+      await fetchAttendance();
+    } catch (err) {
+      console.error("Failed to update attendance:", err);
+    }
   };
 
-  const getStudentAttendance = (studentId) =>
-    attendance.find((s) => s.studentId === studentId || s.id === studentId)
-      ?.attendance || [];
+  const getStudentAttendance = (studentId) => {
+    if (!studentId) return rawAttendance;
+    const sId = String(studentId);
+    const studentRecord = attendance.find(
+      (s) => String(s.studentId) === sId || String(s.id) === sId || (s.rollNo && s.rollNo.toLowerCase() === sId.toLowerCase())
+    );
+    if (studentRecord && studentRecord.attendance?.length > 0) {
+      return studentRecord.attendance;
+    }
+
+    // Direct fallback search across rawAttendance
+    return rawAttendance
+      .filter((rec) => String(rec.studentId?._id || rec.studentId) === sId)
+      .map((rec) => ({
+        _id: rec._id,
+        date: rec.date,
+        status: rec.status,
+        time: rec.checkInTime || "--:--",
+        checkInTime: rec.checkInTime || "--:--",
+        checkOutTime: rec.checkOutTime || "--:--",
+        remarks: rec.remarks || "",
+      }));
+  };
+
+  const getStudentAttendanceStats = (studentId) => {
+    const history = getStudentAttendance(studentId);
+    const totalDays = history.length;
+    const presentDays = history.filter((a) => a.status === "Present").length;
+    const lateDays = history.filter((a) => a.status === "Late").length;
+    const leaveDays = history.filter((a) => a.status === "Leave").length;
+    const absentDays = history.filter((a) => a.status === "Absent").length;
+    const percentage =
+      totalDays > 0
+        ? Math.round(((presentDays + lateDays) / totalDays) * 100)
+        : 100;
+
+    return {
+      totalDays,
+      presentDays,
+      lateDays,
+      leaveDays,
+      absentDays,
+      percentage,
+    };
+  };
 
   // ── Sync with Auth State ────────────────────────────────────
   useEffect(() => {
     if (accessToken) {
       fetchStudents();
       fetchBatches();
+      fetchAttendance();
     } else {
       setStudents([]);
       setBatches([]);
+      setRawAttendance([]);
     }
-  }, [accessToken, fetchStudents, fetchBatches]);
+  }, [accessToken, fetchStudents, fetchBatches, fetchAttendance]);
 
   return (
     <AcademicContext.Provider
@@ -380,11 +508,17 @@ export const AcademicProvider = ({ children }) => {
         addBatch,
         updateBatch,
         deleteBatch,
-        // Attendance (local)
+        // Attendance (Database Connected)
         attendance,
-        setAttendance,
+        rawAttendance,
+        attendanceLoading,
+        attendanceError,
+        myAttendanceStats,
+        fetchAttendance,
+        markAttendance,
         updateAttendance,
         getStudentAttendance,
+        getStudentAttendanceStats,
       }}
     >
       {children}
@@ -449,7 +583,28 @@ export const useBatches = () => {
 export const useBatch = useBatches;
 
 export const useAttendance = () => {
-  const { attendance, setAttendance, updateAttendance, getStudentAttendance } =
-    useAcademic();
-  return { attendance, setAttendance, updateAttendance, getStudentAttendance };
+  const {
+    attendance,
+    rawAttendance,
+    attendanceLoading: loading,
+    attendanceError: error,
+    myAttendanceStats,
+    fetchAttendance,
+    markAttendance,
+    updateAttendance,
+    getStudentAttendance,
+    getStudentAttendanceStats,
+  } = useAcademic();
+  return {
+    attendance,
+    rawAttendance,
+    loading,
+    error,
+    myAttendanceStats,
+    fetchAttendance,
+    markAttendance,
+    updateAttendance,
+    getStudentAttendance,
+    getStudentAttendanceStats,
+  };
 };

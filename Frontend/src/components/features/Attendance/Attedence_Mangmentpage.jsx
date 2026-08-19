@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   FiCalendar,
   FiClock,
@@ -7,32 +7,39 @@ import {
   FiAlertCircle,
   FiXCircle,
   FiSave,
+  FiCheck,
+  FiFilter,
 } from "react-icons/fi";
-import { useStudents, useAttendance } from "../../../context/AcademicContext";
+import { useStudents, useAttendance, useBatches } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 
 function AttendanceManagement() {
   const { students = [], fetchStudents } = useStudents();
-  const { updateAttendance, getStudentAttendance } = useAttendance();
+  const { batches = [], fetchBatches } = useBatches();
+  const { rawAttendance = [], markAttendance, fetchAttendance, getStudentAttendance } = useAttendance();
   const { teams = [], fetchTeams } = useTeamProject();
 
-  React.useEffect(() => {
-    if (fetchStudents) fetchStudents();
-    if (fetchTeams) fetchTeams();
-  }, [fetchStudents, fetchTeams]);
-
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [selectedBatch, setSelectedBatch] = useState("All");
   const [search, setSearch] = useState("");
   const [draftAttendance, setDraftAttendance] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  useEffect(() => {
+    if (fetchStudents) fetchStudents();
+    if (fetchBatches) fetchBatches();
+    if (fetchTeams) fetchTeams();
+    if (fetchAttendance) fetchAttendance({ date: selectedDate });
+  }, [fetchStudents, fetchBatches, fetchTeams, fetchAttendance, selectedDate]);
 
-  const getStudentId = (student) => student._id || student.id;
+  const getStudentId = (student) => String(student._id || student.id || "");
 
   const getStudentName = (student) =>
     student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || student.email || "Student";
 
   const getStudentTeam = (student) => {
-    const sid = String(student._id || student.id || "");
+    const sid = getStudentId(student);
     const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
     const studentName = String(
       student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
@@ -69,19 +76,10 @@ function AttendanceManagement() {
     return found ? (found.teamName || found.name) : "No Team";
   };
 
-  const getTodayAttendance = (studentId) => {
-    const student = students.find((s) => getStudentId(s) === studentId);
-    if (!student) return { status: "", checkInTime: "--:--" };
-
+  const getDateAttendance = (studentId) => {
     const records = getStudentAttendance(studentId);
-    const todayRec = records.find((item) => item.date === today);
-
-    return (
-      todayRec || {
-        status: "",
-        checkInTime: "--:--",
-      }
-    );
+    const foundRec = records.find((item) => item.date === selectedDate);
+    return foundRec || { status: "", checkInTime: "--:--" };
   };
 
   const getStatus = (student) => {
@@ -89,7 +87,7 @@ function AttendanceManagement() {
     if (draftAttendance[sid]?.status) {
       return draftAttendance[sid].status;
     }
-    return getTodayAttendance(sid).status || "Unmarked";
+    return getDateAttendance(sid).status || "Unmarked";
   };
 
   const getCheckInTime = (student) => {
@@ -97,7 +95,7 @@ function AttendanceManagement() {
     if (draftAttendance[sid]?.checkInTime) {
       return draftAttendance[sid].checkInTime;
     }
-    return getTodayAttendance(sid).checkInTime || "--:--";
+    return getDateAttendance(sid).checkInTime || "--:--";
   };
 
   const handleStatusChange = (studentId, status) => {
@@ -121,42 +119,94 @@ function AttendanceManagement() {
     }));
   };
 
-  const handleSave = () => {
-    Object.entries(draftAttendance).forEach(([studentId, data]) => {
-      if (data.status) {
-        updateAttendance(
-          studentId,
-          today,
-          data.status,
-          data.checkInTime
-        );
-      }
+  const handleMarkAll = (status) => {
+    const newDrafts = { ...draftAttendance };
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const currentTime = `${hours}:${minutes} ${ampm}`;
+
+    filteredStudents.forEach((student) => {
+      const sid = getStudentId(student);
+      newDrafts[sid] = {
+        status,
+        checkInTime: status === "Present" || status === "Late" ? currentTime : "--:--",
+      };
+    });
+    setDraftAttendance(newDrafts);
+  };
+
+  const handleSave = async () => {
+    const entries = Object.entries(draftAttendance);
+    if (entries.length === 0) {
+      alert("No attendance changes to save.");
+      return;
+    }
+
+    const payload = entries.map(([studentId, data]) => {
+      const studentObj = students.find((s) => getStudentId(s) === studentId);
+      const batchId =
+        studentObj?.batchId?._id ||
+        (typeof studentObj?.batchId === "string" ? studentObj?.batchId : null) ||
+        studentObj?.batch?._id;
+
+      return {
+        studentId,
+        batchId,
+        date: selectedDate,
+        status: data.status,
+        checkInTime: data.checkInTime || "--:--",
+      };
     });
 
-    setDraftAttendance({});
-    alert("Attendance saved successfully!");
+    setSaving(true);
+    try {
+      await markAttendance(payload);
+      setDraftAttendance({});
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Save attendance error:", err);
+      alert(err?.response?.data?.message || "Failed to save attendance");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filteredStudents = useMemo(() => {
-    const value = search.toLowerCase();
+    const searchVal = search.toLowerCase();
 
     return students.filter((student) => {
+      // Batch filter
+      if (selectedBatch !== "All") {
+        const bId =
+          student.batchId?._id ||
+          student.batchId?.id ||
+          (typeof student.batchId === "string" ? student.batchId : null) ||
+          student.batch?._id ||
+          student.batch?.id ||
+          student.batch;
+        if (String(bId) !== String(selectedBatch)) return false;
+      }
+
       const name = getStudentName(student).toLowerCase();
-      const rollNo = (student.rollNumber || student.rollNo || "").toLowerCase();
+      const rollNo = String(student.rollNumber || student.rollNo || "").toLowerCase();
       const team = getStudentTeam(student).toLowerCase();
 
       return (
-        name.includes(value) ||
-        rollNo.includes(value) ||
-        team.includes(value)
+        name.includes(searchVal) ||
+        rollNo.includes(searchVal) ||
+        team.includes(searchVal)
       );
     });
-  }, [students, teams, search]);
+  }, [students, teams, search, selectedBatch]);
 
-  const presentCount = students.filter((student) => getStatus(student) === "Present").length;
-  const lateCount = students.filter((student) => getStatus(student) === "Late").length;
-  const leaveCount = students.filter((student) => getStatus(student) === "Leave").length;
-  const absentCount = students.filter((student) => getStatus(student) === "Absent").length;
+  const presentCount = filteredStudents.filter((s) => getStatus(s) === "Present").length;
+  const lateCount = filteredStudents.filter((s) => getStatus(s) === "Late").length;
+  const leaveCount = filteredStudents.filter((s) => getStatus(s) === "Leave").length;
+  const absentCount = filteredStudents.filter((s) => getStatus(s) === "Absent").length;
 
   const getDropdownStyle = (status) => {
     switch (status) {
@@ -178,17 +228,51 @@ function AttendanceManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Attendance</h1>
+          <h1 className="text-xl font-bold text-gray-900">Attendance Management</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Mark and track daily student presence
+            Mark, synchronize, and store daily student attendance records
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 w-fit">
-          <FiCalendar size={14} className="text-[#0476b9]" />
-          <span>{today}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+            <FiCalendar size={14} className="text-blue-600" />
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setDraftAttendance({});
+              }}
+              className="bg-transparent border-none outline-none font-bold cursor-pointer text-gray-800 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 text-xs">
+            <FiFilter size={13} className="text-gray-400" />
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              className="bg-transparent border-none outline-none font-semibold text-gray-700 text-xs cursor-pointer"
+            >
+              <option value="All">All Batches</option>
+              {batches.map((b) => (
+                <option key={b._id || b.id} value={b._id || b.id}>
+                  {b.batchName || b.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
+
+      {/* Save Success Alert */}
+      {saveSuccess && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 animate-fadeIn">
+          <FiCheck size={16} className="text-emerald-600" />
+          Attendance saved and synchronized to the database successfully!
+        </div>
+      )}
 
       {/* Stats Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -267,14 +351,25 @@ function AttendanceManagement() {
             />
           </div>
 
-          <button
-            type="button"
-            onClick={handleSave}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
-          >
-            <FiSave size={14} />
-            Save Attendance
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={() => handleMarkAll("Present")}
+              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+            >
+              Mark All Present
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || Object.keys(draftAttendance).length === 0}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <FiSave size={14} />
+              {saving ? "Saving..." : "Save Attendance"}
+            </button>
+          </div>
         </div>
 
         {/* Table Header */}
@@ -294,6 +389,7 @@ function AttendanceManagement() {
             const teamName = getStudentTeam(student);
             const status = getStatus(student);
             const checkIn = getCheckInTime(student);
+            const avatar = student.profilePicture || student.profileImage || student.image || "";
             const initials =
               student.initials ||
               studentName
@@ -316,14 +412,20 @@ function AttendanceManagement() {
 
                 {/* Student & Team */}
                 <div className="col-span-2 flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {initials}
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0 overflow-hidden border border-blue-200">
+                    {avatar ? (
+                      <img src={avatar} alt={studentName} className="w-full h-full object-cover" />
+                    ) : (
+                      initials
+                    )}
                   </div>
                   <div className="min-w-0">
                     <div className="font-bold text-gray-900 truncate">{studentName}</div>
-                    <div className={`text-[11px] truncate ${
-                      teamName !== "No Team" ? "text-blue-600 font-medium" : "text-gray-400"
-                    }`}>
+                    <div
+                      className={`text-[11px] truncate ${
+                        teamName !== "No Team" ? "text-blue-600 font-medium" : "text-gray-400"
+                      }`}
+                    >
                       {teamName}
                     </div>
                   </div>
@@ -354,7 +456,7 @@ function AttendanceManagement() {
                 {/* Action Selector */}
                 <div className="flex justify-end">
                   <select
-                    value={draftAttendance[sid]?.status || ""}
+                    value={draftAttendance[sid]?.status || (status !== "Unmarked" ? status : "")}
                     onChange={(e) => handleStatusChange(sid, e.target.value)}
                     className={`text-xs px-2 py-1 rounded border outline-none cursor-pointer transition ${getDropdownStyle(
                       draftAttendance[sid]?.status || status
@@ -373,7 +475,7 @@ function AttendanceManagement() {
 
           {filteredStudents.length === 0 && (
             <div className="py-12 text-center text-xs text-gray-500">
-              No students found.
+              No students found for the selected filter.
             </div>
           )}
         </div>

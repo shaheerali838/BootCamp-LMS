@@ -3,6 +3,7 @@ import Admin from "../../model/admin.model.js";
 import Student from "../../model/student.model.js";
 import { hashToken, generateResetToken } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
+import { getPasswordResetEmailHtml } from "../../utils/emailTemplates.js";
 
 // ---------- FORGOT PASSWORD ----------
 export const forgotPassword = async (req, res) => {
@@ -33,15 +34,12 @@ export const forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Password Reset Request</h2>
-          <p>Hello ${user.firstName},</p>
-          <p>Click the link below to reset your password:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-        </div>
-      `,
+      subject: "Password Reset Request - Saylani Bootcamp LMS",
+      html: getPasswordResetEmailHtml({
+        firstName: user.firstName || "Student",
+        resetLink,
+        expireTime: "1 hour",
+      }),
     });
 
     return res.status(200).json({

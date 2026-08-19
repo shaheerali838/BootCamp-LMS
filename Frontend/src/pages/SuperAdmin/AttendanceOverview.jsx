@@ -1,18 +1,22 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers } from "react-icons/fi";
-import { useStudent, useAttendance } from "../../context/AcademicContext";
+import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers, FiFilter, FiActivity } from "react-icons/fi";
+import { useStudent, useAttendance, useBatches } from "../../context/AcademicContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 
 function AttendanceOverview() {
   const { students = [], fetchStudents } = useStudent();
-  const { attendance = [] } = useAttendance();
+  const { batches = [], fetchBatches } = useBatches();
+  const { attendance = [], rawAttendance = [], fetchAttendance, getStudentAttendance } = useAttendance();
   const { teams = [], fetchTeams } = useTeamProject();
   const [search, setSearch] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState("All");
 
   useEffect(() => {
     if (fetchStudents) fetchStudents();
+    if (fetchBatches) fetchBatches();
     if (fetchTeams) fetchTeams();
-  }, [fetchStudents, fetchTeams]);
+    if (fetchAttendance) fetchAttendance();
+  }, [fetchStudents, fetchBatches, fetchTeams, fetchAttendance]);
 
   const getStudentTeam = (student) => {
     const sid = String(student._id || student.id || "");
@@ -55,8 +59,18 @@ function AttendanceOverview() {
   const filteredStudents = useMemo(() => {
     const value = search.toLowerCase();
     return students.filter((student) => {
+      if (selectedBatch !== "All") {
+        const bId =
+          student.batchId?._id ||
+          student.batchId?.id ||
+          (typeof student.batchId === "string" ? student.batchId : null) ||
+          student.batch?._id ||
+          student.batch;
+        if (String(bId) !== String(selectedBatch)) return false;
+      }
+
       const name = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
-      const rollNo = student.rollNumber || student.rollNo || "";
+      const rollNo = String(student.rollNumber || student.rollNo || "");
       const team = getStudentTeam(student);
 
       return (
@@ -65,39 +79,95 @@ function AttendanceOverview() {
         team.toLowerCase().includes(value)
       );
     });
-  }, [students, teams, search]);
+  }, [students, teams, search, selectedBatch]);
 
-  const getStudentHistory = (studentId) => {
-    const record = attendance.find(
-      (item) => item.id === studentId || item.studentId === studentId || item._id === studentId
-    );
-    return record ? record.attendance || [] : [];
-  };
+  // Overall system metrics from rawAttendance
+  const totalLogs = rawAttendance.length;
+  const totalPresentLogs = rawAttendance.filter((r) => r.status === "Present").length;
+  const totalLateLogs = rawAttendance.filter((r) => r.status === "Late").length;
+  const totalAbsentLogs = rawAttendance.filter((r) => r.status === "Absent").length;
+  const systemAttendanceRate =
+    totalLogs > 0 ? Math.round(((totalPresentLogs + totalLateLogs) / totalLogs) * 100) : 100;
 
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Attendance Analytics
+            <h1 className="text-2xl font-bold text-gray-900">
+              System Attendance Analytics
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Live tracking and status logs across all enrolled students
+              Live tracking and status logs synchronized across all enrolled students
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-100">
+          <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-blue-100 w-fit">
             <FiCalendar size={15} />
             <span>Today: {new Date().toISOString().split("T")[0]}</span>
           </div>
         </div>
       </div>
 
-      {/* Search Header */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
-        <div className="relative max-w-md">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Overall Rate
+            </span>
+            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <FiActivity size={16} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-blue-600 mt-1">{systemAttendanceRate}%</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Across {totalLogs} logged sessions</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Total Students
+            </span>
+            <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <FiUsers size={16} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mt-1">{students.length}</h2>
+          <p className="text-xs text-indigo-600 mt-0.5">Enrolled candidates</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Present Logs
+            </span>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <FiCheckCircle size={16} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-emerald-600 mt-1">{totalPresentLogs + totalLateLogs}</h2>
+          <p className="text-xs text-emerald-600 mt-0.5">{totalPresentLogs} On-time • {totalLateLogs} Late</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Absent Logs
+            </span>
+            <div className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+              <FiXCircle size={16} />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-red-600 mt-1">{totalAbsentLogs}</h2>
+          <p className="text-xs text-red-500 mt-0.5">Unexcused missed classes</p>
+        </div>
+      </div>
+
+      {/* Search & Batch Filters */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:max-w-md">
           <FiSearch
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -107,8 +177,26 @@ function AttendanceOverview() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search student by name, roll no, or team..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500 transition"
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-blue-500 transition"
           />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 text-xs w-full sm:w-auto">
+            <FiFilter size={14} className="text-gray-400" />
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              className="bg-transparent border-none outline-none font-semibold text-gray-700 text-xs cursor-pointer w-full"
+            >
+              <option value="All">All Batches</option>
+              {batches.map((b) => (
+                <option key={b._id || b.id} value={b._id || b.id}>
+                  {b.batchName || b.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -124,15 +212,16 @@ function AttendanceOverview() {
 
         <div className="divide-y divide-gray-100">
           {filteredStudents.map((student) => {
-            const sid = student._id || student.id;
-            const history = getStudentHistory(sid);
+            const sid = String(student._id || student.id);
+            const history = getStudentAttendance(sid);
             const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
             const studentTeam = getStudentTeam(student);
             const totalRecords = history.length;
             const presentCount = history.filter(
               (h) => h.status === "Present" || h.status === "Late"
             ).length;
-            const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 95;
+            const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
+            const avatar = student.profilePicture || student.profileImage || student.image || "";
 
             return (
               <div
@@ -142,8 +231,8 @@ function AttendanceOverview() {
                 {/* Name & Team */}
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-blue-200 shadow-2xs">
-                    {student.profilePicture || student.profileImage || student.image ? (
-                      <img src={student.profilePicture || student.profileImage || student.image} alt={studentName} className="w-full h-full object-cover" />
+                    {avatar ? (
+                      <img src={avatar} alt={studentName} className="w-full h-full object-cover" />
                     ) : (
                       studentName.charAt(0).toUpperCase()
                     )}
@@ -167,7 +256,7 @@ function AttendanceOverview() {
 
                 {/* Total Records */}
                 <span className="text-gray-600 font-medium">
-                  {totalRecords} records
+                  {totalRecords} sessions
                 </span>
 
                 {/* Attendance Rate */}
@@ -175,7 +264,7 @@ function AttendanceOverview() {
                   <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        percentage < 75 ? "bg-red-500" : "bg-emerald-500"
+                        percentage < 75 ? "bg-red-500" : percentage < 85 ? "bg-amber-500" : "bg-emerald-500"
                       }`}
                       style={{ width: `${percentage}%` }}
                     />

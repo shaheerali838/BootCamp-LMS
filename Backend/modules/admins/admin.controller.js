@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import Admin from "../../model/admin.model.js";
 import mongoose from "mongoose";
 import ROLES from "../../constants/roles.js";
+import sendEmail from "../../utils/sendEmail.js";
+import { getAdminWelcomeEmailHtml } from "../../utils/emailTemplates.js";
 
 // ---------- GET ELIGIBLE MENTORS ----------
 export const getEligibleMentors = async (req, res) => {
@@ -70,6 +72,25 @@ export const createAdmin = async (req, res) => {
 
     const adminResponse = admin.toObject();
     delete adminResponse.password;
+
+    // Send Onboarding Email
+    try {
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const displayRole = (role || ROLES.ADMIN).toUpperCase().replace(/[\s_]+/g, "") === "MENTOR" ? "Mentor" : "Administrator";
+      await sendEmail({
+        to: admin.email,
+        subject: `Welcome to Saylani Bootcamp LMS - Your ${displayRole} Credentials`,
+        html: getAdminWelcomeEmailHtml({
+          firstName: admin.firstName || "Admin",
+          email: admin.email,
+          password: password,
+          role: displayRole,
+          loginLink: `${clientUrl}/login`,
+        }),
+      });
+    } catch (emailError) {
+      console.warn("Failed to send admin welcome email:", emailError.message);
+    }
 
     return res.status(201).json({
       success: true,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiShield, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
+import { FiShield, FiPlus, FiTrash2, FiEdit2, FiSearch, FiEye, FiEyeOff } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
 
 function SuperAdminManagement() {
@@ -13,6 +13,7 @@ function SuperAdminManagement() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (fetchAdmins) fetchAdmins();
@@ -321,16 +322,27 @@ function SuperAdminManagement() {
                   <label className="block font-semibold text-gray-700 mb-1">
                     Password *
                   </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      placeholder="e.g. SuperAdmin@123"
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                    </button>
+                  </div>
                 </div>
               )}
 

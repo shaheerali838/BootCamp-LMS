@@ -10,6 +10,7 @@ import {
   findStudentByRollNumber,
 } from "./student.service.js";
 import sendEmail from "../../utils/sendEmail.js";
+import { getWelcomeAccountEmailHtml } from "../../utils/emailTemplates.js";
 import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 // CREATE STUDENT 
@@ -69,19 +70,16 @@ export const createStudent = async (req, res) => {
 
     // Send Welcome Email
     try {
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       await sendEmail({
         to: student.email,
-        subject: "Welcome to the LMS Bootcamp",
-        html: `
-          <h3>Welcome, ${student.firstName}!</h3>
-          <p>Your student account has been successfully created.</p>
-          <p><strong>Your Login Credentials:</strong></p>
-          <ul>
-            <li>Email: ${student.email}</li>
-            <li>Password: ${password}</li>
-          </ul>
-          <p>Please log in and change your password as soon as possible.</p>
-        `,
+        subject: "Welcome to Saylani Bootcamp LMS - Your Student Account Credentials",
+        html: getWelcomeAccountEmailHtml({
+          firstName: student.firstName || "Student",
+          email: student.email,
+          password: password,
+          loginLink: `${clientUrl}/login`,
+        }),
       });
     } catch (emailError) {
       console.error("Failed to send welcome email:", emailError.message);

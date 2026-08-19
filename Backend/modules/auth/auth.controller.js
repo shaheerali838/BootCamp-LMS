@@ -10,6 +10,10 @@ import {
   generateResetToken,
 } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
+import {
+  getPasswordResetEmailHtml,
+  getAccountSetupEmailHtml,
+} from "../../utils/emailTemplates.js";
 import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 // ---------- LOGIN ----------
@@ -265,15 +269,12 @@ export const forgotPassword = async (req, res) => {
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Password Reset Request</h2>
-          <p>Hello ${user.firstName},</p>
-          <p>Click the link below to reset your password:</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-        </div>
-      `,
+      subject: "Password Reset Request - Saylani Bootcamp LMS",
+      html: getPasswordResetEmailHtml({
+        firstName: user.firstName || "User",
+        resetLink,
+        expireTime: "1 hour",
+      }),
     });
 
     return res.status(200).json({
@@ -452,16 +453,12 @@ export const register = async (req, res) => {
 
     await sendEmail({
       to: student.email,
-      subject: "Welcome to Bootcamp LMS - Setup Your Password",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <h2>Welcome to Bootcamp LMS, ${student.firstName}!</h2>
-          <p>Your student account has been successfully created.</p>
-          <p>Please click the link below to set up your password and log in:</p>
-          <p><a href="${setupLink}">${setupLink}</a></p>
-          <p><i>This link will expire in 7 days.</i></p>
-        </div>
-      `,
+      subject: "Welcome to Saylani Bootcamp LMS - Set Up Your Password",
+      html: getAccountSetupEmailHtml({
+        firstName: student.firstName || "Student",
+        setupLink,
+        expireTime: "7 days",
+      }),
     });
 
     const studentResponse = student.toObject();
