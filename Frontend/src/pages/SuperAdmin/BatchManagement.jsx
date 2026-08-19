@@ -10,11 +10,12 @@ import {
   FiAlertCircle,
   FiArchive,
 } from "react-icons/fi";
-import { useBatches } from "../../context/AcademicContext";
+import { useBatches, useStudent } from "../../context/AcademicContext";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } =
     useBatches();
+  const { students = [] } = useStudent();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingBatch, setEditingBatch] = useState(null);
@@ -103,7 +104,11 @@ function BatchManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save batch. Please check inputs.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save batch. Please check inputs.",
+      );
     }
   };
 
@@ -220,7 +225,18 @@ function BatchManagement() {
                   {formatDate(item.startDate)} - {formatDate(item.endDate)}
                 </span>
                 <span className="text-xs font-medium text-gray-700">
-                  {item.students?.length || 0} Students
+                  {item.totalStudents ??
+                    (item.students?.length !== undefined
+                      ? item.students.length
+                      : students.filter(
+                          (s) =>
+                            (s.batchId?._id ||
+                              s.batchId ||
+                              s.batch?._id ||
+                              s.batch) === item._id ||
+                            s.batchName === item.batchName,
+                        ).length)}{" "}
+                  Students
                 </span>
                 <div>
                   <span
