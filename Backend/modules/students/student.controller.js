@@ -10,6 +10,7 @@ import {
   findStudentByRollNumber,
 } from "./student.service.js";
 import sendEmail from "../../utils/sendEmail.js";
+import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 // CREATE STUDENT 
 export const createStudent = async (req, res) => {
@@ -32,8 +33,39 @@ export const createStudent = async (req, res) => {
       });
     }
 
+    const studentPayload = { ...req.body };
+
+    // Upload profile photo to Cloudinary if provided
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${Date.now()}`,
+        });
+        studentPayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo upload error:", uploadErr);
+      }
+    } else if (
+      studentPayload.profilePicture &&
+      typeof studentPayload.profilePicture === "string" &&
+      studentPayload.profilePicture.startsWith("data:image/")
+    ) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(studentPayload.profilePicture, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${Date.now()}`,
+        });
+        studentPayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo base64 upload error:", uploadErr);
+      }
+    }
+
     // Step 3: Service call to save student
-    const student = await createStudentService(req.body);
+    const student = await createStudentService(studentPayload);
 
     // Send Welcome Email
     try {
@@ -164,7 +196,38 @@ export const updateStudent = async (req, res) => {
       }
     }
 
-    const updatedStudent = await updateStudentService(id, req.body);
+    const updatePayload = { ...req.body };
+
+    // Upload profile photo to Cloudinary if provided
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${id}_${Date.now()}`,
+        });
+        updatePayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo update error:", uploadErr);
+      }
+    } else if (
+      updatePayload.profilePicture &&
+      typeof updatePayload.profilePicture === "string" &&
+      updatePayload.profilePicture.startsWith("data:image/")
+    ) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(updatePayload.profilePicture, {
+          folder: "saylani_lms/students",
+          resource_type: "image",
+          public_id: `student_${id}_${Date.now()}`,
+        });
+        updatePayload.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary student photo update base64 error:", uploadErr);
+      }
+    }
+
+    const updatedStudent = await updateStudentService(id, updatePayload);
 
     if (!updatedStudent) {
       return res.status(404).json({

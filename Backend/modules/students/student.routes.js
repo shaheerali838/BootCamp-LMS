@@ -20,6 +20,8 @@ import { requirePermission } from "../../middleware/permissionMiddleware.js";
 import { validate } from "../../middleware/validate.js";
 import PERMISSIONS from "../../constants/permission.js";
 
+import { uploadResource } from "../../middleware/uploadMiddleware.js";
+
 const router = express.Router();
 
 // 1. Create a new Student
@@ -27,6 +29,7 @@ router.post(
   "/create-student",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  uploadResource.single("profilePicture"),
   createStudentValidation,
   validate,
   createStudent
@@ -37,6 +40,7 @@ router.post(
   "/",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  uploadResource.single("profilePicture"),
   createStudentValidation,
   validate,
   createStudent
@@ -103,6 +107,7 @@ router.put(
   "/update-student/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  uploadResource.single("profilePicture"),
   updateStudentValidation,
   validate,
   updateStudent
@@ -113,6 +118,7 @@ router.put(
   "/:id",
   authMiddleware,
   requirePermission(PERMISSIONS.MANAGE_STUDENTS),
+  uploadResource.single("profilePicture"),
   updateStudentValidation,
   validate,
   updateStudent

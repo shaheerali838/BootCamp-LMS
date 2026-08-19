@@ -10,6 +10,7 @@ import {
   generateResetToken,
 } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
+import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
 
 // ---------- LOGIN ----------
 export const login = async (req, res) => {
@@ -537,7 +538,7 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    const {
+    let {
       firstName,
       lastName,
       phoneNumber,
@@ -551,8 +552,39 @@ export const updateProfile = async (req, res) => {
     if (firstName) user.firstName = firstName.trim();
     if (lastName) user.lastName = lastName.trim();
     if (phoneNumber || phone) user.phoneNumber = (phoneNumber || phone).trim();
-    if (profilePicture !== undefined) user.profilePicture = profilePicture;
-    if (profileImage !== undefined && profilePicture === undefined) user.profilePicture = profileImage;
+
+    // 1. If file is uploaded via multipart/form-data
+    if (req.file) {
+      try {
+        const uploadResult = await uploadToCloudinary(req.file.buffer, {
+          folder: "saylani_lms/profiles",
+          resource_type: "image",
+          public_id: `profile_${user._id}_${Date.now()}`,
+        });
+        user.profilePicture = uploadResult.secure_url || uploadResult.url;
+      } catch (uploadErr) {
+        console.error("Cloudinary profile upload error:", uploadErr);
+      }
+    }
+    // 2. If Base64 string or image URL is passed in request body
+    else if (profilePicture || profileImage) {
+      const pic = profilePicture || profileImage;
+      if (typeof pic === "string" && pic.startsWith("data:image/")) {
+        try {
+          const uploadResult = await cloudinary.uploader.upload(pic, {
+            folder: "saylani_lms/profiles",
+            resource_type: "image",
+            public_id: `profile_${user._id}_${Date.now()}`,
+          });
+          user.profilePicture = uploadResult.secure_url || uploadResult.url;
+        } catch (uploadErr) {
+          console.error("Cloudinary profile base64 upload error:", uploadErr);
+          user.profilePicture = pic;
+        }
+      } else if (typeof pic === "string") {
+        user.profilePicture = pic;
+      }
+    }
 
     // Student-specific fields update
     if (user.role === "STUDENT" || user.rollNumber) {

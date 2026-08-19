@@ -61,26 +61,35 @@ export const AcademicProvider = ({ children }) => {
   const addStudent = async (newStudent) => {
     setStudentsLoading(true);
     try {
-      const payload = {
-        firstName: newStudent.firstName || newStudent.name?.split(" ")[0] || "",
-        lastName:
-          newStudent.lastName ||
-          newStudent.name?.split(" ").slice(1).join(" ") ||
-          "",
-        rollNumber:
-          newStudent.rollNumber ||
-          newStudent.rollNo ||
-          `SMIT-${Math.floor(1000 + Math.random() * 9000)}`,
-        email: (newStudent.email || "").toLowerCase().trim(),
-        password: newStudent.password || "Student@123",
-        phoneNumber: newStudent.phoneNumber || newStudent.phone || "",
-        gender: (newStudent.gender || "male").toLowerCase(),
-        dateOfBirth: newStudent.dateOfBirth || "2002-01-01",
-        batchId: newStudent.batchId || newStudent.batch,
-        mentorId: newStudent.mentorId || newStudent.mentor,
-        status: newStudent.status || "active",
-      };
-      const res = await api.post("/students/create-student", payload);
+      let res;
+      if (newStudent instanceof FormData) {
+        res = await api.post("/students/create-student", newStudent, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        const formData = new FormData();
+        const bId = newStudent.batchId?._id || newStudent.batchId || newStudent.batch?._id || newStudent.batch;
+        const mId = newStudent.mentorId?._id || newStudent.mentorId || newStudent.mentor?._id || newStudent.mentor;
+
+        formData.append("firstName", newStudent.firstName || newStudent.name?.split(" ")[0] || "");
+        formData.append("lastName", newStudent.lastName || newStudent.name?.split(" ").slice(1).join(" ") || "");
+        formData.append("rollNumber", newStudent.rollNumber || newStudent.rollNo || `SMIT-${Math.floor(1000 + Math.random() * 9000)}`);
+        formData.append("email", (newStudent.email || "").toLowerCase().trim());
+        formData.append("password", newStudent.password || "Student@123");
+        formData.append("phoneNumber", newStudent.phoneNumber || newStudent.phone || "");
+        formData.append("gender", (newStudent.gender || "male").toLowerCase());
+        formData.append("dateOfBirth", newStudent.dateOfBirth || "2002-01-01");
+        if (bId) formData.append("batchId", bId);
+        if (mId) formData.append("mentorId", mId);
+        formData.append("status", newStudent.status || "active");
+        if (newStudent.profilePicture) {
+          formData.append("profilePicture", newStudent.profilePicture);
+        }
+
+        res = await api.post("/students/create-student", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
       // Invalidate and refetch authoritative student list from database
       await fetchStudents();
       setStudentsError(null);
@@ -99,34 +108,33 @@ export const AcademicProvider = ({ children }) => {
   const updateStudent = async (id, updatedData) => {
     setStudentsLoading(true);
     try {
-      const bId = updatedData.batchId?._id || updatedData.batchId || updatedData.batch?._id || updatedData.batch;
-      const mId = updatedData.mentorId?._id || updatedData.mentorId || updatedData.mentor?._id || updatedData.mentor;
-      const payload = {
-        firstName: updatedData.firstName || updatedData.name?.split(" ")[0],
-        lastName:
-          updatedData.lastName ||
-          updatedData.name?.split(" ").slice(1).join(" "),
-        rollNumber: updatedData.rollNumber || updatedData.rollNo,
-        email: updatedData.email
-          ? updatedData.email.toLowerCase().trim()
-          : undefined,
-        phoneNumber: updatedData.phoneNumber || updatedData.phone,
-        gender: updatedData.gender
-          ? updatedData.gender.toLowerCase()
-          : undefined,
-        dateOfBirth: updatedData.dateOfBirth,
-        batchId: bId || undefined,
-        mentorId: mId || undefined,
-        status: updatedData.status,
-      };
-      if (updatedData.password) {
-        payload.password = updatedData.password;
-      }
-      Object.keys(payload).forEach(
-        (k) => (payload[k] === undefined || payload[k] === "") && delete payload[k],
-      );
+      let res;
+      if (updatedData instanceof FormData) {
+        res = await api.put(`/students/update-student/${id}`, updatedData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        const formData = new FormData();
+        const bId = updatedData.batchId?._id || updatedData.batchId || updatedData.batch?._id || updatedData.batch;
+        const mId = updatedData.mentorId?._id || updatedData.mentorId || updatedData.mentor?._id || updatedData.mentor;
 
-      const res = await api.put(`/students/update-student/${id}`, payload);
+        if (updatedData.firstName) formData.append("firstName", updatedData.firstName);
+        if (updatedData.lastName) formData.append("lastName", updatedData.lastName);
+        if (updatedData.rollNumber || updatedData.rollNo) formData.append("rollNumber", updatedData.rollNumber || updatedData.rollNo);
+        if (updatedData.email) formData.append("email", updatedData.email.toLowerCase().trim());
+        if (updatedData.phoneNumber || updatedData.phone) formData.append("phoneNumber", updatedData.phoneNumber || updatedData.phone);
+        if (updatedData.gender) formData.append("gender", updatedData.gender.toLowerCase());
+        if (updatedData.dateOfBirth) formData.append("dateOfBirth", updatedData.dateOfBirth);
+        if (bId) formData.append("batchId", bId);
+        if (mId) formData.append("mentorId", mId);
+        if (updatedData.status) formData.append("status", updatedData.status);
+        if (updatedData.password) formData.append("password", updatedData.password);
+        if (updatedData.profilePicture) formData.append("profilePicture", updatedData.profilePicture);
+
+        res = await api.put(`/students/update-student/${id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
       // Invalidate and refetch authoritative student list from database
       await fetchStudents();
       setStudentsError(null);

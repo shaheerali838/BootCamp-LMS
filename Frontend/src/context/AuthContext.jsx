@@ -71,7 +71,14 @@ export const AuthProvider = ({ children }) => {
   // Updates user profile both on backend API and local state/localStorage
   const updateProfile = async (formData) => {
     try {
-      const response = await api.put("/auth/profile", formData);
+      let response;
+      if (formData instanceof FormData) {
+        response = await api.put("/auth/profile", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        response = await api.put("/auth/profile", formData);
+      }
       const data = response.data?.data || response.data;
 
       if (data.user) {
@@ -83,22 +90,24 @@ export const AuthProvider = ({ children }) => {
       }
       return response;
     } catch (error) {
-      // Fallback: If backend is unreachable, still update locally so UI doesn't break
-      console.warn("Backend profile update fallback to local state", error);
-      setUser((prev) => {
-        const updated = { ...prev, ...formData };
-        localStorage.setItem("user", JSON.stringify(updated));
-        return updated;
-      });
-      return { data: { success: true, user: formData } };
+      console.error("Profile update error:", error);
+      throw error;
     }
   };
 
-  // Direct image updater helper
-  const updateProfileImage = async (imageDataUrl) => {
+  // Direct image updater helper (handles File, Blob, FormData, or Base64/URL)
+  const updateProfileImage = async (imageInput) => {
+    if (imageInput instanceof File || imageInput instanceof Blob) {
+      const fd = new FormData();
+      fd.append("profilePicture", imageInput);
+      return updateProfile(fd);
+    }
+    if (imageInput instanceof FormData) {
+      return updateProfile(imageInput);
+    }
     return updateProfile({
-      profilePicture: imageDataUrl,
-      profileImage: imageDataUrl,
+      profilePicture: imageInput,
+      profileImage: imageInput,
     });
   };
   // ====================================================================

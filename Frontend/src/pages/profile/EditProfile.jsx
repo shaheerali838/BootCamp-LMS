@@ -26,6 +26,7 @@ function EditProfile({ user, isSuperAdmin, isAdmin, isStudent, onClose }) {
   const [profileImage, setProfileImage] = useState(
     user?.profilePicture || user?.profileImage || user?.image || ""
   );
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Form inputs state
   const [formData, setFormData] = useState({
@@ -45,7 +46,7 @@ function EditProfile({ user, isSuperAdmin, isAdmin, isStudent, onClose }) {
     setError("");
   };
 
-  // ================= PICTURE SELECT & CONVERT TO DATA URL (ADDED) =================
+  // ================= PICTURE SELECT & PREVIEW =================
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -55,21 +56,19 @@ function EditProfile({ user, isSuperAdmin, isAdmin, isStudent, onClose }) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image size must be less than 10MB.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setProfileImage(reader.result);
-      setError("");
-    };
-    reader.readAsDataURL(file);
+    setSelectedFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setProfileImage(previewUrl);
+    setError("");
   };
-  // ===============================================================================
+  // =============================================================
 
-  // ================= SUBMIT PROFILE UPDATES (ADDED / ENHANCED) ===================
+  // ================= SUBMIT PROFILE UPDATES ===================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -87,18 +86,30 @@ function EditProfile({ user, isSuperAdmin, isAdmin, isStudent, onClose }) {
       setLoading(true);
       setError("");
 
-      const payload = {
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        phoneNumber: formData.phone.trim(),
-        phone: formData.phone.trim(),
-        profilePicture: profileImage,
-        profileImage: profileImage,
-        ...(isStudent && {
-          gender: formData.gender,
-          dateOfBirth: formData.dateOfBirth,
-        }),
-      };
+      let payload;
+      if (selectedFile) {
+        payload = new FormData();
+        payload.append("firstName", formData.firstName.trim());
+        payload.append("lastName", formData.lastName.trim());
+        payload.append("phoneNumber", formData.phone.trim());
+        payload.append("profilePicture", selectedFile);
+        if (isStudent) {
+          if (formData.gender) payload.append("gender", formData.gender);
+          if (formData.dateOfBirth) payload.append("dateOfBirth", formData.dateOfBirth);
+        }
+      } else {
+        payload = {
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          phoneNumber: formData.phone.trim(),
+          phone: formData.phone.trim(),
+          profilePicture: profileImage,
+          ...(isStudent && {
+            gender: formData.gender,
+            dateOfBirth: formData.dateOfBirth,
+          }),
+        };
+      }
 
       // Call updateProfile from AuthContext
       await updateProfile(payload);
@@ -114,7 +125,7 @@ function EditProfile({ user, isSuperAdmin, isAdmin, isStudent, onClose }) {
       setLoading(false);
     }
   };
-  // ===============================================================================
+  // ==============================================================
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">

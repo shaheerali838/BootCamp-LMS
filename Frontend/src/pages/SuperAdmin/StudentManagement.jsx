@@ -126,13 +126,21 @@ function StudentManagement() {
                 <span className="font-semibold text-gray-700 text-xs">
                   {item.rollNumber || item.rollNo || "N/A"}
                 </span>
-                <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">
-                    {studentInitials}
+                <div className="col-span-2 flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-emerald-200">
+                    {item.profilePicture || item.profileImage ? (
+                      <img
+                        src={item.profilePicture || item.profileImage}
+                        alt={studentName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      studentInitials
+                    )}
                   </div>
-                  <div>
-                    <div className="font-bold text-gray-900">{studentName}</div>
-                    <div className="text-xs text-gray-400">{item.email}</div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-gray-900 truncate">{studentName}</div>
+                    <div className="text-xs text-gray-400 truncate">{item.email}</div>
                   </div>
                 </div>
                 <span className="text-xs text-gray-600 capitalize">

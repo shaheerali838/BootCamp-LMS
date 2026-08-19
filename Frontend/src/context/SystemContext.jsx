@@ -205,20 +205,32 @@ export const SystemProvider = ({ children }) => {
   const addResource = async (newResource) => {
     setResourcesLoading(true);
     try {
-      const res = await api.post("/resources/create-resource", {
-        title: newResource.title || newResource.name,
-        description: newResource.description || newResource.name,
-        file: newResource.file || newResource.url || "",
-        fileType: newResource.fileType || newResource.type || "PDF",
-        category: newResource.categoryId || newResource.category,
-      });
+      let res;
+      if (newResource instanceof FormData) {
+        res = await api.post("/resources/create-resource", newResource, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("title", newResource.title || newResource.name || "");
+        formData.append("description", newResource.description || newResource.title || newResource.name || "");
+        formData.append("fileType", newResource.fileType || newResource.type || "PDF");
+        formData.append("category", newResource.categoryId || newResource.category || "");
+        if (newResource.file) {
+          formData.append("file", newResource.file);
+        }
+        res = await api.post("/resources/create-resource", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
       // Invalidate & refetch
       await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
       console.error("Failed to add resource:", err);
-      setResourcesError(err.response?.data?.message || "Failed to create resource");
+      const msg = err.response?.data?.message || err.message || "Failed to create resource";
+      setResourcesError(msg);
       throw err;
     } finally {
       setResourcesLoading(false);
@@ -228,14 +240,22 @@ export const SystemProvider = ({ children }) => {
   const updateResource = async (id, updatedData) => {
     setResourcesLoading(true);
     try {
-      const res = await api.put(`/resources/update-resource/${id}`, updatedData);
+      let res;
+      if (updatedData instanceof FormData) {
+        res = await api.put(`/resources/update-resource/${id}`, updatedData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        res = await api.put(`/resources/update-resource/${id}`, updatedData);
+      }
       // Invalidate & refetch
       await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
       console.error("Failed to update resource:", err);
-      setResourcesError(err.response?.data?.message || "Failed to update resource");
+      const msg = err.response?.data?.message || err.message || "Failed to update resource";
+      setResourcesError(msg);
       throw err;
     } finally {
       setResourcesLoading(false);

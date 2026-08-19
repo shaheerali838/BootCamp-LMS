@@ -19,7 +19,9 @@ const connectDB = async (retryCount = 0) => {
 
   const mongoUri = process.env.MONGO_URI;
   if (!mongoUri) {
-    console.warn("⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables.");
+    console.warn(
+      "⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables.",
+    );
     return;
   }
 
@@ -34,8 +36,14 @@ const connectDB = async (retryCount = 0) => {
     console.error("❌ MongoDB Connection Error:", error.message);
 
     // If querySrv or ECONNREFUSED error, attempt setting public DNS fallback and retry
-    if (retryCount === 0 && (error.message.includes("querySrv") || error.message.includes("ECONNREFUSED"))) {
-      console.log("🔄 Retrying MongoDB connection with fallback DNS servers (8.8.8.8, 1.1.1.1)...");
+    if (
+      retryCount === 0 &&
+      (error.message.includes("querySrv") ||
+        error.message.includes("ECONNREFUSED"))
+    ) {
+      console.log(
+        "🔄 Retrying MongoDB connection with fallback DNS servers (8.8.8.8, 1.1.1.1)...",
+      );
       try {
         dns.setServers(["8.8.8.8", "1.1.1.1"]);
       } catch (dnsErr) {
@@ -45,7 +53,9 @@ const connectDB = async (retryCount = 0) => {
     }
 
     if (retryCount < 2) {
-      console.log(`🔄 Retrying MongoDB connection in 3 seconds (attempt ${retryCount + 1}/2)...`);
+      console.log(
+        `🔄 Retrying MongoDB connection in 3 seconds (attempt ${retryCount + 1}/2)...`,
+      );
       await new Promise((resolve) => setTimeout(resolve, 3000));
       return await connectDB(retryCount + 1);
     }

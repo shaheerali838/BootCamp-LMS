@@ -21,6 +21,8 @@ import {
   registerValidator,
 } from "./auth.validation.js";
 
+import { uploadResource } from "../../middleware/uploadMiddleware.js";
+
 const router = express.Router();
 
 router.post("/login", loginValidator, validate, login);
@@ -70,8 +72,8 @@ router.put(
 // Get currently authenticated profile (Super Admin, Admin, Student)
 router.get("/profile", authMiddleware, getProfile);
 
-// Update profile details (including photo upload)
-router.put("/profile", authMiddleware, updateProfile);
+// Update profile details (including Cloudinary photo upload)
+router.put("/profile", authMiddleware, uploadResource.single("profilePicture"), updateProfile);
 // ==========================================================
 
 export default router;

@@ -201,11 +201,19 @@ function Students() {
               </span>
 
               {/* Name */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
-                  {studentInitials}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border border-gray-100">
+                  {student.profilePicture || student.profileImage ? (
+                    <img
+                      src={student.profilePicture || student.profileImage}
+                      alt={studentName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    studentInitials
+                  )}
                 </div>
-                <span className="text-xs font-bold text-gray-900">
+                <span className="text-xs font-bold text-gray-900 truncate">
                   {studentName}
                 </span>
               </div>

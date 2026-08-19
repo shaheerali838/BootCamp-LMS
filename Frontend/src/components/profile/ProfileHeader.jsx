@@ -1,8 +1,3 @@
-// =========================================================================
-// Profile Header Component
-// Displays profile cover, avatar upload with camera trigger, and user role badges
-// =========================================================================
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +19,7 @@ function ProfileHeader({ user, roleType, onEdit }) {
 
   // Active profile image (from user prop or state)
   const [image, setImage] = useState(
-    user?.profilePicture || user?.profileImage || user?.image || ""
+    user?.profilePicture || user?.profileImage || user?.image || "",
   );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -36,7 +31,9 @@ function ProfileHeader({ user, roleType, onEdit }) {
 
   // Determine role metadata
   const rawRole = user?.role || (user?.rollNumber ? "STUDENT" : "ADMIN");
-  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+  const role = String(rawRole)
+    .toLowerCase()
+    .replace(/[\s_]+/g, "");
 
   const isSuperAdmin = role === "superadmin" || roleType === "superadmin";
   const isStudent = role === "student" || roleType === "student";
@@ -46,8 +43,7 @@ function ProfileHeader({ user, roleType, onEdit }) {
     `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
     (isSuperAdmin ? "Super Admin" : isAdmin ? "Admin / Mentor" : "Student");
 
-  // ================= PICTURE UPLOAD HANDLER (ADDED / ENHANCED) =================
-  // Handles reading file, converting to Base64, and saving to backend & auth state
+  // ================= PICTURE UPLOAD HANDLER (CLOUDINARY) =================
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -57,33 +53,33 @@ function ProfileHeader({ user, roleType, onEdit }) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be less than 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Image size must be less than 10MB.");
       return;
     }
 
     try {
       setIsUploading(true);
-      const reader = new FileReader();
+      // Instant preview
+      const previewUrl = URL.createObjectURL(file);
+      setImage(previewUrl);
 
-      reader.onload = async () => {
-        const base64Data = reader.result;
-        setImage(base64Data);
+      // Upload file directly to backend & Cloudinary
+      if (updateProfileImage) {
+        await updateProfileImage(file);
+      }
 
-        // Save picture across session (persists to backend & localStorage)
-        if (updateProfileImage) {
-          await updateProfileImage(base64Data);
-        }
-
-        setIsUploading(false);
-        setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 3000);
-      };
-
-      reader.readAsDataURL(file);
+      setIsUploading(false);
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3500);
     } catch (err) {
       console.error("Error uploading profile image:", err);
+      alert(
+        err?.response?.data?.message ||
+          "Failed to upload profile image to Cloudinary.",
+      );
       setIsUploading(false);
+      setImage(user?.profilePicture || user?.profileImage || "");
     }
   };
   // ============================================================================
@@ -91,7 +87,7 @@ function ProfileHeader({ user, roleType, onEdit }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       {/* Cover Gradient */}
-      <div className="h-32 bg-gradient-to-r from-[#0476b9] via-[#056fa8] to-[#034d78] sm:h-40 relative">
+      <div className="h-32 bg-linear-to-r from-[#0476b9] via-[#056fa8] to-[#034d78] sm:h-40 relative">
         <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" />
       </div>
 

@@ -166,6 +166,10 @@ export const updateStudentService = async (id, updateData) => {
     student.mentorId = updateData.mentorId;
   }
 
+  if (updateData.profilePicture !== undefined) {
+    student.profilePicture = updateData.profilePicture;
+  }
+
   if (updateData.password) {
     student.password = await bcrypt.hash(updateData.password, 10);
   }

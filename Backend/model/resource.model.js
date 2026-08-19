@@ -22,6 +22,19 @@ const resourceSchema = new mongoose.Schema(
     fileType: {
       type: String,
       required: true,
+      default: "PDF",
+    },
+    fileName: {
+      type: String,
+      default: "",
+    },
+    fileSize: {
+      type: String,
+      default: "",
+    },
+    publicId: {
+      type: String,
+      default: "",
     },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
