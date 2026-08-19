@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaBullhorn } from "react-icons/fa";
 
 const AnnouncementForm = ({
   onSubmit,
@@ -8,6 +8,7 @@ const AnnouncementForm = ({
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (editingAnnouncement) {
@@ -17,16 +18,23 @@ const AnnouncementForm = ({
       setTitle("");
       setDescription("");
     }
+    setError("");
   }, [editingAnnouncement]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim()) {
-      alert("Please fill in all fields");
+    if (!title.trim()) {
+      setError("Please provide an announcement title.");
       return;
     }
 
+    if (!description.trim()) {
+      setError("Please provide announcement details / content.");
+      return;
+    }
+
+    setError("");
     onSubmit({
       title: title.trim(),
       description: description.trim(),
@@ -34,49 +42,67 @@ const AnnouncementForm = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-      <div className="flex items-center justify-between mb-5 border-b border-gray-100 pb-3">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {editingAnnouncement
-            ? "Edit Announcement"
-            : "Create Announcement"}
-        </h2>
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-5 border-b border-gray-100 pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <FaBullhorn size={14} />
+          </div>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+            {editingAnnouncement
+              ? "Edit Announcement"
+              : "Create New Announcement"}
+          </h2>
+        </div>
 
         <button
           type="button"
           onClick={onCancel}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer"
+          title="Close"
         >
-          <FaTimes size={15} />
+          <FaTimes size={14} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">
-            Announcement Title *
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+            Announcement Title <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             required
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Mid-term Capstone Evaluation Schedule"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500 text-xs"
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (error) setError("");
+            }}
+            placeholder="e.g., Mid-term Capstone Evaluation Schedule & Submission Guidelines"
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-gray-700 mb-1">
-            Announcement Content / Description *
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+            Announcement Content / Description <span className="text-red-500">*</span>
           </label>
           <textarea
             required
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (error) setError("");
+            }}
             placeholder="Write announcement details for all students and mentors..."
-            rows="5"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500 resize-none text-xs"
+            rows={5}
+            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-y min-h-[120px]"
           />
         </div>
 
@@ -84,14 +110,14 @@ const AnnouncementForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 cursor-pointer"
+            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition cursor-pointer"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 cursor-pointer"
+            className="px-6 py-2.5 bg-[#0476b9] hover:bg-[#03669f] text-white rounded-xl text-sm font-medium transition shadow-sm cursor-pointer"
           >
             {editingAnnouncement
               ? "Update Announcement"

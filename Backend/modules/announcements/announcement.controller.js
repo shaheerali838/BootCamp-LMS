@@ -103,8 +103,8 @@ export const getAnnouncementById = async (req, res) => {
 
     // Fetch recipients if needed
     const recipients = await AnnouncementRecipient.find({ announcementId: id })
-      .populate("batchId", "name")
-      .populate("teamId", "name")
+      .populate("batchId", "batchName program")
+      .populate("teamId", "teamName")
       .populate("studentId", "firstName lastName email");
 
     return res.status(200).json({ 
