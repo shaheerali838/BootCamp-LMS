@@ -84,7 +84,7 @@ export const createStudentService = async (studentData) => {
 // Get all students with pagination, search, and populate
 export const getStudentsService = async ({
   page = 1,
-  limit = 10,
+  limit = 1000,
   search = "",
 }) => {
   // pagination skip formula
