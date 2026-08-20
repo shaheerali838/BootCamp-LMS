@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { getTodayLocalDate } from "../../../utils/dateHelper";
 
 function AttendancePreview() {
   const { students = [], fetchStudents } = useStudents();
@@ -14,7 +15,7 @@ function AttendancePreview() {
     if (fetchTeams) fetchTeams();
   }, [fetchStudents, fetchTeams]);
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayLocalDate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 

@@ -11,6 +11,7 @@ import StatCard from "./StatCard";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useTasks } from "../../../context/WorkContext";
+import { getTodayLocalDate } from "../../../utils/dateHelper";
 
 function StatsGrid() {
   const { students = [], fetchStudents } = useStudents();
@@ -24,7 +25,7 @@ function StatsGrid() {
     if (fetchTasks) fetchTasks();
   }, [fetchStudents, fetchTeams, fetchTasks]);
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayLocalDate();
   const totalStudentsCount = students.length;
 
   let presentToday = 0;
