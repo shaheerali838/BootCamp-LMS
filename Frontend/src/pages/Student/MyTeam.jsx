@@ -20,7 +20,12 @@ import { useAuth } from "../../context/AuthContext";
 
 function MyTeam() {
   const { user } = useAuth();
-  const { teams = [], projects = [], fetchTeams, fetchProjects } = useTeamProject();
+  const {
+    teams = [],
+    projects = [],
+    fetchTeams,
+    fetchProjects,
+  } = useTeamProject();
   const { students = [], fetchStudents } = useStudent();
   const { batches = [], fetchBatches } = useBatches();
 
@@ -32,17 +37,35 @@ function MyTeam() {
   }, [fetchTeams, fetchProjects, fetchStudents, fetchBatches]);
 
   const studentId = String(user?._id || user?.id || "");
-  const studentRoll = String(user?.rollNumber || user?.rollNo || "").toLowerCase();
+  const studentRoll = String(
+    user?.rollNumber || user?.rollNo || "",
+  ).toLowerCase();
   const studentEmail = String(user?.email || "").toLowerCase();
   const studentName = String(
-    user?.firstName ? `${user.firstName} ${user.lastName || ""}` : user?.name || ""
-  ).trim().toLowerCase();
+    user?.firstName
+      ? `${user.firstName} ${user.lastName || ""}`
+      : user?.name || "",
+  )
+    .trim()
+    .toLowerCase();
 
   // Helper to resolve student lead details (name, roll, email, phone, avatar)
   const resolveStudentLead = (raw) => {
-    if (!raw) return { name: "Unassigned", roll: "", email: "", phone: "", avatar: "", isSelf: false };
+    if (!raw)
+      return {
+        name: "Unassigned",
+        roll: "",
+        email: "",
+        phone: "",
+        avatar: "",
+        isSelf: false,
+      };
     if (typeof raw === "object" && raw) {
-      const fullName = `${raw.firstName || ""} ${raw.lastName || ""}`.trim() || raw.name || raw.email || "Team Lead";
+      const fullName =
+        `${raw.firstName || ""} ${raw.lastName || ""}`.trim() ||
+        raw.name ||
+        raw.email ||
+        "Team Lead";
       const roll = raw.rollNumber || raw.rollNo || "";
       const email = raw.email || "";
       const phone = raw.phoneNumber || raw.phone || "";
@@ -58,11 +81,16 @@ function MyTeam() {
     const rawId = String(raw?._id || raw?.id || raw || "");
     const found = students.find((s) => String(s._id || s.id) === rawId);
     if (found) {
-      const fullName = `${found.firstName || ""} ${found.lastName || ""}`.trim() || found.name || found.email || "Team Lead";
+      const fullName =
+        `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+        found.name ||
+        found.email ||
+        "Team Lead";
       const roll = found.rollNumber || found.rollNo || "";
       const email = found.email || "";
       const phone = found.phoneNumber || found.phone || "";
-      const avatar = found.profilePicture || found.profileImage || found.image || "";
+      const avatar =
+        found.profilePicture || found.profileImage || found.image || "";
       const isSelf =
         (studentId && rawId === studentId) ||
         (studentRoll && roll && roll.toLowerCase() === studentRoll) ||
@@ -70,17 +98,49 @@ function MyTeam() {
       return { name: fullName, roll, email, phone, avatar, isSelf };
     }
 
-    if (typeof raw === "string" && raw.length > 2 && !raw.match(/^[0-9a-fA-F]{24}$/)) {
-      return { name: raw, roll: "", email: "", phone: "", avatar: "", isSelf: false };
+    if (
+      typeof raw === "string" &&
+      raw.length > 2 &&
+      !raw.match(/^[0-9a-fA-F]{24}$/)
+    ) {
+      return {
+        name: raw,
+        roll: "",
+        email: "",
+        phone: "",
+        avatar: "",
+        isSelf: false,
+      };
     }
-    return { name: "Team Lead Assigned", roll: "", email: "", phone: "", avatar: "", isSelf: false };
+    return {
+      name: "Team Lead Assigned",
+      roll: "",
+      email: "",
+      phone: "",
+      avatar: "",
+      isSelf: false,
+    };
   };
 
   // Helper to resolve student member details
   const resolveMemberDetails = (m) => {
-    if (!m) return { id: "", name: "Team Member", roll: "", email: "", phone: "", avatar: "", isSelf: false };
+    if (!m)
+      return {
+        id: "",
+        name: "Team Member",
+        roll: "",
+        email: "",
+        phone: "",
+        avatar: "",
+        isSelf: false,
+      };
     if (typeof m === "object" && m) {
-      const fullName = `${m.firstName || ""} ${m.lastName || ""}`.trim() || m.name || m.label || m.email || "Team Member";
+      const fullName =
+        `${m.firstName || ""} ${m.lastName || ""}`.trim() ||
+        m.name ||
+        m.label ||
+        m.email ||
+        "Team Member";
       const roll = m.rollNumber || m.rollNo || "";
       const email = m.email || "";
       const phone = m.phoneNumber || m.phone || "";
@@ -96,11 +156,16 @@ function MyTeam() {
     const rawId = String(m);
     const found = students.find((s) => String(s._id || s.id) === rawId);
     if (found) {
-      const fullName = `${found.firstName || ""} ${found.lastName || ""}`.trim() || found.name || found.email || "Team Member";
+      const fullName =
+        `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+        found.name ||
+        found.email ||
+        "Team Member";
       const roll = found.rollNumber || found.rollNo || "";
       const email = found.email || "";
       const phone = found.phoneNumber || found.phone || "";
-      const avatar = found.profilePicture || found.profileImage || found.image || "";
+      const avatar =
+        found.profilePicture || found.profileImage || found.image || "";
       const isSelf =
         (studentId && rawId === studentId) ||
         (studentRoll && roll && roll.toLowerCase() === studentRoll) ||
@@ -109,30 +174,56 @@ function MyTeam() {
     }
 
     if (typeof m === "string" && !m.match(/^[0-9a-fA-F]{24}$/)) {
-      return { id: m, name: m, roll: "", email: "", phone: "", avatar: "", isSelf: false };
+      return {
+        id: m,
+        name: m,
+        roll: "",
+        email: "",
+        phone: "",
+        avatar: "",
+        isSelf: false,
+      };
     }
-    return { id: rawId, name: "Team Member", roll: "", email: "", phone: "", avatar: "", isSelf: false };
+    return {
+      id: rawId,
+      name: "Team Member",
+      roll: "",
+      email: "",
+      phone: "",
+      avatar: "",
+      isSelf: false,
+    };
   };
 
   // Check if logged-in student is part of the given team
   const isStudentInTeam = (team) => {
-    if (!studentId && !studentRoll && !studentEmail && !studentName) return false;
+    if (!studentId && !studentRoll && !studentEmail && !studentName)
+      return false;
 
     // Check if team lead
     const rawLead = team.teamLead || team.lead || team.teamLeadId;
     const leadId = String(rawLead?._id || rawLead?.id || rawLead || "");
-    const leadRoll = String(rawLead?.rollNumber || rawLead?.rollNo || "").toLowerCase();
+    const leadRoll = String(
+      rawLead?.rollNumber || rawLead?.rollNo || "",
+    ).toLowerCase();
     const leadEmail = String(rawLead?.email || "").toLowerCase();
     const leadName = String(
       rawLead?.firstName
         ? `${rawLead.firstName} ${rawLead.lastName || ""}`
-        : rawLead?.name || rawLead || ""
-    ).trim().toLowerCase();
+        : rawLead?.name || rawLead || "",
+    )
+      .trim()
+      .toLowerCase();
 
     if (studentId && leadId && leadId === studentId) return true;
     if (studentRoll && leadRoll && leadRoll === studentRoll) return true;
     if (studentEmail && leadEmail && leadEmail === studentEmail) return true;
-    if (studentName && leadName && (leadName === studentName || leadName.includes(studentName))) return true;
+    if (
+      studentName &&
+      leadName &&
+      (leadName === studentName || leadName.includes(studentName))
+    )
+      return true;
 
     // Check if member
     if (Array.isArray(team.members)) {
@@ -141,14 +232,20 @@ function MyTeam() {
         const mRoll = String(m?.rollNumber || m?.rollNo || "").toLowerCase();
         const mEmail = String(m?.email || "").toLowerCase();
         const mName = String(
-          m?.firstName ? `${m.firstName} ${m.lastName || ""}` : m?.name || m || ""
-        ).trim().toLowerCase();
+          m?.firstName
+            ? `${m.firstName} ${m.lastName || ""}`
+            : m?.name || m || "",
+        )
+          .trim()
+          .toLowerCase();
 
         return (
           (studentId && mId && mId === studentId) ||
           (studentRoll && mRoll && mRoll === studentRoll) ||
           (studentEmail && mEmail && mEmail === studentEmail) ||
-          (studentName && mName && (mName === studentName || mName.includes(studentName)))
+          (studentName &&
+            mName &&
+            (mName === studentName || mName.includes(studentName)))
         );
       });
     }
@@ -160,14 +257,18 @@ function MyTeam() {
 
   // Selected team index if student is assigned to multiple teams
   const [activeTeamIndex, setActiveTeamIndex] = useState(0);
-  const activeTeam = myAssignedTeams[activeTeamIndex] || myAssignedTeams[0] || null;
+  const activeTeam =
+    myAssignedTeams[activeTeamIndex] || myAssignedTeams[0] || null;
 
   // Resolve team batch name
   const getBatchName = (team) => {
     const rawBatch = team?.batchId || team?.batch;
     if (!rawBatch) return "Cohort 1";
-    if (typeof rawBatch === "object") return rawBatch.batchName || rawBatch.name || "Cohort 1";
-    const found = batches.find((b) => String(b._id || b.id) === String(rawBatch));
+    if (typeof rawBatch === "object")
+      return rawBatch.batchName || rawBatch.name || "Cohort 1";
+    const found = batches.find(
+      (b) => String(b._id || b.id) === String(rawBatch),
+    );
     return found ? found.batchName || found.name : "Cohort 1";
   };
 
@@ -218,9 +319,12 @@ function MyTeam() {
             <span>›</span>
             <span className="font-semibold text-gray-800">My Team</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">My Project Team</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mt-2">
+            My Project Team
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Assigned project team, leadership, teammates, and deliverable specifications
+            Assigned project team, leadership, teammates, and deliverable
+            specifications
           </p>
         </div>
 
@@ -228,9 +332,14 @@ function MyTeam() {
           <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-100">
             <FiUsers size={32} />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">No Team Assigned Yet</h2>
+          <h2 className="text-xl font-bold text-gray-900">
+            No Team Assigned Yet
+          </h2>
           <p className="text-sm text-gray-500 max-w-md mx-auto mt-2 leading-relaxed">
-            You are not currently enrolled in any project team. Once your instructor or batch administrator assigns you to a team, your team roster, assigned leader, and project details will appear here automatically.
+            You are not currently enrolled in any project team. Once your
+            instructor or batch administrator assigns you to a team, your team
+            roster, assigned leader, and project details will appear here
+            automatically.
           </p>
           <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-semibold border border-blue-100">
             <FiInfo size={15} />
@@ -246,12 +355,13 @@ function MyTeam() {
   const rawMembers = Array.isArray(activeTeam.members)
     ? activeTeam.members
     : typeof activeTeam.members === "string"
-    ? activeTeam.members.split(",").map((m) => m.trim())
-    : [];
+      ? activeTeam.members.split(",").map((m) => m.trim())
+      : [];
 
   const memberDetailsList = rawMembers.map(resolveMemberDetails);
   const isUserLead = leadInfo.isSelf;
-  const totalMemberCount = memberDetailsList.length + (leadInfo.name !== "Unassigned" ? 1 : 0);
+  const totalMemberCount =
+    memberDetailsList.length + (leadInfo.name !== "Unassigned" ? 1 : 0);
 
   return (
     <div className="p-5 max-w-6xl mx-auto space-y-6">
@@ -272,7 +382,8 @@ function MyTeam() {
               </span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Complete details of your assigned project squad, team members, and active deliverables
+              Complete details of your assigned project squad, team members, and
+              active deliverables
             </p>
           </div>
 
@@ -303,7 +414,9 @@ function MyTeam() {
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-2xl shrink-0 shadow-md">
-              {(activeTeam.teamName || activeTeam.name || "T").charAt(0).toUpperCase()}
+              {(activeTeam.teamName || activeTeam.name || "T")
+                .charAt(0)
+                .toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -315,14 +428,17 @@ function MyTeam() {
                 </span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {activeTeam.description || "Official cohort project and collaboration group."}
+                {activeTeam.description ||
+                  "Official cohort project and collaboration group."}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 text-right">
-              <span className="text-[10px] uppercase font-bold text-blue-500 tracking-wider">Your Role</span>
+              <span className="text-[10px] uppercase font-bold text-blue-500 tracking-wider">
+                Your Role
+              </span>
               <p className="text-xs font-bold text-blue-700">
                 {isUserLead ? "👑 Team Leader" : "👤 Team Member"}
               </p>
@@ -337,8 +453,12 @@ function MyTeam() {
               <FiUsers size={18} />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase">Total Members</p>
-              <p className="text-lg font-bold text-gray-900">{totalMemberCount}</p>
+              <p className="text-[11px] font-bold text-gray-400 uppercase">
+                Total Members
+              </p>
+              <p className="text-lg font-bold text-gray-900">
+                {totalMemberCount}
+              </p>
             </div>
           </div>
 
@@ -347,8 +467,12 @@ function MyTeam() {
               <FiFolder size={18} />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase">Assigned Projects</p>
-              <p className="text-lg font-bold text-gray-900">{teamProjects.length}</p>
+              <p className="text-[11px] font-bold text-gray-400 uppercase">
+                Assigned Projects
+              </p>
+              <p className="text-lg font-bold text-gray-900">
+                {teamProjects.length}
+              </p>
             </div>
           </div>
 
@@ -357,8 +481,12 @@ function MyTeam() {
               <FiCheckCircle size={18} />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase">Team Status</p>
-              <p className="text-sm font-bold text-emerald-600">Active & Syncing</p>
+              <p className="text-[11px] font-bold text-gray-400 uppercase">
+                Team Status
+              </p>
+              <p className="text-sm font-bold text-emerald-600">
+                Active & Syncing
+              </p>
             </div>
           </div>
 
@@ -367,8 +495,12 @@ function MyTeam() {
               <FiShield size={18} />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase">Leadership</p>
-              <p className="text-xs font-bold text-gray-800 truncate max-w-28">{leadInfo.name}</p>
+              <p className="text-[11px] font-bold text-gray-400 uppercase">
+                Leadership
+              </p>
+              <p className="text-xs font-bold text-gray-800 truncate max-w-28">
+                {leadInfo.name}
+              </p>
             </div>
           </div>
         </div>
@@ -386,11 +518,15 @@ function MyTeam() {
           </span>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-100 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-linear-to-r from-blue-50/70 to-indigo-50/70 border border-blue-100 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden border-2 border-white shadow-sm">
               {leadInfo.avatar ? (
-                <img src={leadInfo.avatar} alt={leadInfo.name} className="w-full h-full object-cover" />
+                <img
+                  src={leadInfo.avatar}
+                  alt={leadInfo.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 leadInfo.name.charAt(0).toUpperCase()
               )}
@@ -398,7 +534,9 @@ function MyTeam() {
 
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-bold text-gray-900 text-base">{leadInfo.name}</h4>
+                <h4 className="font-bold text-gray-900 text-base">
+                  {leadInfo.name}
+                </h4>
                 {leadInfo.isSelf && (
                   <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">
                     YOU
@@ -452,19 +590,29 @@ function MyTeam() {
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-blue-300 shadow-2xs">
                   {leadInfo.avatar ? (
-                    <img src={leadInfo.avatar} alt={leadInfo.name} className="w-full h-full object-cover" />
+                    <img
+                      src={leadInfo.avatar}
+                      alt={leadInfo.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     leadInfo.name.charAt(0).toUpperCase()
                   )}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-gray-900 text-xs truncate">{leadInfo.name}</p>
+                    <p className="font-bold text-gray-900 text-xs truncate">
+                      {leadInfo.name}
+                    </p>
                     {leadInfo.isSelf && (
-                      <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded font-bold">YOU</span>
+                      <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded font-bold">
+                        YOU
+                      </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-400 font-mono">{leadInfo.roll || "Lead"}</p>
+                  <p className="text-[11px] text-gray-400 font-mono">
+                    {leadInfo.roll || "Lead"}
+                  </p>
                 </div>
               </div>
               <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded border border-blue-200">
@@ -486,19 +634,29 @@ function MyTeam() {
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-gray-200">
                   {member.avatar ? (
-                    <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     member.name.charAt(0).toUpperCase()
                   )}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-gray-900 text-xs truncate">{member.name}</p>
+                    <p className="font-bold text-gray-900 text-xs truncate">
+                      {member.name}
+                    </p>
                     {member.isSelf && (
-                      <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded font-bold">YOU</span>
+                      <span className="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded font-bold">
+                        YOU
+                      </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-400 font-mono truncate">{member.roll || member.email || "Member"}</p>
+                  <p className="text-[11px] text-gray-400 font-mono truncate">
+                    {member.roll || member.email || "Member"}
+                  </p>
                 </div>
               </div>
 
@@ -529,16 +687,20 @@ function MyTeam() {
             </p>
           </div>
           <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-semibold border border-blue-200">
-            {teamProjects.length} Active {teamProjects.length === 1 ? "Project" : "Projects"}
+            {teamProjects.length} Active{" "}
+            {teamProjects.length === 1 ? "Project" : "Projects"}
           </span>
         </div>
 
         {teamProjects.length === 0 ? (
           <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-8 text-center">
             <FiFolder size={32} className="mx-auto text-gray-300" />
-            <h4 className="font-bold text-gray-700 text-sm mt-2">No Project Assigned to this Team Yet</h4>
+            <h4 className="font-bold text-gray-700 text-sm mt-2">
+              No Project Assigned to this Team Yet
+            </h4>
             <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
-              Your instructor has not linked a capstone project to this team yet. Check back once sprints begin.
+              Your instructor has not linked a capstone project to this team
+              yet. Check back once sprints begin.
             </p>
           </div>
         ) : (
@@ -553,10 +715,13 @@ function MyTeam() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <h4 className="text-base font-bold text-gray-900">
-                        {project.projectName || project.name || "Capstone Project"}
+                        {project.projectName ||
+                          project.name ||
+                          "Capstone Project"}
                       </h4>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {project.description || "Comprehensive bootcamp capstone project deliverables and team tasks."}
+                        {project.description ||
+                          "Comprehensive bootcamp capstone project deliverables and team tasks."}
                       </p>
                     </div>
 
@@ -565,8 +730,8 @@ function MyTeam() {
                         pStatus.toLowerCase() === "completed"
                           ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                           : pStatus.toLowerCase() === "in progress"
-                          ? "bg-blue-100 text-blue-800 border border-blue-200"
-                          : "bg-amber-100 text-amber-800 border border-amber-200"
+                            ? "bg-blue-100 text-blue-800 border border-blue-200"
+                            : "bg-amber-100 text-amber-800 border border-amber-200"
                       }`}
                     >
                       ● {pStatus}
@@ -601,7 +766,10 @@ function MyTeam() {
                         <span>Duration</span>
                       </div>
                       <p className="font-bold text-gray-800 text-xs mt-1">
-                        {getDuration(project.startDate, project.deadline || project.endDate)}
+                        {getDuration(
+                          project.startDate,
+                          project.deadline || project.endDate,
+                        )}
                       </p>
                     </div>
                   </div>
