@@ -17,20 +17,24 @@ const attendanceSchema = new mongoose.Schema(
       type: String, // "YYYY-MM-DD" formatted string for reliable day-level indexing & aggregation
       required: true,
       index: true,
+      trim: true,
     },
     status: {
       type: String,
       enum: ["Present", "Absent", "Late", "Leave", "present", "absent", "late", "leave"],
       default: "Present",
       required: true,
+      trim: true,
     },
     checkInTime: {
       type: String,
       default: "--:--",
+      trim: true,
     },
     checkOutTime: {
       type: String,
       default: "--:--",
+      trim: true,
     },
     markedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +43,7 @@ const attendanceSchema = new mongoose.Schema(
     remarks: {
       type: String,
       default: "",
+      trim: true,
     },
   },
   { timestamps: true }

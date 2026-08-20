@@ -12,6 +12,7 @@ import {
 import sendEmail from "../../utils/sendEmail.js";
 import { getWelcomeAccountEmailHtml } from "../../utils/emailTemplates.js";
 import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
+import { getClientUrl } from "../../utils/url.js";
 
 // CREATE STUDENT 
 export const createStudent = async (req, res) => {
@@ -70,7 +71,7 @@ export const createStudent = async (req, res) => {
 
     // Send Welcome Email
     try {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const clientUrl = getClientUrl(req);
       await sendEmail({
         to: student.email,
         subject: "Welcome to Saylani Bootcamp LMS - Your Student Account Credentials",

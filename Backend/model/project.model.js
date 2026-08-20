@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -32,6 +33,7 @@ const projectSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "in progress", "completed"],
       default: "pending",
+      trim: true,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

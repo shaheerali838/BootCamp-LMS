@@ -13,6 +13,7 @@ const sprintSchema = new mongoose.Schema(
     sprintName: {
       type: String,
       required: true,
+      trim: true,
     },
     startDate: {
       type: Date,
@@ -24,6 +25,7 @@ const sprintSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "active",
+      trim: true,
     },
   },
   { timestamps: true },

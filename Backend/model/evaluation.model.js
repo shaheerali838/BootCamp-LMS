@@ -40,6 +40,7 @@ const evaluationSchema = new mongoose.Schema(
     remarks: {
       type: String,
       required: false,
+      trim: true,
     },
   },
   { timestamps: true },
