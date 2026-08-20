@@ -98,7 +98,7 @@ function ProfileHeader({ user, roleType, onEdit }) {
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
             {/* Profile Image & Camera Action */}
             <div className="relative group">
-              <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg sm:h-32 sm:w-32 relative">
+              <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg sm:h-42 sm:w-42 relative">
                 {image ? (
                   <img
                     src={image}
