@@ -9,7 +9,7 @@ function SuperAdminDashboard() {
   return (
     <div className="p-3 space-y-3">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-purple-800 via-purple-700 to-indigo-800 rounded-xl p-4 text-white shadow-sm">
+      <div className="bg-linear-to-r from-[#0476b9] via-[#056fa8] to-[#034d78]  rounded-xl p-4 text-white shadow-sm">
         <div className="max-w-3xl">
           <span className="bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
             SuperAdmin Control Center
@@ -18,7 +18,8 @@ function SuperAdminDashboard() {
             Welcome to SMIT System Administration 👑
           </h1>
           <p className="text-purple-100 text-xs mt-0.5">
-            Full system authority: Manage admins, mentors, students, batches, projects, sprints, system configurations, and audit logs.
+            Full system authority: Manage admins, mentors, students, batches,
+            projects, sprints, system configurations, and audit logs.
           </p>
         </div>
       </div>
