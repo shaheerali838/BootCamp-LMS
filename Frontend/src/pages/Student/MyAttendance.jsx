@@ -1,7 +1,8 @@
 import React, { useMemo, useEffect } from "react";
-import { FiCalendar, FiCheckCircle, FiClock, FiXCircle, FiShield, FiAlertCircle } from "react-icons/fi";
+import { FiCalendar, FiCheckCircle, FiClock, FiXCircle, FiShield, FiAlertCircle, FiDownload } from "react-icons/fi";
 import { useAttendance } from "../../context/AcademicContext";
 import { useAuth } from "../../context/AuthContext";
+import { exportToCSV } from "../../utils/csvHelper";
 
 function MyAttendance() {
   const { user } = useAuth();
@@ -35,6 +36,20 @@ function MyAttendance() {
       ? Math.round(((presentCount + lateCount) / totalClasses) * 100)
       : 100;
 
+  const handleExportCSV = () => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const headers = ["Date", "Check-in Time", "Check-out Time", "Status", "Remarks"];
+    const rows = history.map((item) => [
+      item.date || todayStr,
+      item.checkInTime || item.time || "--:--",
+      item.checkOutTime || "--:--",
+      item.status || "Present",
+      item.remarks || "",
+    ]);
+
+    exportToCSV(`my_attendance_${rollNo}_${todayStr}.csv`, headers, rows);
+  };
+
   return (
     <div className="p-5 space-y-6">
       {/* Page Header */}
@@ -46,9 +61,19 @@ function MyAttendance() {
               Live synchronized records for <span className="font-semibold text-gray-800">{studentName}</span> (Roll No: <span className="font-semibold text-blue-600">{rollNo}</span>)
             </p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 w-fit">
-            <FiShield size={13} className="text-emerald-600" />
-            Live Cloud Synced
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <FiDownload size={14} />
+              Export CSV
+            </button>
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 w-fit">
+              <FiShield size={13} className="text-emerald-600" />
+              Live Cloud Synced
+            </div>
           </div>
         </div>
       </div>

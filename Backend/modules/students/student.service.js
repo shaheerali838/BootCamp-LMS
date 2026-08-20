@@ -24,17 +24,25 @@ export const findStudentByRollNumber = async (rollNumber, excludeId = null) => {
 // Create a new student
 export const createStudentService = async (studentData) => {
   // Validate mentor existence and status
-  if (studentData.mentorId) {
-    const mentor = await Admin.findById(studentData.mentorId);
+  let mentorId = studentData.mentorId;
+  if (mentorId) {
+    const mentor = await Admin.findById(mentorId);
     if (!mentor) {
-      const error = new Error("Assigned mentor does not exist.");
-      error.statusCode = 404;
-      throw error;
+      // If specified mentor ID is not found, fallback to any active admin
+      const fallbackMentor = await Admin.findOne({ status: "active" });
+      if (fallbackMentor) {
+        mentorId = fallbackMentor._id;
+      } else {
+        const error = new Error("Assigned mentor does not exist.");
+        error.statusCode = 404;
+        throw error;
+      }
     }
-    if (mentor.status !== "active") {
-      const error = new Error("Assigned mentor is inactive.");
-      error.statusCode = 400;
-      throw error;
+  } else {
+    // If no mentor provided, assign to first active admin
+    const defaultMentor = await Admin.findOne({ status: "active" });
+    if (defaultMentor) {
+      mentorId = defaultMentor._id;
     }
   }
 
@@ -49,18 +57,21 @@ export const createStudentService = async (studentData) => {
   }
 
   const rawPassword =
-    studentData.password && studentData.password.trim()
-      ? studentData.password.trim()
+    studentData.password && String(studentData.password).trim()
+      ? String(studentData.password).trim()
       : "Student@123";
   const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
   const student = await Student.create({
     ...studentData,
-    rollNumber: studentData.rollNumber.trim(),
-    firstName: studentData.firstName.trim(),
-    lastName: studentData.lastName.trim(),
-    email: studentData.email.toLowerCase().trim(),
-    phoneNumber: studentData.phoneNumber.trim(),
+    mentorId: mentorId || studentData.mentorId,
+    rollNumber: String(studentData.rollNumber || "").trim(),
+    firstName: String(studentData.firstName || "").trim(),
+    lastName: String(studentData.lastName || "").trim(),
+    email: String(studentData.email || "").toLowerCase().trim(),
+    phoneNumber: String(studentData.phoneNumber || studentData.phone || "").trim(),
+    gender: String(studentData.gender || "male").toLowerCase(),
+    dateOfBirth: studentData.dateOfBirth || "2002-01-01",
     status: studentData.status || "active",
     password: hashedPassword,
   });

@@ -118,20 +118,6 @@ function ProfileHeader({ user, roleType, onEdit }) {
                   </div>
                 )}
               </div>
-
-              {/* Camera Trigger Button */}
-              <label
-                title="Change profile picture"
-                className="absolute bottom-1 right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#0476b9] text-white shadow-md transition hover:bg-[#03669f] hover:scale-105 active:scale-95"
-              >
-                <Camera size={17} />
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </label>
             </div>
 
             {/* User Details & Badges */}

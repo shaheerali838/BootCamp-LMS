@@ -91,9 +91,18 @@ export const createStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
-    return res.status(500).json({
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "Email or Roll Number";
+      const readableField = field === "email" ? "Email address" : field === "rollNumber" ? "Roll number" : field;
+      return res.status(409).json({
+        success: false,
+        message: `${readableField} already exists. Please use a unique value.`,
+        error: error.message,
+      });
+    }
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to create student",
+      message: error.message || "Failed to create student",
       error: error.message,
     });
   }
@@ -240,9 +249,18 @@ export const updateStudent = async (req, res) => {
       data: updatedStudent,
     });
   } catch (error) {
-    return res.status(500).json({
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "Email or Roll Number";
+      const readableField = field === "email" ? "Email address" : field === "rollNumber" ? "Roll number" : field;
+      return res.status(409).json({
+        success: false,
+        message: `${readableField} already exists. Please use a unique value.`,
+        error: error.message,
+      });
+    }
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to update student",
+      message: error.message || "Failed to update student",
       error: error.message,
     });
   }

@@ -9,9 +9,12 @@ import {
   FiSave,
   FiCheck,
   FiFilter,
+  FiDownload,
 } from "react-icons/fi";
 import { useStudents, useAttendance, useBatches } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { exportToCSV } from "../../../utils/csvHelper";
+import api from "../../../api/axios";
 
 function AttendanceManagement() {
   const { students = [], fetchStudents } = useStudents();
@@ -30,8 +33,8 @@ function AttendanceManagement() {
     if (fetchStudents) fetchStudents();
     if (fetchBatches) fetchBatches();
     if (fetchTeams) fetchTeams();
-    if (fetchAttendance) fetchAttendance({ date: selectedDate });
-  }, [fetchStudents, fetchBatches, fetchTeams, fetchAttendance, selectedDate]);
+    if (fetchAttendance) fetchAttendance();
+  }, [fetchStudents, fetchBatches, fetchTeams, fetchAttendance]);
 
   const getStudentId = (student) => String(student._id || student.id || "");
 
@@ -172,6 +175,136 @@ function AttendanceManagement() {
       alert(err?.response?.data?.message || "Failed to save attendance");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      // Ensure authoritative complete attendance history
+      let allRecords = rawAttendance;
+      try {
+        const res = await api.get("/attendance");
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          allRecords = res.data.data;
+        }
+      } catch (e) {
+        console.warn("Using context attendance cache for export:", e);
+      }
+
+      const todayStr = new Date().toISOString().split("T")[0];
+      const headers = [
+        "Roll No",
+        "Student Name",
+        "Email",
+        "Phone Number",
+        "Batch",
+        "Team",
+        "Attendance Date",
+        "Session Status",
+        "Check-In Time",
+        "Check-Out Time",
+        "Total Sessions",
+        "Present Count",
+        "Late Count",
+        "Leave Count",
+        "Absent Count",
+        "Attendance Rate (%)",
+        "Student Status",
+        "Remarks",
+      ];
+
+      const rows = [];
+
+      filteredStudents.forEach((student) => {
+        const sid = getStudentId(student);
+        const studentName = getStudentName(student);
+        const rollNo = student.rollNumber || student.rollNo || "N/A";
+        const email = student.email || "N/A";
+        const phone = student.phoneNumber || student.phone || "N/A";
+        const teamName = getStudentTeam(student);
+        const batchObj = batches.find(
+          (b) =>
+            String(b._id || b.id) ===
+            String(student.batchId?._id || student.batchId || student.batch?._id || student.batch)
+        );
+        const batchName =
+          batchObj?.batchName ||
+          student.batchId?.batchName ||
+          student.batch?.batchName ||
+          "All Batches";
+        const studentStatus = student.status || "Active";
+
+        // Find all history records for this student
+        const studentRecords = allRecords.filter((rec) => {
+          const recStudentId = String(rec.studentId?._id || rec.studentId || rec.student || "");
+          return recStudentId === sid || (rollNo !== "N/A" && rec.studentId?.rollNumber === rollNo);
+        });
+
+        // Sort records by date descending
+        studentRecords.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+        const totalSessions = studentRecords.length;
+        const presentCount = studentRecords.filter((r) => r.status === "Present").length;
+        const lateCount = studentRecords.filter((r) => r.status === "Late").length;
+        const leaveCount = studentRecords.filter((r) => r.status === "Leave").length;
+        const absentCount = studentRecords.filter((r) => r.status === "Absent").length;
+        const attendanceRate =
+          totalSessions > 0
+            ? `${Math.round(((presentCount + lateCount) / totalSessions) * 100)}%`
+            : "100%";
+
+        if (studentRecords.length > 0) {
+          studentRecords.forEach((rec) => {
+            rows.push([
+              rollNo,
+              studentName,
+              email,
+              phone,
+              batchName,
+              teamName,
+              rec.date || todayStr,
+              rec.status || "Present",
+              rec.checkInTime || "--:--",
+              rec.checkOutTime || "--:--",
+              totalSessions,
+              presentCount,
+              lateCount,
+              leaveCount,
+              absentCount,
+              attendanceRate,
+              studentStatus,
+              rec.remarks || "",
+            ]);
+          });
+        } else {
+          // If no logs recorded yet, output one summary row for the student
+          rows.push([
+            rollNo,
+            studentName,
+            email,
+            phone,
+            batchName,
+            teamName,
+            selectedDate,
+            getStatus(student) !== "Unmarked" ? getStatus(student) : "No Records",
+            getCheckInTime(student) !== "--:--" ? getCheckInTime(student) : "--:--",
+            "--:--",
+            totalSessions,
+            presentCount,
+            lateCount,
+            leaveCount,
+            absentCount,
+            attendanceRate,
+            studentStatus,
+            "No historical logs recorded yet",
+          ]);
+        }
+      });
+
+      exportToCSV(`attendance_history_all_${todayStr}.csv`, headers, rows);
+    } catch (err) {
+      console.error("Export CSV Error:", err);
+      alert("Failed to export attendance CSV.");
     }
   };
 
@@ -352,6 +485,15 @@ function AttendanceManagement() {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+            >
+              <FiDownload size={13} className="text-gray-500" />
+              Export CSV
+            </button>
+
             <button
               type="button"
               onClick={() => handleMarkAll("Present")}
