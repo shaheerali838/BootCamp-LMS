@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import Admin from "../model/admin.model.js";
-import Student from "../model/student.model.js";
 import Batch from "../model/batch.model.js";
 import ROLES from "../constants/roles.js";
 
@@ -70,27 +69,6 @@ const seedAdmin = async () => {
         status: "active",
       });
       console.log("Default Batch Created: Cohort 2026-A");
-    }
-
-    // 4. Seed Default Student
-    const studentEmail = "student@bootcamp.local";
-    const existingStudent = await Student.findOne({ email: studentEmail });
-    if (!existingStudent) {
-      const studentHashedPassword = await bcrypt.hash("Student@123", 10);
-      await Student.create({
-        rollNumber: "SMIT-1001",
-        firstName: "Ali",
-        lastName: "Hassan",
-        email: studentEmail,
-        password: studentHashedPassword,
-        phoneNumber: "03001112233",
-        gender: "male",
-        dateOfBirth: new Date("2002-05-15"),
-        batchId: defaultBatch._id,
-        mentorId: admin?._id || superAdmin?._id,
-        status: "active",
-      });
-      console.log("Default Student Created:", studentEmail);
     }
   } catch (error) {
     console.log("Seed Error:", error.message);

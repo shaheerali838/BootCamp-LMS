@@ -42,7 +42,7 @@ export const AcademicProvider = ({ children }) => {
 
     setStudentsLoading(true);
     try {
-      const res = await api.get("/students/get-all-students");
+      const res = await api.get("/students/get-all-students?limit=1000");
       setStudents(res.data.data || []);
       setStudentsError(null);
     } catch (err) {

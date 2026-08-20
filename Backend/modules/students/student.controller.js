@@ -113,7 +113,12 @@ export const createStudent = async (req, res) => {
 export const getStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit =
+      req.query.limit !== undefined
+        ? parseInt(req.query.limit, 10) === 0
+          ? 10000
+          : parseInt(req.query.limit, 10)
+        : 1000;
     const search = req.query.search || "";
 
     const result = await getStudentsService({ page, limit, search });
