@@ -10,11 +10,21 @@ const connectDB = async () => {
   try {
     if (process.env.MONGO_URI) {
       console.log("Connecting to MongoDB...");
+
+      console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+      console.log(
+        "MONGO_URI starts with:",
+        process.env.MONGO_URI?.slice(0, 14)
+      );
+
       await mongoose.connect(process.env.MONGO_URI);
+
       isConnected = true;
       console.log("✅ MongoDB Connected");
     } else {
-      console.warn("⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables.");
+      console.warn(
+        "⚠️ MONGO_URI is missing. Please set MONGO_URI in your environment variables."
+      );
     }
   } catch (error) {
     console.error("MongoDB connection error:", error.message);
