@@ -454,9 +454,8 @@ export const AcademicProvider = ({ children }) => {
         _id: rec._id,
         date: rec.date,
         status: rec.status,
-        time: rec.checkInTime || "--:--",
-        checkInTime: rec.checkInTime || "--:--",
-        checkOutTime: rec.checkOutTime || "--:--",
+        time: rec.checkInTime || rec.time || "--:--",
+        checkInTime: rec.checkInTime || rec.time || "--:--",
         remarks: rec.remarks || "",
       }));
   };

@@ -3,6 +3,7 @@ import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink, FiLoader } from 
 import { useTasks } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useAuth } from "../../context/AuthContext";
+import { formatDate } from "../../utils/dateHelper";
 
 function MyTasks() {
   const { user } = useAuth();
@@ -142,8 +143,8 @@ function MyTasks() {
 
             <div className="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
               <div className="flex items-center gap-4">
-                <span>Assigned: {task.assignedDate}</span>
-                <span>Due: <strong className="text-gray-800">{task.dueDate}</strong></span>
+                <span>Assigned: {formatDate(task.assignedDate || task.createdAt, "Recently")}</span>
+                <span>Due: <strong className="text-gray-800">{formatDate(task.dueDate)}</strong></span>
               </div>
 
               {task.submission ? (

@@ -11,6 +11,7 @@ import {
 import { useAttendance } from "../../context/AcademicContext";
 import { useAuth } from "../../context/AuthContext";
 import { exportToCSV } from "../../utils/csvHelper";
+import { formatDate } from "../../utils/dateHelper";
 
 function MyAttendance() {
   const { user } = useAuth();
@@ -63,15 +64,13 @@ function MyAttendance() {
     const todayStr = new Date().toISOString().split("T")[0];
     const headers = [
       "Date",
-      "Check-in Time",
-      "Check-out Time",
+      "Time",
       "Status",
       "Remarks",
     ];
     const rows = history.map((item) => [
-      item.date || todayStr,
+      formatDate(item.date) || todayStr,
       item.checkInTime || item.time || "--:--",
-      item.checkOutTime || "--:--",
       item.status || "Present",
       item.remarks || "",
     ]);
@@ -99,7 +98,7 @@ function MyAttendance() {
             <button
               type="button"
               onClick={handleExportCSV}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
             >
               <FiDownload size={14} />
               Export CSV
@@ -171,8 +170,8 @@ function MyAttendance() {
       </div>
 
       {/* Attendance History Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <FiCalendar size={18} className="text-blue-600" />
             Attendance History Log
@@ -183,23 +182,20 @@ function MyAttendance() {
         </div>
 
         <div className="divide-y divide-gray-100">
-          <div className="grid grid-cols-4 px-5 py-3 bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+          <div className="grid grid-cols-3 px-5 py-3 bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
             <span>Date</span>
-            <span>Check-in Time</span>
+            <span>Session Time</span>
             <span className="text-right">Status</span>
           </div>
 
           {history.map((item, idx) => (
             <div
               key={item._id || idx}
-              className="grid grid-cols-4 px-5 py-3.5 items-center hover:bg-gray-50/50 text-xs"
+              className="grid grid-cols-3 px-5 py-3.5 items-center hover:bg-gray-50/50 text-xs"
             >
-              <span className="font-semibold text-gray-800">{item.date}</span>
+              <span className="font-semibold text-gray-800">{formatDate(item.date)}</span>
               <span className="text-gray-600 font-medium">
                 {item.checkInTime || item.time || "--:--"}
-              </span>
-              <span className="text-gray-500">
-                {item.checkOutTime || "--:--"}
               </span>
               <div className="text-right">
                 <span
