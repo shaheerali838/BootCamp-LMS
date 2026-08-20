@@ -22,8 +22,8 @@ function DashboardLayout() {
       <Sidebar />
       <Navbar />
       <main
-        className={`pt-10 transition-all duration-300 ${
-          isOpen ? "ml-70" : "ml-22.5"
+        className={`pt-16 transition-all duration-300 ${
+          isOpen ? "md:ml-70 ml-0" : "md:ml-22.5 ml-0"
         }`}
       >
         <AppRoutes />
