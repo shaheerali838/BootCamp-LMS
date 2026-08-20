@@ -34,6 +34,22 @@ export const login = async (req, res) => {
     const identifier = String(rawIdentifier).trim();
     const emailAddress = identifier.toLowerCase();
     const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const normalizedDigits = identifier.replace(/\D/g, "");
+
+    // Build flexible student matching patterns (e.g. 320009 matches KPK-320009, 320009, etc.)
+    const studentSearchPatterns = [
+      { email: emailAddress },
+      { rollNumber: identifier },
+      { rollNumber: { $regex: new RegExp(`^${escapedIdentifier}$`, "i") } },
+      { rollNumber: { $regex: new RegExp(`(^|[-_ ])${escapedIdentifier}$`, "i") } },
+      { rollNumber: { $regex: new RegExp(escapedIdentifier, "i") } },
+    ];
+
+    if (normalizedDigits && normalizedDigits.length >= 4) {
+      studentSearchPatterns.push({
+        rollNumber: { $regex: new RegExp(`${normalizedDigits}$`, "i") },
+      });
+    }
 
     let user = null;
 
@@ -45,13 +61,9 @@ export const login = async (req, res) => {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        // Also check if a student exists with this exact email
+        // Also check if a student exists with this exact email / identifier
         const studentUser = await Student.findOne({
-          $or: [
-            { email: emailAddress },
-            { rollNumber: identifier },
-            { rollNumber: { $regex: new RegExp(`^${escapedIdentifier}$`, "i") } },
-          ],
+          $or: studentSearchPatterns,
         }).select("+password");
 
         if (studentUser) {
@@ -72,13 +84,9 @@ export const login = async (req, res) => {
         }
       }
     } else {
-      // 2. Search Student by rollNumber (exact & case-insensitive) OR email
+      // 2. Search Student by rollNumber (exact, case-insensitive, prefix-tolerant) OR email
       user = await Student.findOne({
-        $or: [
-          { email: emailAddress },
-          { rollNumber: identifier },
-          { rollNumber: { $regex: new RegExp(`^${escapedIdentifier}$`, "i") } },
-        ],
+        $or: studentSearchPatterns,
       }).select("+password");
 
       // 3. If not found in Student, check Admin as fallback
