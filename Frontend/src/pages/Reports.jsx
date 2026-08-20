@@ -5,7 +5,11 @@ import TaskReport from "../components/features/Reports/TaskReport";
 import StudentPerformance from "../components/features/Reports/StudentPerformance";
 import ProjectStatus from "../components/features/Reports/ProjectStatus";
 import { useReports, useTasks } from "../context/WorkContext";
-import { useStudents, useAttendance, useBatches } from "../context/AcademicContext";
+import {
+  useStudents,
+  useAttendance,
+  useBatches,
+} from "../context/AcademicContext";
 import { useTeamProject } from "../context/TeamProjectContext";
 import { exportToCSV } from "../utils/csvHelper";
 import api from "../api/axios";
@@ -16,8 +20,17 @@ function Reports() {
   const { tasks = [], fetchTasks } = useTasks();
   const { students = [], fetchStudents } = useStudents();
   const { batches = [], fetchBatches } = useBatches();
-  const { rawAttendance = [], fetchAttendance, getStudentAttendance } = useAttendance();
-  const { teams = [], projects = [], fetchTeams, fetchProjects } = useTeamProject();
+  const {
+    rawAttendance = [],
+    fetchAttendance,
+    getStudentAttendance,
+  } = useAttendance();
+  const {
+    teams = [],
+    projects = [],
+    fetchTeams,
+    fetchProjects,
+  } = useTeamProject();
 
   useEffect(() => {
     if (fetchStudents) fetchStudents();
@@ -26,7 +39,14 @@ function Reports() {
     if (fetchTasks) fetchTasks();
     if (fetchTeams) fetchTeams();
     if (fetchProjects) fetchProjects();
-  }, [fetchStudents, fetchBatches, fetchAttendance, fetchTasks, fetchTeams, fetchProjects]);
+  }, [
+    fetchStudents,
+    fetchBatches,
+    fetchAttendance,
+    fetchTasks,
+    fetchTeams,
+    fetchProjects,
+  ]);
 
   const tabs = [
     {
@@ -54,9 +74,16 @@ function Reports() {
   const activeComponent = tabs.find((tab) => tab.id === activeTab);
 
   const getStudentBatchName = (student) => {
-    const bId = student.batchId?._id || student.batchId?.id || student.batchId || student.batch?._id || student.batch;
+    const bId =
+      student.batchId?._id ||
+      student.batchId?.id ||
+      student.batchId ||
+      student.batch?._id ||
+      student.batch;
     const found = batches.find((b) => String(b._id || b.id) === String(bId));
-    return found ? found.batchName || found.name : student.batchId?.batchName || student.batch?.batchName || "N/A";
+    return found
+      ? found.batchName || found.name
+      : student.batchId?.batchName || student.batch?.batchName || "N/A";
   };
 
   const handleExportCSV = async () => {
@@ -81,8 +108,7 @@ function Reports() {
         "Batch",
         "Attendance Date",
         "Session Status",
-        "Check-In Time",
-        "Check-Out Time",
+        "Time",
         "Total Sessions",
         "Present Count",
         "Late Count",
@@ -98,7 +124,10 @@ function Reports() {
       students.forEach((student) => {
         const sid = String(student._id || student.id || "");
         const studentName =
-          student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || student.email || "Student";
+          student.name ||
+          `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+          student.email ||
+          "Student";
         const rollNo = student.rollNumber || student.rollNo || "N/A";
         const email = student.email || "N/A";
         const phone = student.phoneNumber || student.phone || "N/A";
@@ -106,17 +135,32 @@ function Reports() {
         const studentStatus = student.status || "Active";
 
         const studentRecords = allRecords.filter((rec) => {
-          const recStudentId = String(rec.studentId?._id || rec.studentId || rec.student || "");
-          return recStudentId === sid || (rollNo !== "N/A" && rec.studentId?.rollNumber === rollNo);
+          const recStudentId = String(
+            rec.studentId?._id || rec.studentId || rec.student || "",
+          );
+          return (
+            recStudentId === sid ||
+            (rollNo !== "N/A" && rec.studentId?.rollNumber === rollNo)
+          );
         });
 
-        studentRecords.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+        studentRecords.sort((a, b) =>
+          (b.date || "").localeCompare(a.date || ""),
+        );
 
         const totalSessions = studentRecords.length;
-        const presentCount = studentRecords.filter((r) => r.status === "Present").length;
-        const lateCount = studentRecords.filter((r) => r.status === "Late").length;
-        const leaveCount = studentRecords.filter((r) => r.status === "Leave").length;
-        const absentCount = studentRecords.filter((r) => r.status === "Absent").length;
+        const presentCount = studentRecords.filter(
+          (r) => r.status === "Present",
+        ).length;
+        const lateCount = studentRecords.filter(
+          (r) => r.status === "Late",
+        ).length;
+        const leaveCount = studentRecords.filter(
+          (r) => r.status === "Leave",
+        ).length;
+        const absentCount = studentRecords.filter(
+          (r) => r.status === "Absent",
+        ).length;
         const attendanceRate =
           totalSessions > 0
             ? `${Math.round(((presentCount + lateCount) / totalSessions) * 100)}%`
@@ -132,8 +176,7 @@ function Reports() {
               batchName,
               rec.date || todayStr,
               rec.status || "Present",
-              rec.checkInTime || "--:--",
-              rec.checkOutTime || "--:--",
+              rec.checkInTime || rec.time || "--:--",
               totalSessions,
               presentCount,
               lateCount,
@@ -154,7 +197,6 @@ function Reports() {
             todayStr,
             "No Records",
             "--:--",
-            "--:--",
             totalSessions,
             presentCount,
             lateCount,
@@ -172,18 +214,36 @@ function Reports() {
     }
 
     if (activeTab === "task") {
-      const headers = ["Task Title", "Sprint / Milestone", "Priority", "Status", "Assigned To", "Due Date"];
+      const headers = [
+        "Task Title",
+        "Sprint / Milestone",
+        "Priority",
+        "Status",
+        "Assigned To",
+        "Due Date",
+      ];
       const rows = tasks.map((t) => [
         t.title || "Untitled Task",
         t.sprintId?.title || t.sprint?.title || t.milestone || "General Sprint",
         t.priority || "Medium",
         t.status || "Pending",
-        t.assignedTo?.name || `${t.assignedTo?.firstName || ""} ${t.assignedTo?.lastName || ""}`.trim() || "Unassigned",
+        t.assignedTo?.name ||
+          `${t.assignedTo?.firstName || ""} ${t.assignedTo?.lastName || ""}`.trim() ||
+          "Unassigned",
         t.dueDate ? String(t.dueDate).split("T")[0] : "No Deadline",
       ]);
 
       if (rows.length === 0) {
-        rows.push(...taskDistributionData.map((item) => ["Distribution Metric", item.label, "N/A", item.label, "All", item.value]));
+        rows.push(
+          ...taskDistributionData.map((item) => [
+            "Distribution Metric",
+            item.label,
+            "N/A",
+            item.label,
+            "All",
+            item.value,
+          ]),
+        );
       }
 
       exportToCSV(`smit-task-report-${todayStr}.csv`, headers, rows);
@@ -202,15 +262,28 @@ function Reports() {
       const rows = students.map((s) => {
         const sid = String(s._id || s.id);
         const history = getStudentAttendance(sid) || [];
-        const studentName = s.name || `${s.firstName || ""} ${s.lastName || ""}`.trim() || "Student";
+        const studentName =
+          s.name ||
+          `${s.firstName || ""} ${s.lastName || ""}`.trim() ||
+          "Student";
         const rollNo = s.rollNumber || s.rollNo || "N/A";
         const batchName = getStudentBatchName(s);
         const total = history.length;
-        const present = history.filter((h) => h.status === "Present" || h.status === "Late").length;
+        const present = history.filter(
+          (h) => h.status === "Present" || h.status === "Late",
+        ).length;
         const rate = total > 0 ? Math.round((present / total) * 100) : 95;
-        const grade = rate >= 90 ? "A+" : rate >= 80 ? "A" : rate >= 70 ? "B" : "C";
+        const grade =
+          rate >= 90 ? "A+" : rate >= 80 ? "A" : rate >= 70 ? "B" : "C";
 
-        return [rollNo, studentName, batchName, `${rate}%`, s.status || "Active", grade];
+        return [
+          rollNo,
+          studentName,
+          batchName,
+          `${rate}%`,
+          s.status || "Active",
+          grade,
+        ];
       });
 
       exportToCSV(`smit-student-performance-${todayStr}.csv`, headers, rows);
@@ -218,7 +291,13 @@ function Reports() {
     }
 
     if (activeTab === "project") {
-      const headers = ["Project Name", "Batch / Team", "Status", "Start Date", "End Date"];
+      const headers = [
+        "Project Name",
+        "Batch / Team",
+        "Status",
+        "Start Date",
+        "End Date",
+      ];
       const projectList = projects.length > 0 ? projects : teams;
       const rows = projectList.map((p) => [
         p.projectName || p.name || p.teamName || "Project",
@@ -243,7 +322,8 @@ function Reports() {
           </h1>
 
           <p className="text-xs text-gray-500 mt-0.5">
-            View, analyze, and export training and attendance performance reports
+            View, analyze, and export training and attendance performance
+            reports
           </p>
         </div>
 
@@ -283,4 +363,4 @@ function Reports() {
   );
 }
 
-export default Reports;
+export default Reports;

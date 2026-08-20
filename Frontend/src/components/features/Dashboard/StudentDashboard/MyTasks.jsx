@@ -4,6 +4,7 @@ import { FiClipboard, FiCheckCircle } from "react-icons/fi";
 import { useTasks } from "../../../../context/WorkContext";
 import { useTeamProject } from "../../../../context/TeamProjectContext";
 import { useAuth } from "../../../../context/AuthContext";
+import { formatDate } from "../../../../utils/dateHelper";
 
 function MyTasks() {
   const { user } = useAuth();
@@ -95,7 +96,7 @@ function MyTasks() {
                       {task.title || "Untitled Task"}
                     </h3>
                     <p className="text-[10px] text-gray-400 font-medium mt-0.5">
-                      Due: {task.dueDate || "Ongoing sprint"}
+                      Due: {formatDate(task.dueDate, "Ongoing sprint")}
                     </p>
                   </div>
                 </div>
