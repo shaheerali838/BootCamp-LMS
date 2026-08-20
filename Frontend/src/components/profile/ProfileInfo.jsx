@@ -182,7 +182,7 @@ function InfoCard({ icon, label, value, highlight = false }) {
         </span>
       </div>
 
-      <p className="break-words font-semibold text-gray-900 text-sm">
+      <p className="wrap-break-word font-semibold text-gray-900 text-sm">
         {value || "Not provided"}
       </p>
     </div>

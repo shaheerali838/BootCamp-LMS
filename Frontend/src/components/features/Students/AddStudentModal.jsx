@@ -15,10 +15,12 @@ function AddStudentModal({
   const fileInputRef = useRef(null);
 
   const availableMentors = useMemo(() => {
-    return (mentors.length > 0 ? mentors : admins).filter((m) => {
+    const list = mentors.length > 0 ? mentors : admins;
+    const nonSuper = list.filter((m) => {
       const r = (m.role || "").toUpperCase().replace(/[\s_]+/g, "");
       return r !== "SUPERADMIN";
     });
+    return nonSuper.length > 0 ? nonSuper : list;
   }, [mentors, admins]);
 
   const [showPassword, setShowPassword] = useState(false);

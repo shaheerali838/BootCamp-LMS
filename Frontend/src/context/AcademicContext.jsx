@@ -84,7 +84,11 @@ export const AcademicProvider = ({ children }) => {
         if (mId) formData.append("mentorId", mId);
         formData.append("status", newStudent.status || "active");
         if (newStudent.profilePicture) {
-          formData.append("profilePicture", newStudent.profilePicture);
+          if (newStudent.profilePicture instanceof File || newStudent.profilePicture instanceof Blob) {
+            formData.append("profilePicture", newStudent.profilePicture);
+          } else if (typeof newStudent.profilePicture === "string" && newStudent.profilePicture.trim()) {
+            formData.append("profilePicture", newStudent.profilePicture.trim());
+          }
         }
 
         res = await api.post("/students/create-student", formData, {
@@ -97,9 +101,8 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to add student:", err);
-      setStudentsError(
-        err.response?.data?.message || "Failed to create student",
-      );
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to create student";
+      setStudentsError(errMsg);
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -130,7 +133,13 @@ export const AcademicProvider = ({ children }) => {
         if (mId) formData.append("mentorId", mId);
         if (updatedData.status) formData.append("status", updatedData.status);
         if (updatedData.password) formData.append("password", updatedData.password);
-        if (updatedData.profilePicture) formData.append("profilePicture", updatedData.profilePicture);
+        if (updatedData.profilePicture) {
+          if (updatedData.profilePicture instanceof File || updatedData.profilePicture instanceof Blob) {
+            formData.append("profilePicture", updatedData.profilePicture);
+          } else if (typeof updatedData.profilePicture === "string" && updatedData.profilePicture.trim()) {
+            formData.append("profilePicture", updatedData.profilePicture.trim());
+          }
+        }
 
         res = await api.put(`/students/update-student/${id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -142,9 +151,8 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to update student:", err);
-      setStudentsError(
-        err.response?.data?.message || "Failed to update student",
-      );
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to update student";
+      setStudentsError(errMsg);
       throw err;
     } finally {
       setStudentsLoading(false);
