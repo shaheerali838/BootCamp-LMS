@@ -22,7 +22,16 @@ function AttendanceManagement() {
   const { rawAttendance = [], markAttendance, fetchAttendance, getStudentAttendance } = useAttendance();
   const { teams = [], fetchTeams } = useTeamProject();
 
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  // Helper to format today's date in local timezone YYYY-MM-DD
+  const getTodayLocalDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = useState(() => getTodayLocalDate());
   const [selectedBatch, setSelectedBatch] = useState("All");
   const [search, setSearch] = useState("");
   const [draftAttendance, setDraftAttendance] = useState({});
@@ -35,6 +44,37 @@ function AttendanceManagement() {
     if (fetchTeams) fetchTeams();
     if (fetchAttendance) fetchAttendance();
   }, [fetchStudents, fetchBatches, fetchTeams, fetchAttendance]);
+
+  // Automatic midnight (12:00 AM) session rollover
+  useEffect(() => {
+    let timerId;
+    const scheduleMidnightRollover = () => {
+      const now = new Date();
+      // Next midnight (12:00:01 AM tomorrow)
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        1
+      );
+      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+
+      timerId = setTimeout(() => {
+        const newDay = getTodayLocalDate();
+        setSelectedDate(newDay);
+        setDraftAttendance({});
+        if (fetchAttendance) fetchAttendance();
+        scheduleMidnightRollover();
+      }, msUntilMidnight);
+    };
+
+    scheduleMidnightRollover();
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [fetchAttendance]);
 
   const getStudentId = (student) => String(student._id || student.id || "");
 

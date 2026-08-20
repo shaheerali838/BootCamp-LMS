@@ -495,6 +495,35 @@ export const AcademicProvider = ({ children }) => {
     }
   }, [accessToken, fetchStudents, fetchBatches, fetchAttendance]);
 
+  // ── Automatic 12:00 AM Midnight Rollover & Sync ──────────────
+  useEffect(() => {
+    if (!accessToken) return;
+    let timerId;
+
+    const scheduleMidnightSync = () => {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        2
+      );
+      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+
+      timerId = setTimeout(() => {
+        fetchAttendance();
+        scheduleMidnightSync();
+      }, msUntilMidnight);
+    };
+
+    scheduleMidnightSync();
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [accessToken, fetchAttendance]);
+
   return (
     <AcademicContext.Provider
       value={{
