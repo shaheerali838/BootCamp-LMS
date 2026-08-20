@@ -1,93 +1,183 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    if (!savedUser) return null;
-    try {
-      return JSON.parse(savedUser);
-    } catch {
-      return null;
-    }
-  });
-
-  const [accessToken, setAccessToken] = useState(() => {
-    return localStorage.getItem("accessToken");
-  });
-
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ================= LOAD USER & SYNC PROFILE =================
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("accessToken");
+
+    if (savedUser && token) {
+      try {
+        setUser(JSON.parse(savedUser));
+        setAccessToken(token);
+
+        // Only sync profile in background if not on public auth pages
+        const isAuthPage =
+          window.location.pathname.includes("/login") ||
+          window.location.pathname.includes("/forgot-password") ||
+          window.location.pathname.includes("/forget-password") ||
+          window.location.pathname.includes("/reset-password");
+
+        if (!isAuthPage) {
+          api
+            .get("/auth/profile")
+            .then((res) => {
+              const freshUser = res.data?.data?.user || res.data?.user;
+              if (freshUser) {
+                setUser((prev) => {
+                  const merged = { ...prev, ...freshUser };
+                  localStorage.setItem("user", JSON.stringify(merged));
+                  return merged;
+                });
+              }
+            })
+            .catch(() => {
+              // Token expired or server unreachable, fallback to localStorage
+            });
+        }
+      } catch (err) {
+        console.error("Error parsing stored user", err);
+      }
+    } else {
+      // Clear any orphaned token/user
+      setUser(null);
+      setAccessToken(null);
+    }
+
+    setLoading(false);
+  }, []);
+  // ============================================================
+
+  // Login
   const login = async (email, password) => {
-    const response = await api.post("/auth/login", { email, password });
-    const { accessToken, user } = response.data.data;
+    const response = await api.post("/auth/login", {
+      email,
+      password,
+    });
 
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("user", JSON.stringify(user));
+    const data = response.data?.data || response.data;
 
-    setAccessToken(accessToken);
-    setUser(user);
+    if (data.user) {
+      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
 
-    return response.data;
+    if (data.accessToken) {
+      setAccessToken(data.accessToken);
+      localStorage.setItem("accessToken", data.accessToken);
+    }
+
+    return response;
   };
 
+  // ================= UPDATE PROFILE (ADDED / ENHANCED) =================
+  // Updates user profile both on backend API and local state/localStorage
+  const updateProfile = async (formData) => {
+    try {
+      let response;
+      if (formData instanceof FormData) {
+        response = await api.put("/auth/profile", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        response = await api.put("/auth/profile", formData);
+      }
+      const data = response.data?.data || response.data;
+
+      if (data.user) {
+        setUser((prev) => {
+          const updated = { ...prev, ...data.user };
+          localStorage.setItem("user", JSON.stringify(updated));
+          return updated;
+        });
+      }
+      return response;
+    } catch (error) {
+      console.error("Profile update error:", error);
+      throw error;
+    }
+  };
+
+  // Direct image updater helper (handles File, Blob, FormData, or Base64/URL)
+  const updateProfileImage = async (imageInput) => {
+    if (imageInput instanceof File || imageInput instanceof Blob) {
+      const fd = new FormData();
+      fd.append("profilePicture", imageInput);
+      return updateProfile(fd);
+    }
+    if (imageInput instanceof FormData) {
+      return updateProfile(imageInput);
+    }
+    return updateProfile({
+      profilePicture: imageInput,
+      profileImage: imageInput,
+    });
+  };
+  // ====================================================================
+
+  // ================= PASSWORD RECOVERY & CHANGE METHODS (ADDED) =================
+  // Forgot Password (sends email with reset link)
+  const forgotPassword = async (email) => {
+    return api.post("/auth/forgot-password", { email });
+  };
+
+  // Reset Password (submits new password with token)
+  const resetPassword = async (token, newPassword) => {
+    return api.post("/auth/reset-password", { token, newPassword });
+  };
+
+  // Change Password (authenticated user)
+  const changePassword = async (currentPassword, newPassword) => {
+    return api.post("/auth/change-password", {
+      currentPassword,
+      newPassword,
+    });
+  };
+  // ==============================================================================
+
+  // Refresh Access Token
+  const refreshAccessToken = async () => {
+    try {
+      const response = await api.post("/auth/refresh-token");
+
+      const token =
+        response.data?.data?.accessToken ||
+        response.data?.accessToken;
+
+      if (token) {
+        setAccessToken(token);
+        localStorage.setItem("accessToken", token);
+      }
+
+      return token;
+    } catch (error) {
+      await logout();
+      return null;
+    }
+  };
+
+  // Logout
   const logout = async () => {
     try {
       await api.post("/auth/logout");
     } catch (error) {
-      console.log("Logout API error:", error);
-    } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      setAccessToken(null);
-      setUser(null);
+      console.log("Logout error:", error);
     }
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    setUser(null);
+    setAccessToken(null);
   };
-
-  const refreshAccessToken = async () => {
-    try {
-      const response = await api.post("/auth/refresh-token");
-      const newAccessToken = response.data.accessToken;
-
-      localStorage.setItem("accessToken", newAccessToken);
-      setAccessToken(newAccessToken);
-
-      return newAccessToken;
-    } catch (error) {
-      console.log("Refresh token failed:", error);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      setAccessToken(null);
-      setUser(null);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("accessToken");
-      const savedUser = localStorage.getItem("user");
-
-      if (token && savedUser) {
-        try {
-          setAccessToken(token);
-          setUser(JSON.parse(savedUser));
-        } catch (error) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("user");
-          setAccessToken(null);
-          setUser(null);
-        }
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, []);
-
-  const isAuthenticated = Boolean(accessToken) && Boolean(user);
 
   return (
     <AuthContext.Provider
@@ -95,9 +185,14 @@ export const AuthProvider = ({ children }) => {
         user,
         accessToken,
         loading,
-        isAuthenticated,
+        isAuthenticated: !!user && !!accessToken,
         login,
         logout,
+        updateProfile,
+        updateProfileImage,
+        forgotPassword,
+        resetPassword,
+        changePassword,
         refreshAccessToken,
       }}
     >
@@ -108,8 +203,10 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error("useAuth must be used inside AuthProvider");
   }
+
   return context;
 };

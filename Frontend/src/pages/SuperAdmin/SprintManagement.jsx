@@ -8,6 +8,7 @@ import {
   FiCheckCircle,
   FiRefreshCw,
   FiClock,
+  FiLoader,
 } from "react-icons/fi";
 import { useSprints } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
@@ -32,7 +33,9 @@ function SprintManagement() {
     if (!pId) return "General Project";
     const projId = pId?._id || pId;
     const proj = projects.find((p) => String(p._id || p.id) === String(projId));
-    return proj ? (proj.projectName || proj.name || proj.title) : "General Project";
+    return proj
+      ? proj.projectName || proj.name || proj.title
+      : "General Project";
   };
 
   const formatDate = (dateStr) => {
@@ -65,6 +68,7 @@ function SprintManagement() {
   ).length;
 
   const [modalError, setModalError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleOpenAdd = () => {
     setEditingSprint(null);
@@ -73,7 +77,7 @@ function SprintManagement() {
       name: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
-      projectId: projects[0] ? (projects[0]._id || projects[0].id) : "",
+      projectId: projects[0] ? projects[0]._id || projects[0].id : "",
       status: "Active",
     });
     setShowModal(true);
@@ -91,7 +95,8 @@ function SprintManagement() {
       endDate: sprint.endDate
         ? new Date(sprint.endDate).toISOString().split("T")[0]
         : "",
-      projectId: sProjId || (projects[0] ? (projects[0]._id || projects[0].id) : ""),
+      projectId:
+        sProjId || (projects[0] ? projects[0]._id || projects[0].id : ""),
       status: sprint.status || "Active",
     });
     setShowModal(true);
@@ -106,7 +111,9 @@ function SprintManagement() {
       return;
     }
     if (!formData.projectId) {
-      setModalError("Please select a Target Project. If none exist, create a Project first.");
+      setModalError(
+        "Please select a Target Project. If none exist, create a Project first.",
+      );
       return;
     }
     if (!formData.startDate) {
@@ -123,6 +130,7 @@ function SprintManagement() {
       status: formData.status,
     };
 
+    setSubmitting(true);
     try {
       if (editingSprint) {
         await updateSprint(editingSprint._id || editingSprint.id, payload);
@@ -131,14 +139,18 @@ function SprintManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save sprint.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save sprint.",
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="p-4">
-      <div className="mb-5"></div>
-
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
         <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
@@ -220,7 +232,7 @@ function SprintManagement() {
 
         <div className="overflow-x-auto">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-200 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Sprint Name</span>
             <span>Project</span>
             <span>Timeline & Status</span>
@@ -228,7 +240,7 @@ function SprintManagement() {
           </div>
 
           {/* Table Rows */}
-          <div className="divide-y divide-gray-100 min-w-200">
+          <div className="divide-y divide-gray-100 min-w-150">
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}
@@ -397,15 +409,24 @@ function SprintManagement() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  disabled={submitting}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-700 hover:bg-gray-50 cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold cursor-pointer"
+                  disabled={submitting}
+                  className="flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingSprint ? "Save Changes" : "Create Sprint"}
+                  {submitting ? (
+                    <>
+                      <FiLoader size={14} className="animate-spin" />
+                      <span>{editingSprint ? "Updating Sprint..." : "Creating Sprint..."}</span>
+                    </>
+                  ) : (
+                    <span>{editingSprint ? "Save Changes" : "Create Sprint"}</span>
+                  )}
                 </button>
               </div>
             </form>

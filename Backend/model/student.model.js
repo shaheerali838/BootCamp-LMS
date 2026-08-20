@@ -53,6 +53,13 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ================= PROFILE PICTURE (ADDED) =================
+    profilePicture: {
+      type: String,
+      default: "",
+    },
+    // ============================================================
+
     role: {
       type: String,
       enum: [ROLES.STUDENT],
@@ -101,10 +108,14 @@ const studentSchema = new mongoose.Schema(
 const Student = mongoose.model("Student", studentSchema);
 
 if (mongoose.connection.readyState === 1) {
-  Student.syncIndexes().catch(() => {});
+  Student.syncIndexes().catch((err) => {
+    console.log("Student index sync notice:", err.message);
+  });
 } else {
-  mongoose.connection.once("connected", () => {
-    Student.syncIndexes().catch(() => {});
+  mongoose.connection.once("open", () => {
+    Student.syncIndexes().catch((err) => {
+      console.log("Student index sync notice:", err.message);
+    });
   });
 }
 

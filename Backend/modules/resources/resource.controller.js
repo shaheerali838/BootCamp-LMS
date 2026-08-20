@@ -1,17 +1,60 @@
 import Resource from "../../model/resource.model.js";
 import ResourceCategory from "../../model/resourceCategories.model.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../../config/cloudinary.js";
 import mongoose from "mongoose";
+
+const DEFAULT_CATEGORIES = [
+  "React",
+  "Node.js",
+  "Database",
+  "JavaScript",
+  "Projects",
+  "Academic",
+  "CSS",
+  "Lectures",
+];
+
+// Helper to resolve category ID whether given an ObjectId or a category name
+const resolveCategoryId = async (categoryInput) => {
+  if (!categoryInput) return null;
+
+  // 1. If valid ObjectId, check if category exists
+  if (mongoose.Types.ObjectId.isValid(categoryInput)) {
+    const existing = await ResourceCategory.findById(categoryInput);
+    if (existing) return existing._id;
+  }
+
+  // 2. If given a category string name
+  const nameStr = String(categoryInput).trim();
+  if (nameStr) {
+    let cat = await ResourceCategory.findOne({
+      categoryName: new RegExp(`^${nameStr}$`, "i"),
+    });
+    if (!cat) {
+      cat = await ResourceCategory.create({ categoryName: nameStr });
+    }
+    return cat._id;
+  }
+
+  // 3. Fallback: first category or create "General"
+  let fallback = await ResourceCategory.findOne();
+  if (!fallback) {
+    fallback = await ResourceCategory.create({ categoryName: "General" });
+  }
+  return fallback._id;
+};
 
 // ---------- CREATE RESOURCE ----------
 export const createResource = async (req, res) => {
   try {
-    const { title, description, file, fileType, category } = req.body;
+    const { title, description, category } = req.body;
+    let { fileType, file } = req.body;
     const uploadedBy = req.user?._id;
 
-    if (!title || !description || !file || !fileType || !category) {
+    if (!title || !description) {
       return res.status(400).json({
         success: false,
-        message: "title, description, file, fileType, and category are required.",
+        message: "Title and description are required.",
       });
     }
 
@@ -19,17 +62,68 @@ export const createResource = async (req, res) => {
       return res.status(401).json({ success: false, message: "Not authenticated." });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(category)) {
-      return res.status(400).json({ success: false, message: "Invalid category ID." });
+    const resolvedCategoryId = await resolveCategoryId(category || "General");
+
+    let fileUrl = file || "";
+    let publicId = "";
+    let fileSize = "";
+    let fileName = "";
+
+    // If file is uploaded via multipart form data
+    if (req.file) {
+      fileName = req.file.originalname;
+      const extension = fileName.split(".").pop()?.toUpperCase() || "PDF";
+      fileType = req.body.fileType || extension;
+      fileSize = (req.file.size / (1024 * 1024)).toFixed(2) + " MB";
+
+      const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+      const safePublicId = `${Date.now()}_${baseName.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
+      // Upload buffer directly to Cloudinary as raw resource for seamless public document delivery
+      const uploadResult = await uploadToCloudinary(req.file.buffer, {
+        folder: "saylani_lms/resources",
+        resource_type: "raw",
+        public_id: safePublicId,
+      });
+
+      fileUrl = uploadResult.secure_url || uploadResult.url;
+      publicId = uploadResult.public_id || "";
     }
 
-    const resource = await Resource.create({ title, description, file, fileType, category, uploadedBy });
+    if (!fileUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "A resource file (PDF) or valid file URL is required.",
+      });
+    }
+
+    const resource = await Resource.create({
+      title: title.trim(),
+      description: description.trim(),
+      file: fileUrl,
+      fileType: fileType || "PDF",
+      fileName: fileName || title.trim(),
+      fileSize: fileSize || "1.0 MB",
+      publicId,
+      category: resolvedCategoryId,
+      uploadedBy,
+    });
+
     await resource.populate("category", "categoryName");
     await resource.populate("uploadedBy", "firstName lastName email");
 
-    return res.status(201).json({ success: true, message: "Resource created successfully", data: resource });
+    return res.status(201).json({
+      success: true,
+      message: "Resource created successfully",
+      data: resource,
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Failed to create resource", error: error.message });
+    console.error("Create Resource Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create resource",
+      error: error.message,
+    });
   }
 };
 
@@ -41,7 +135,7 @@ export const getAllResources = async (req, res) => {
 
     if (search) {
       const re = new RegExp(search, "i");
-      query.$or = [{ title: re }, { description: re }, { fileType: re }];
+      query.$or = [{ title: re }, { description: re }, { fileType: re }, { fileName: re }];
     }
     if (category && mongoose.Types.ObjectId.isValid(category)) {
       query.category = category;
@@ -90,11 +184,42 @@ export const updateResource = async (req, res) => {
     if (!resource) return res.status(404).json({ success: false, message: "Resource not found." });
 
     const { title, description, file, fileType, category } = req.body;
-    if (title) resource.title = title;
-    if (description) resource.description = description;
-    if (file) resource.file = file;
+
+    if (title) resource.title = title.trim();
+    if (description) resource.description = description.trim();
+    if (category) {
+      resource.category = await resolveCategoryId(category);
+    }
     if (fileType) resource.fileType = fileType;
-    if (category && mongoose.Types.ObjectId.isValid(category)) resource.category = category;
+
+    // If new file is uploaded
+    if (req.file) {
+      // Clean up old Cloudinary asset if existed
+      if (resource.publicId) {
+        await deleteFromCloudinary(resource.publicId);
+      }
+
+      const fileName = req.file.originalname;
+      const extension = fileName.split(".").pop()?.toUpperCase() || "PDF";
+      const fileSize = (req.file.size / (1024 * 1024)).toFixed(2) + " MB";
+
+      const baseName = fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+      const safePublicId = `${Date.now()}_${baseName.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
+      const uploadResult = await uploadToCloudinary(req.file.buffer, {
+        folder: "saylani_lms/resources",
+        resource_type: "raw",
+        public_id: safePublicId,
+      });
+
+      resource.file = uploadResult.secure_url || uploadResult.url;
+      resource.publicId = uploadResult.public_id || "";
+      resource.fileName = fileName;
+      resource.fileSize = fileSize;
+      resource.fileType = req.body.fileType || extension;
+    } else if (file) {
+      resource.file = file;
+    }
 
     await resource.save();
     await resource.populate("category", "categoryName");
@@ -114,8 +239,15 @@ export const deleteResource = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid resource ID." });
     }
 
-    const resource = await Resource.findByIdAndDelete(id);
+    const resource = await Resource.findById(id);
     if (!resource) return res.status(404).json({ success: false, message: "Resource not found." });
+
+    // Clean up Cloudinary asset
+    if (resource.publicId) {
+      await deleteFromCloudinary(resource.publicId);
+    }
+
+    await Resource.findByIdAndDelete(id);
 
     return res.status(200).json({ success: true, message: "Resource deleted successfully" });
   } catch (error) {
@@ -126,7 +258,22 @@ export const deleteResource = async (req, res) => {
 // ---------- RESOURCE CATEGORIES: GET ALL ----------
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await ResourceCategory.find().sort({ categoryName: 1 });
+    let categories = await ResourceCategory.find().sort({ categoryName: 1 });
+
+    // Auto-seed default categories if database is empty
+    if (categories.length === 0) {
+      await Promise.all(
+        DEFAULT_CATEGORIES.map((catName) =>
+          ResourceCategory.findOneAndUpdate(
+            { categoryName: catName },
+            { categoryName: catName },
+            { upsert: true, new: true }
+          )
+        )
+      );
+      categories = await ResourceCategory.find().sort({ categoryName: 1 });
+    }
+
     return res.status(200).json({ success: true, count: categories.length, data: categories });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to fetch categories", error: error.message });
@@ -139,7 +286,7 @@ export const createCategory = async (req, res) => {
     const { categoryName } = req.body;
     if (!categoryName) return res.status(400).json({ success: false, message: "categoryName is required." });
 
-    const existing = await ResourceCategory.findOne({ categoryName: new RegExp(`^${categoryName}$`, "i") });
+    const existing = await ResourceCategory.findOne({ categoryName: new RegExp(`^${categoryName.trim()}$`, "i") });
     if (existing) return res.status(409).json({ success: false, message: "Category already exists." });
 
     const category = await ResourceCategory.create({ categoryName: categoryName.trim() });
@@ -161,5 +308,100 @@ export const deleteCategory = async (req, res) => {
     return res.status(200).json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Failed to delete category", error: error.message });
+  }
+};
+
+// ---------- DOWNLOAD / STREAM RESOURCE FILE ----------
+export const downloadResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid resource ID." });
+    }
+
+    const resource = await Resource.findById(id);
+    if (!resource || !resource.file) {
+      return res.status(404).json({ success: false, message: "Resource or file not found." });
+    }
+
+    const fileUrl = resource.file;
+    const cleanFileName = (resource.fileName || resource.title || "document")
+      .trim()
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+    const ext = (resource.fileType || "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const finalFileName = cleanFileName.includes(".")
+      ? cleanFileName
+      : `${cleanFileName}.${ext === "vid" ? "mp4" : ext || "pdf"}`;
+
+    // 1. Generate signed Cloudinary URL on server for privileged fetch
+    let fetchUrl = fileUrl;
+    let publicId = resource.publicId;
+    if (!publicId && fileUrl.includes("cloudinary.com")) {
+      const parts = fileUrl.split("/upload/");
+      if (parts[1]) {
+        publicId = parts[1].replace(/^v\d+\//, "");
+      }
+    }
+
+    if (publicId) {
+      try {
+        const isImage = fileUrl.includes("/image/upload/");
+        const signedUrl = cloudinary.url(publicId, {
+          sign_url: true,
+          resource_type: isImage ? "image" : "raw",
+          type: "upload",
+          secure: true,
+        });
+        if (signedUrl) {
+          fetchUrl = signedUrl;
+        }
+      } catch (signErr) {
+        console.warn("Cloudinary URL signing warning:", signErr);
+      }
+    }
+
+    // 2. Fetch the file server-to-server and stream binary directly to browser
+    let response = await fetch(fetchUrl);
+    if (!response.ok && fetchUrl !== fileUrl) {
+      response = await fetch(fileUrl);
+    }
+
+    if (!response.ok) {
+      // If fetching the image URL failed, attempt fetching from raw endpoint
+      if (fileUrl.includes("/image/upload/")) {
+        const rawUrl = fileUrl.replace("/image/upload/", "/raw/upload/");
+        const rawRes = await fetch(rawUrl);
+        if (rawRes.ok) {
+          const arrayBuffer = await rawRes.arrayBuffer();
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader("Content-Disposition", `inline; filename="${finalFileName}"`);
+          return res.send(Buffer.from(arrayBuffer));
+        }
+      }
+
+      return res.status(response.status).json({
+        success: false,
+        message: `Failed to stream file from storage (${response.statusText})`,
+      });
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const isPdf = finalFileName.toLowerCase().endsWith(".pdf");
+    const contentType = isPdf
+      ? "application/pdf"
+      : response.headers.get("content-type") || "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Disposition", `inline; filename="${finalFileName}"`);
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (error) {
+    console.error("Download Resource Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to stream resource file",
+      error: error.message,
+    });
   }
 };

@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 export const findStudentByEmail = async (email, excludeId = null) => {
   const query = { email: email.toLowerCase() };
   if (excludeId) {
-    query._id = { $ne: excludeId };
+    query._id = { $ne: excludeId }; // $ne = Not Equal (Update ke waqt apna ID chhor kar doosron mein dhoondo)
   }
   return await Student.findOne(query);
 };
@@ -71,7 +71,12 @@ export const createStudentService = async (studentData) => {
 };
 
 // Get all students with pagination, search, and populate
-export const getStudentsService = async ({ page = 1, limit = 500, search = "" }) => {
+export const getStudentsService = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+}) => {
+  // pagination skip formula
   const skip = (page - 1) * limit;
   let query = {};
 
@@ -133,7 +138,8 @@ export const updateStudentService = async (id, updateData) => {
   if (updateData.firstName) student.firstName = updateData.firstName.trim();
   if (updateData.lastName) student.lastName = updateData.lastName.trim();
   if (updateData.email) student.email = updateData.email.toLowerCase().trim();
-  if (updateData.phoneNumber) student.phoneNumber = updateData.phoneNumber.trim();
+  if (updateData.phoneNumber)
+    student.phoneNumber = updateData.phoneNumber.trim();
   if (updateData.gender) student.gender = updateData.gender;
   if (updateData.dateOfBirth) student.dateOfBirth = updateData.dateOfBirth;
   if (updateData.batchId) {
@@ -160,6 +166,10 @@ export const updateStudentService = async (id, updateData) => {
     student.mentorId = updateData.mentorId;
   }
 
+  if (updateData.profilePicture !== undefined) {
+    student.profilePicture = updateData.profilePicture;
+  }
+
   if (updateData.password) {
     student.password = await bcrypt.hash(updateData.password, 10);
   }
@@ -176,7 +186,7 @@ export const updateStudentStatusService = async (id, status) => {
   return await Student.findByIdAndUpdate(
     id,
     { status },
-    { returnDocument: "after", runValidators: true }
+    { returnDocument: "after", runValidators: true },
   ).select("-password");
 };
 

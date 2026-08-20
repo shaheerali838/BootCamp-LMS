@@ -7,10 +7,43 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { useActivityLog } from "../../../../context/SystemContext";
+import { useBatches, useStudents } from "../../../../context/AcademicContext";
+import { useTeamProject } from "../../../../context/TeamProjectContext";
 
 function SystemActivity() {
-  const { activities } = useActivityLog();
+  const { activities: localActivities = [] } = useActivityLog();
+  const { batches = [] } = useBatches();
+  const { students = [] } = useStudents();
+  const { projects = [] } = useTeamProject();
   const [page, setPage] = useState(1);
+
+  const activities = [
+    ...localActivities,
+    ...batches.slice(0, 4).map((b) => ({
+      id: `b-${b._id || b.id}`,
+      action: `Batch cohort active (${b.batchName})`,
+      actor: "Academic Admin",
+      timestamp: b.createdAt
+        ? new Date(b.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })
+        : "Recent",
+    })),
+    ...students.slice(0, 4).map((s) => ({
+      id: `s-${s._id || s.id}`,
+      action: `Student enrolled (${s.firstName} ${s.lastName || ""})`,
+      actor: "Registration Portal",
+      timestamp: s.createdAt
+        ? new Date(s.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })
+        : "Recent",
+    })),
+    ...projects.slice(0, 4).map((p) => ({
+      id: `p-${p._id || p.id}`,
+      action: `Project registered (${p.projectName || p.name})`,
+      actor: "Team Lead",
+      timestamp: p.createdAt
+        ? new Date(p.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })
+        : "Recent",
+    })),
+  ];
 
   const itemsPerPage = 4;
 

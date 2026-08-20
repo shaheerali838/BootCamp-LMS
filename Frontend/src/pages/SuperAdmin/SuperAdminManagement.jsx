@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiShield, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
+import { FiShield, FiPlus, FiTrash2, FiEdit2, FiSearch, FiEye, FiEyeOff } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
 
 function SuperAdminManagement() {
@@ -13,6 +13,7 @@ function SuperAdminManagement() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (fetchAdmins) fetchAdmins();
@@ -190,8 +191,12 @@ function SuperAdminManagement() {
                 className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center">
-                    {adminName.slice(0, 2).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-purple-200 shadow-2xs">
+                    {item.profilePicture || item.profileImage || item.image ? (
+                      <img src={item.profilePicture || item.profileImage || item.image} alt={adminName} className="w-full h-full object-cover" />
+                    ) : (
+                      adminName.slice(0, 2).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <div className="font-bold text-gray-900">{adminName}</div>
@@ -317,16 +322,27 @@ function SuperAdminManagement() {
                   <label className="block font-semibold text-gray-700 mb-1">
                     Password *
                   </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-purple-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={6}
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      placeholder="e.g. SuperAdmin@123"
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                      title={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                    </button>
+                  </div>
                 </div>
               )}
 

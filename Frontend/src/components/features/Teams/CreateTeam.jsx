@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useBatches, useStudents } from "../../../context/AcademicContext";
 import { useAdmins } from "../../../context/SystemContext";
-import { FiUsers, FiX, FiCheck } from "react-icons/fi";
+import { FiUsers, FiX, FiCheck, FiLoader } from "react-icons/fi";
 
 function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
   const edit = initialData || editingTeam;
@@ -348,16 +348,23 @@ function CreateTeam({ closeModal, initialData = null, editingTeam = null }) {
               type="button"
               onClick={closeModal}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition cursor-pointer text-xs"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition cursor-pointer text-xs disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer text-xs disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer text-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? "Saving..." : edit ? "Save Changes" : "Create Team"}
+              {submitting ? (
+                <>
+                  <FiLoader size={14} className="animate-spin" />
+                  <span>{edit ? "Updating Team..." : "Creating Team..."}</span>
+                </>
+              ) : (
+                <span>{edit ? "Save Changes" : "Create Team"}</span>
+              )}
             </button>
           </div>
         </form>

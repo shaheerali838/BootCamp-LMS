@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink } from "react-icons/fi";
+import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink, FiLoader } from "react-icons/fi";
 import { useTasks } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useAuth } from "../../context/AuthContext";
@@ -50,24 +50,33 @@ function MyTasks() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [submissionUrl, setSubmissionUrl] = useState("");
   const [submissionNotes, setSubmissionNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const filteredTasks = studentTasks.filter((task) => {
     if (filter === "All") return true;
     return task.status === filter;
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedTask || !submissionUrl) return;
 
-    submitDeliverable(selectedTask._id || selectedTask.id, {
-      url: submissionUrl,
-      notes: submissionNotes,
-    });
+    setSubmitting(true);
+    try {
+      await submitDeliverable(selectedTask._id || selectedTask.id, {
+        url: submissionUrl,
+        notes: submissionNotes,
+      });
 
-    setSelectedTask(null);
-    setSubmissionUrl("");
-    setSubmissionNotes("");
+      setSelectedTask(null);
+      setSubmissionUrl("");
+      setSubmissionNotes("");
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert(err?.response?.data?.message || err?.message || "Failed to submit deliverable.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -217,15 +226,24 @@ function MyTasks() {
                 <button
                   type="button"
                   onClick={() => setSelectedTask(null)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  disabled={submitting}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow"
+                  disabled={submitting}
+                  className="flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Confirm Submission
+                  {submitting ? (
+                    <>
+                      <FiLoader size={13} className="animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Submission</span>
+                  )}
                 </button>
               </div>
             </form>

@@ -56,7 +56,17 @@ function StudentStats() {
 
   // Filter student projects & tasks
   const studentProjects = projects.filter((p) => {
-    const pTeamId = String(p.teamId || (typeof p.batch === "object" ? p.batch?._id : p.batch) || "");
+    const pTeamId = String(
+      p.teamId?._id ||
+      p.teamId?.id ||
+      (typeof p.teamId === "string" ? p.teamId : null) ||
+      p.team?._id ||
+      p.team?.id ||
+      (typeof p.team === "string" ? p.team : null) ||
+      (typeof p.batch === "object" ? p.batch?._id : p.batch) ||
+      p.batchId ||
+      ""
+    );
     return pTeamId && studentTeamIds.has(pTeamId);
   });
 

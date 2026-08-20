@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiX, FiClipboard } from "react-icons/fi";
+import { FiX, FiClipboard, FiLoader } from "react-icons/fi";
 import { useStudents } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 import { useSprints } from "../../../context/WorkContext";
@@ -73,6 +73,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
   }, [taskToAssign, teams, students, sprints]);
 
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +84,7 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
     setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -116,19 +117,22 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
       assignedBy: "Admin",
     };
 
+    setSubmitting(true);
     try {
       if (taskToAssign) {
-        onAssign({
+        await onAssign({
           id: taskToAssign._id || taskToAssign.id,
           ...taskToAssign,
           ...payload,
         });
       } else {
-        onAssign(payload);
+        await onAssign(payload);
       }
       onClose();
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || "Failed to save task.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -357,16 +361,25 @@ function AssignTaskModal({ onClose, onAssign, taskToAssign = null }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 cursor-pointer"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer"
+              disabled={submitting}
+              className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {taskToAssign ? "Save Changes" : "Create Task"}
+              {submitting ? (
+                <>
+                  <FiLoader size={14} className="animate-spin" />
+                  <span>{taskToAssign ? "Updating Task..." : "Creating Task..."}</span>
+                </>
+              ) : (
+                <span>{taskToAssign ? "Save Changes" : "Create Task"}</span>
+              )}
             </button>
           </div>
         </form>

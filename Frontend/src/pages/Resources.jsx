@@ -1,121 +1,138 @@
-import React, { useMemo, useState } from "react";
-import { FiSearch, FiUpload, FiX, FiEdit2 } from "react-icons/fi";
+import React, { useMemo, useState, useEffect } from "react";
+import { FiSearch, FiUpload, FiX, FiEdit2, FiBookOpen } from "react-icons/fi";
 
 import ResourceCard from "../components/features/Resources/ResourceCard";
 import UploadResourceModal from "../components/features/Resources/UploadResourceModal";
 import { useResources } from "../context/SystemContext";
 
 function Resources() {
-  const { resources, fetchResources, setResources, addResource, updateResource } = useResources();
+  const {
+    resources = [],
+    categories: apiCategories = [],
+    fetchResources,
+    addResource,
+    updateResource,
+    deleteResource,
+  } = useResources();
+
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchResources) fetchResources();
   }, [fetchResources]);
 
   // Edit state
   const [editingResource, setEditingResource] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    name: "",
-    category: "React",
-    type: "PDF",
+    title: "",
+    category: "",
+    fileType: "PDF",
   });
 
-  const categories = [
-    "All",
-    "React",
-    "Node.js",
-    "Database",
-    "JavaScript",
-    "Projects",
-    "Academic",
-    "CSS",
-    "Lectures",
-  ];
+  const categoriesList = useMemo(() => {
+    const list = ["All"];
+    if (apiCategories.length > 0) {
+      apiCategories.forEach((c) => {
+        const name = c.categoryName || c.name;
+        if (name && !list.includes(name)) list.push(name);
+      });
+    } else {
+      ["React", "Node.js", "Database", "JavaScript", "Projects", "Academic", "CSS", "Lectures"].forEach((c) => {
+        if (!list.includes(c)) list.push(c);
+      });
+    }
+    return list;
+  }, [apiCategories]);
 
   const filteredResources = useMemo(() => {
-    const value = search.toLowerCase();
+    const value = search.toLowerCase().trim();
 
-    return resources.filter((resource) => {
+    return (resources || []).filter((resource) => {
+      const name = (resource.title || resource.name || "").toLowerCase();
+      const desc = (resource.description || "").toLowerCase();
+      const cat = (
+        typeof resource.category === "object"
+          ? resource.category?.categoryName || ""
+          : resource.category || ""
+      ).toLowerCase();
+
       const matchesSearch =
-        resource.name.toLowerCase().includes(value) ||
-        resource.category.toLowerCase().includes(value);
+        !value || name.includes(value) || desc.includes(value) || cat.includes(value);
+
+      const actualCatName =
+        typeof resource.category === "object"
+          ? resource.category?.categoryName
+          : resource.category;
 
       const matchesCategory =
-        category === "All" || resource.category === category;
+        selectedCategory === "All" ||
+        actualCatName === selectedCategory ||
+        resource.category?._id === selectedCategory;
 
       return matchesSearch && matchesCategory;
     });
-  }, [resources, search, category]);
+  }, [resources, search, selectedCategory]);
 
-  const handleUpload = (file, selectedCategory) => {
-    const extension = file.name.split(".").pop()?.toUpperCase() || "FILE";
-    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
-
-    const newResource = {
-      name: file.name,
-      size: `${sizeInMB} MB`,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      category: selectedCategory,
-      type: extension,
-    };
-
-    addResource(newResource);
+  const handleUpload = async (formData) => {
+    await addResource(formData);
   };
 
-  const handleDelete = (id) => {
-    setResources((previous) =>
-      previous.filter((resource) => resource.id !== id)
-    );
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this resource?")) {
+      try {
+        await deleteResource(id);
+      } catch (err) {
+        alert(err?.response?.data?.message || "Failed to delete resource");
+      }
+    }
   };
 
   const handleOpenEdit = (resource) => {
     setEditingResource(resource);
     setEditFormData({
-      name: resource.name,
-      category: resource.category,
-      type: resource.type,
+      title: resource.title || resource.name || "",
+      category: resource.category?._id || resource.category || "",
+      fileType: resource.fileType || resource.type || "PDF",
     });
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (editingResource && updateResource) {
-      updateResource(editingResource.id, editFormData);
+      try {
+        const id = editingResource._id || editingResource.id;
+        await updateResource(id, editFormData);
+        setEditingResource(null);
+      } catch (err) {
+        alert(err?.response?.data?.message || "Failed to update resource");
+      }
     }
-    setEditingResource(null);
   };
 
   return (
     <div className="p-5 space-y-5">
       {/* Header */}
       <div>
-        
-
-        {/* Title */}
         <div className="flex items-center justify-between mt-3">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+              <FiBookOpen className="text-blue-600" />
               Resource Library
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Access and manage learning resources
+              Upload, preview, and access educational materials powered by Cloudinary
             </p>
           </div>
 
           {/* Upload Button */}
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition shadow-sm"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-sm cursor-pointer"
           >
-            <FiUpload size={18} />
-            Upload File
+            <FiUpload size={16} />
+            Upload PDF / Resource
           </button>
         </div>
       </div>
@@ -133,21 +150,21 @@ function Resources() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search resources..."
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg outline-none text-sm focus:border-blue-500"
+              placeholder="Search resources by title or category..."
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-50 transition"
             />
           </div>
 
           {/* Categories */}
           <div className="flex flex-wrap gap-2">
-            {categories.map((item) => (
+            {categoriesList.map((item) => (
               <button
                 key={item}
-                onClick={() => setCategory(item)}
-                className={`px-4 py-2 rounded-full text-xs font-medium transition ${
-                  category === item
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                onClick={() => setSelectedCategory(item)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
+                  selectedCategory === item
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 {item}
@@ -161,7 +178,7 @@ function Resources() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {filteredResources.map((resource) => (
           <ResourceCard
-            key={resource.id}
+            key={resource._id || resource.id}
             resource={resource}
             onDelete={handleDelete}
             onEdit={handleOpenEdit}
@@ -171,9 +188,12 @@ function Resources() {
 
       {/* Empty State */}
       {filteredResources.length === 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl py-12 text-center">
-          <FiSearch size={30} className="mx-auto text-gray-300" />
-          <p className="text-sm text-gray-500 mt-3">No resources found.</p>
+        <div className="bg-white border border-gray-200 rounded-2xl py-14 text-center">
+          <FiBookOpen size={36} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-sm font-semibold text-gray-700">No resources found</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Try adjusting your search or upload a new PDF document.
+          </p>
         </div>
       )}
 
@@ -190,35 +210,35 @@ function Resources() {
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                 <FiEdit2 className="text-blue-600" /> Edit Learning Resource
               </h2>
               <button
                 onClick={() => setEditingResource(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-1"
               >
-                <FiX size={20} />
+                <FiX size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="space-y-4 mt-4">
+            <form onSubmit={handleSaveEdit} className="space-y-4 mt-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Resource Name *
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Resource Title *
                 </label>
                 <input
                   type="text"
                   required
-                  value={editFormData.name}
+                  value={editFormData.title}
                   onChange={(e) =>
-                    setEditFormData({ ...editFormData, name: e.target.value })
+                    setEditFormData({ ...editFormData, title: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block font-semibold text-gray-700 mb-1">
                   Category
                 </label>
                 <select
@@ -226,29 +246,35 @@ function Resources() {
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, category: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500 bg-white"
                 >
-                  <option value="React">React</option>
-                  <option value="Node.js">Node.js</option>
-                  <option value="Database">Database</option>
-                  <option value="JavaScript">JavaScript</option>
-                  <option value="Projects">Projects</option>
-                  <option value="Academic">Academic</option>
-                  <option value="CSS">CSS</option>
-                  <option value="Lectures">Lectures</option>
+                  {apiCategories.length > 0 ? (
+                    apiCategories.map((c) => (
+                      <option key={c._id || c.id} value={c._id || c.id}>
+                        {c.categoryName || c.name}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="React">React</option>
+                      <option value="Node.js">Node.js</option>
+                      <option value="Database">Database</option>
+                      <option value="JavaScript">JavaScript</option>
+                    </>
+                  )}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block font-semibold text-gray-700 mb-1">
                   Format Type
                 </label>
                 <select
-                  value={editFormData.type}
+                  value={editFormData.fileType}
                   onChange={(e) =>
-                    setEditFormData({ ...editFormData, type: e.target.value })
+                    setEditFormData({ ...editFormData, fileType: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500 bg-white"
                 >
                   <option value="PDF">PDF</option>
                   <option value="VID">VID (Video)</option>
@@ -262,13 +288,13 @@ function Resources() {
                 <button
                   type="button"
                   onClick={() => setEditingResource(null)}
-                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow"
+                  className="px-5 py-2 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow cursor-pointer"
                 >
                   Save Changes
                 </button>

@@ -1,20 +1,29 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiFileText, FiFolder } from "react-icons/fi";
+import { FiFileText, FiFolder, FiDownload, FiExternalLink } from "react-icons/fi";
 import { useResources } from "../../../../context/SystemContext";
+import { downloadResourceFile } from "../../../../utils/downloadHelper";
 
 function RecentResources() {
   const { resources = [] } = useResources();
+  const [downloadingId, setDownloadingId] = React.useState(null);
 
   const list = resources.slice(0, 4).map((r, i) => ({
     id: r._id || r.id || i,
     name: r.name || r.title || "Resource File",
-    subtitle: `${r.type || "Document"} • ${r.size || "1.2 MB"}`,
+    type: r.fileType || r.type || "PDF",
+    fileUrl: r.file || r.fileUrl || r.url || r.link,
+    fileName: r.fileName || r.title || r.name || "Resource File",
+    subtitle: `${r.fileType || r.type || "Document"} • ${r.fileSize || r.size || "1.2 MB"}`,
     iconColor:
       i % 2 === 0
         ? "text-blue-600 bg-blue-50 border-blue-100"
         : "text-amber-600 bg-amber-50 border-amber-100",
   }));
+
+  const handleDownload = (item) => {
+    downloadResourceFile(item);
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
@@ -40,21 +49,33 @@ function RecentResources() {
           {list.map((item) => (
             <div
               key={item.id}
-              className="border border-gray-100 rounded-xl p-3 bg-gray-50/40 hover:bg-white hover:border-gray-200 transition flex items-center gap-3"
+              className="border border-gray-100 rounded-xl p-3 bg-gray-50/40 hover:bg-white hover:border-gray-200 transition flex items-center justify-between gap-3 group"
             >
-              <div
-                className={`w-9 h-9 rounded-lg border ${item.iconColor} flex items-center justify-center shrink-0`}
-              >
-                <FiFileText size={18} />
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-9 h-9 rounded-lg border ${item.iconColor} flex items-center justify-center shrink-0`}
+                >
+                  <FiFileText size={18} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs font-bold text-gray-900 truncate group-hover:text-blue-600 transition" title={item.name}>
+                    {item.name}
+                  </h3>
+                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">
+                    {item.subtitle}
+                  </p>
+                </div>
               </div>
-              <div className="overflow-hidden">
-                <h3 className="text-xs font-bold text-gray-900 truncate">
-                  {item.name}
-                </h3>
-                <p className="text-[10px] font-medium text-gray-400 mt-0.5">
-                  {item.subtitle}
-                </p>
-              </div>
+
+              {item.fileUrl && (
+                <button
+                  onClick={() => handleDownload(item)}
+                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition shrink-0 cursor-pointer"
+                  title="Open / Download in New Tab"
+                >
+                  <FiExternalLink size={16} />
+                </button>
+              )}
             </div>
           ))}
         </div>

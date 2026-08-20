@@ -14,6 +14,7 @@ import evaluationRoutes from "../modules/evaluations/evaluation.routes.js";
 import reportRoutes from "../modules/reports/report.routes.js";
 import announcementRoutes from "../modules/announcements/announcement.routes.js";
 import resourceRoutes from "../modules/resources/resource.routes.js";
+import attendanceRoutes from "../modules/attendance/attendance.routes.js";
 
 const mainRouter = express.Router();
 
@@ -52,5 +53,8 @@ mainRouter.use("/announcements", announcementRoutes);
 
 //resources
 mainRouter.use("/resources", resourceRoutes);
+
+//attendance
+mainRouter.use("/attendance", attendanceRoutes);
 
 export default mainRouter;

@@ -1,13 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute, { getRoleDashboard, getNormalizedRole } from "./ProtectedRoute";
 
-// Auth Pages
-import LoginPages from "../pages/Auth/LoginPages";
-import ForgotPassword from "../pages/Auth/ForgetPassword";
-import ResetPassword from "../pages/Auth/ResetPassword";
-import ChangePassword from "../pages/Auth/ChangePassword";
-
-// Admin Pages
+// ================= ADMIN PAGES =================
 import Dashboard from "../pages/Dashboard";
 import StudentManagement from "../pages/Students";
 import StudentDetails from "../components/features/Students/StudentDetails";
@@ -18,16 +13,16 @@ import Resources from "../pages/Resources";
 import Deliverables from "../pages/Deliverables";
 import Evaluations from "../pages/Evaluations";
 
-// Team
+// ================= TEAM =================
 import TeamManagement from "../components/features/Teams/TeamManagement";
 import TeamDetails from "../components/features/Teams/TeamDetail";
 
-// Projects & Announcements
+// ================= PROJECTS & ANNOUNCEMENTS =================
 import ProjectManagement from "../components/features/Projects/ProjectManagement";
 import ProjectDetail from "../components/features/Projects/ProjectDetail";
 import Announcement from "../components/features/Announcements/Announcement";
 
-// Student Layer
+// ================= STUDENT PAGES =================
 import StudentDashboard from "../pages/Student/StudentDashboard";
 import MyAttendance from "../pages/Student/MyAttendance";
 import MyTasks from "../pages/Student/MyTasks";
@@ -41,14 +36,12 @@ import MySprints from "../pages/Student/MySprints";
 import MyDeliverables from "../pages/Student/MyDeliverables";
 import MyEvaluation from "../pages/Student/MyEvaluation";
 
-// SuperAdmin Layer
+// ================= SUPER ADMIN PAGES =================
 import SuperAdminDashboard from "../pages/SuperAdmin/SuperAdminDashboard";
 import SuperAdminManagement from "../pages/SuperAdmin/SuperAdminManagement";
 import AdminManagement from "../pages/SuperAdmin/AdminManagement";
 import SuperAdminStudentManagement from "../pages/SuperAdmin/StudentManagement";
 import BatchManagement from "../pages/SuperAdmin/BatchManagement";
-import SuperAdminTeamManagement from "../pages/SuperAdmin/TeamManagement";
-import SuperAdminProjectManagement from "../pages/SuperAdmin/ProjectManagement";
 import MilestoneManagement from "../pages/SuperAdmin/MilestoneManagement";
 import SprintManagement from "../pages/SuperAdmin/SprintManagement";
 import AttendanceOverview from "../pages/SuperAdmin/AttendanceOverview";
@@ -56,17 +49,20 @@ import SuperAdminReports from "../pages/SuperAdmin/Reports";
 import SuperAdminResources from "../pages/SuperAdmin/Resources";
 import SystemConfiguration from "../pages/SuperAdmin/SystemConfiguration";
 
+// ================= SHARED PROFILE PAGES =================
+import Profile from "../pages/profile/Profile";
+import ChangePassword from "../pages/profile/ChangePassword";
+
 import { useAuth } from "../context/AuthContext";
 
 function RoleDashboardRouter() {
   const { user } = useAuth();
-  const rawRole = user?.role || (user?.rollNumber || user?.rollNo ? "STUDENT" : "");
-  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
+  const role = getNormalizedRole(user);
 
-  if (role === "student") {
+  if (role === "STUDENT") {
     return <Navigate to="/student/dashboard" replace />;
   }
-  if (role === "superadmin") {
+  if (role === "SUPERADMIN") {
     return <Navigate to="/superadmin/dashboard" replace />;
   }
   return <Dashboard />;
@@ -74,82 +70,416 @@ function RoleDashboardRouter() {
 
 function RootRouter() {
   const { user, isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-  const rawRole = user?.role || (user?.rollNumber || user?.rollNo ? "STUDENT" : "");
-  const role = String(rawRole).toLowerCase().replace(/[\s_]+/g, "");
-
-  if (role === "superadmin") return <Navigate to="/superadmin/dashboard" replace />;
-  if (role === "student") return <Navigate to="/student/dashboard" replace />;
-  return <Navigate to="/dashboard" replace />;
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Navigate to={getRoleDashboard(user)} replace />;
 }
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* ================= AUTH ROUTES ================= */}
-      <Route path="/login" element={<LoginPages />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/change-password" element={<ChangePassword />} />
+      {/* ================= SHARED PROTECTED ROUTES (ANY AUTHENTICATED USER) ================= */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/student/profile" element={<Navigate to="/profile" replace />} />
+      <Route path="/superadmin/profile" element={<Navigate to="/profile" replace />} />
+      <Route path="/student/change-password" element={<Navigate to="/change-password" replace />} />
+      <Route path="/superadmin/change-password" element={<Navigate to="/change-password" replace />} />
 
-      {/* ================= ADMIN ROUTES ================= */}
-      <Route path="/dashboard" element={<RoleDashboardRouter />} />
-      <Route path="/students" element={<StudentManagement />} />
-      <Route path="/students/:id" element={<StudentDetails />} />
-      <Route path="/batches" element={<BatchManagement />} />
-      <Route path="/attendance" element={<AttendanceManagement />} />
-      <Route path="/tasks" element={<Task />} />
-      <Route path="/milestones" element={<MilestoneManagement />} />
-      <Route path="/sprints" element={<SprintManagement />} />
-      <Route path="/deliverables" element={<Deliverables />} />
-      <Route path="/evaluations" element={<Evaluations />} />
-      <Route path="/teams" element={<TeamManagement />} />
-      <Route path="/teams/:id" element={<TeamDetails />} />
-      <Route path="/announcements" element={<Announcement />} />
-      <Route path="/projects" element={<ProjectManagement />} />
-      <Route path="/projects/:id" element={<ProjectDetail />} />
+      {/* ================= ADMIN & MENTOR ROUTES ================= */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <RoleDashboardRouter />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/students"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <StudentManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/students/:id"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <StudentDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/batches"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <BatchManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <AttendanceManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Task />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <MilestoneManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sprints"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <SprintManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/deliverables"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Deliverables />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/evaluations"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Evaluations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teams"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <TeamManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teams/:id"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <TeamDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Announcement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <ProjectManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/:id"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <ProjectDetail />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/project" element={<Navigate to="/projects" replace />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/resources" element={<Resources />} />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Reports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/resources"
+        element={
+          <ProtectedRoute allowedRoles={["ADMIN", "MENTOR"]}>
+            <Resources />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/dashboard/Student_Managemnt" element={<Navigate to="/students" replace />} />
 
       {/* ================= STUDENT ROUTES ================= */}
       <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
-      <Route path="/student/team" element={<MyTeam />} />
-      <Route path="/student/projects" element={<MyProjects />} />
-      <Route path="/student/tasks" element={<MyTasks />} />
-      <Route path="/student/milestones" element={<MyMilestones />} />
-      <Route path="/student/sprints" element={<MySprints />} />
-      <Route path="/student/deliverables" element={<MyDeliverables />} />
-      <Route path="/student/attendance" element={<MyAttendance />} />
-      <Route path="/student/evaluation" element={<MyEvaluation />} />
-      <Route path="/student/resources" element={<StudentResources />} />
-      <Route path="/student/announcements" element={<StudentAnnouncements />} />
-      <Route path="/student/reports" element={<StudentReports />} />
+      <Route
+        path="/student/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/team"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyTeam />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/projects"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyProjects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/tasks"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyTasks />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyMilestones />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/sprints"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MySprints />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/deliverables"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyDeliverables />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/attendance"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/evaluation"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <MyEvaluation />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/resources"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <StudentResources />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/announcements"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <StudentAnnouncements />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/reports"
+        element={
+          <ProtectedRoute allowedRoles={["STUDENT"]}>
+            <StudentReports />
+          </ProtectedRoute>
+        }
+      />
 
       {/* ================= SUPER ADMIN ROUTES ================= */}
       <Route path="/superadmin" element={<Navigate to="/superadmin/dashboard" replace />} />
-      <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
-      <Route path="/superadmin/super-admins" element={<SuperAdminManagement />} />
-      <Route path="/superadmin/admins" element={<AdminManagement />} />
-      <Route path="/superadmin/students" element={<SuperAdminStudentManagement />} />
-      <Route path="/superadmin/batches" element={<BatchManagement />} />
-      <Route path="/superadmin/teams" element={<TeamManagement />} />
-      <Route path="/superadmin/teams/:id" element={<TeamDetails />} />
-      <Route path="/superadmin/projects" element={<ProjectManagement />} />
-      <Route path="/superadmin/projects/:id" element={<ProjectDetail />} />
-      <Route path="/superadmin/tasks" element={<Task />} />
-      <Route path="/superadmin/milestones" element={<MilestoneManagement />} />
-      <Route path="/superadmin/sprints" element={<SprintManagement />} />
-      <Route path="/superadmin/attendance" element={<AttendanceOverview />} />
-      <Route path="/superadmin/reports" element={<SuperAdminReports />} />
-      <Route path="/superadmin/resources" element={<SuperAdminResources />} />
-      <Route path="/superadmin/announcements" element={<Announcement />} />
-      <Route path="/superadmin/configuration" element={<SystemConfiguration />} />
+      <Route
+        path="/superadmin/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/super-admins"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SuperAdminManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/admins"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <AdminManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/students"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SuperAdminStudentManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/batches"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <BatchManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/teams"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <TeamManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/teams/:id"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <TeamDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/projects"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <ProjectManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/projects/:id"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <ProjectDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/tasks"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <Task />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/milestones"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <MilestoneManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/sprints"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SprintManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/attendance"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <AttendanceOverview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/reports"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SuperAdminReports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/resources"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SuperAdminResources />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/announcements"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <Announcement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/superadmin/configuration"
+        element={
+          <ProtectedRoute allowedRoles={["SUPERADMIN"]}>
+            <SystemConfiguration />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* ================= DEFAULT & 404 ================= */}
+      {/* ================= DEFAULT & 404 CATCH-ALL ================= */}
       <Route path="/" element={<RootRouter />} />
       <Route path="*" element={<RootRouter />} />
     </Routes>

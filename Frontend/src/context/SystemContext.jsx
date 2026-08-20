@@ -4,19 +4,6 @@ import { useAuth } from "./AuthContext";
 
 const SystemContext = createContext();
 
-// ── Static local data (no backend route) ──────────────────
-const initialRegistrationData = [
-  { id: 1, name: "Ali Hassan", role: "Student", email: "ali.hassan@smit.edu", date: "Aug 12, 2026", status: "Approved" },
-  { id: 2, name: "Sara Bilal", role: "Super Admin", email: "superadmin@smit.edu.pk", date: "Aug 11, 2026", status: "Approved" },
-  { id: 3, name: "Sir Usman", role: "Mentor", email: "usman@smit.edu.pk", date: "Aug 10, 2026", status: "Approved" },
-];
-
-const initialActivityData = [
-  { id: 1, action: "New batch created (Batch 12 - Mobile App Dev)", actor: "Sara Bilal (SuperAdmin)", timestamp: "10 mins ago", type: "batch" },
-  { id: 2, action: "New student registered (Ali Hassan)", actor: "Sir Ahmed", timestamp: "1 hour ago", type: "student" },
-  { id: 3, action: "New project added (Hackathon Portal)", actor: "Sir Bilal", timestamp: "3 hours ago", type: "project" },
-];
-
 export const SystemProvider = ({ children }) => {
   const { accessToken, user } = useAuth();
 
@@ -205,20 +192,32 @@ export const SystemProvider = ({ children }) => {
   const addResource = async (newResource) => {
     setResourcesLoading(true);
     try {
-      const res = await api.post("/resources/create-resource", {
-        title: newResource.title || newResource.name,
-        description: newResource.description || newResource.name,
-        file: newResource.file || newResource.url || "",
-        fileType: newResource.fileType || newResource.type || "PDF",
-        category: newResource.categoryId || newResource.category,
-      });
+      let res;
+      if (newResource instanceof FormData) {
+        res = await api.post("/resources/create-resource", newResource, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("title", newResource.title || newResource.name || "");
+        formData.append("description", newResource.description || newResource.title || newResource.name || "");
+        formData.append("fileType", newResource.fileType || newResource.type || "PDF");
+        formData.append("category", newResource.categoryId || newResource.category || "");
+        if (newResource.file) {
+          formData.append("file", newResource.file);
+        }
+        res = await api.post("/resources/create-resource", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
       // Invalidate & refetch
       await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
       console.error("Failed to add resource:", err);
-      setResourcesError(err.response?.data?.message || "Failed to create resource");
+      const msg = err.response?.data?.message || err.message || "Failed to create resource";
+      setResourcesError(msg);
       throw err;
     } finally {
       setResourcesLoading(false);
@@ -228,14 +227,22 @@ export const SystemProvider = ({ children }) => {
   const updateResource = async (id, updatedData) => {
     setResourcesLoading(true);
     try {
-      const res = await api.put(`/resources/update-resource/${id}`, updatedData);
+      let res;
+      if (updatedData instanceof FormData) {
+        res = await api.put(`/resources/update-resource/${id}`, updatedData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        res = await api.put(`/resources/update-resource/${id}`, updatedData);
+      }
       // Invalidate & refetch
       await fetchResources();
       setResourcesError(null);
       return res.data;
     } catch (err) {
       console.error("Failed to update resource:", err);
-      setResourcesError(err.response?.data?.message || "Failed to update resource");
+      const msg = err.response?.data?.message || err.message || "Failed to update resource";
+      setResourcesError(msg);
       throw err;
     } finally {
       setResourcesLoading(false);
@@ -292,8 +299,8 @@ export const SystemProvider = ({ children }) => {
   }, [accessToken, fetchAdmins, fetchMentors, fetchResources]);
 
   // ── Registration & Activity Log (local only) ───────────────
-  const [registrations, setRegistrations] = useState(initialRegistrationData);
-  const [activities, setActivities] = useState(initialActivityData);
+  const [registrations, setRegistrations] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   const addRegistrationLog = (log) => {
     setRegistrations((prev) => [{
