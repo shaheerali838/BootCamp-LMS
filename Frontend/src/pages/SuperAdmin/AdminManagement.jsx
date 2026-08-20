@@ -96,7 +96,11 @@ function AdminManagement() {
       email: admin.email || "",
       phoneNumber: admin.phoneNumber || admin.phone || "",
       password: "",
-      role: (admin.role || "ADMIN").toUpperCase().replace(/[\s_]+/g, "") === "MENTOR" ? "MENTOR" : "ADMIN",
+      role:
+        (admin.role || "ADMIN").toUpperCase().replace(/[\s_]+/g, "") ===
+        "MENTOR"
+          ? "MENTOR"
+          : "ADMIN",
       status: admin.status || "active",
     });
     setModalError("");
@@ -117,7 +121,8 @@ function AdminManagement() {
       return;
     }
 
-    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
+    const fullName =
+      `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
     const payload = {
       ...formData,
       firstName: formData.firstName.trim(),
@@ -137,7 +142,11 @@ function AdminManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save administrator.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save administrator.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -223,7 +232,13 @@ function AdminManagement() {
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
                     {item.profilePicture || item.profileImage || item.image ? (
-                      <img src={item.profilePicture || item.profileImage || item.image} alt={adminName} className="w-full h-full object-cover" />
+                      <img
+                        src={
+                          item.profilePicture || item.profileImage || item.image
+                        }
+                        alt={adminName}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       adminName.slice(0, 2).toUpperCase()
                     )}
@@ -370,7 +385,11 @@ function AdminManagement() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
                       title={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                      {showPassword ? (
+                        <FiEyeOff size={16} />
+                      ) : (
+                        <FiEye size={16} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -405,7 +424,6 @@ function AdminManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500"
                   >
                     <option value="ADMIN">Admin</option>
-                    <option value="MENTOR">Mentor</option>
                   </select>
                 </div>
                 <div>
@@ -442,10 +460,16 @@ function AdminManagement() {
                   {submitting ? (
                     <>
                       <FiLoader size={14} className="animate-spin" />
-                      <span>{editingAdmin ? "Updating Administrator..." : "Saving Administrator..."}</span>
+                      <span>
+                        {editingAdmin
+                          ? "Updating Administrator..."
+                          : "Saving Administrator..."}
+                      </span>
                     </>
                   ) : (
-                    <span>{editingAdmin ? "Save Changes" : "Save Administrator"}</span>
+                    <span>
+                      {editingAdmin ? "Save Changes" : "Save Administrator"}
+                    </span>
                   )}
                 </button>
               </div>
