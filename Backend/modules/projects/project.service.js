@@ -1,4 +1,6 @@
 import Project from "../../model/project.model.js";
+import Team from "../../model/team.model.js";
+import TeamProject from "../../model/teamProject.model.js";
 
 // Create Project
 const createProject = async (projectData) => {
@@ -18,9 +20,46 @@ const teamPopulateConfig = {
 };
 // ======================================================================
 
+// Helper to build base filter based on requesting user role
+const buildUserProjectFilter = async (user, additionalFilter = {}) => {
+  if (user && (user.role === "STUDENT" || user.rollNumber)) {
+    const studentId = user._id;
+
+    // Find all teams where student is leader or member
+    const studentTeams = await Team.find({
+      $or: [{ teamLead: studentId }, { members: studentId }],
+    }).select("_id");
+
+    const teamIds = studentTeams.map((t) => t._id);
+
+    // Find all mapped team projects
+    const teamProjectMappings = await TeamProject.find({
+      teamId: { $in: teamIds },
+    }).select("projectId");
+
+    const mappedProjectIds = teamProjectMappings.map((tp) => tp.projectId);
+
+    // If student is not part of any team, they have 0 assigned projects
+    if (teamIds.length === 0 && mappedProjectIds.length === 0) {
+      return { _id: { $in: [] } }; // Match nothing
+    }
+
+    return {
+      ...additionalFilter,
+      $or: [
+        { teamId: { $in: teamIds } },
+        { _id: { $in: mappedProjectIds } },
+      ],
+    };
+  }
+
+  return additionalFilter;
+};
+
 // Get All Projects
-const getAllProjects = async () => {
-  return await Project.find()
+const getAllProjects = async (user = null) => {
+  const filter = await buildUserProjectFilter(user);
+  return await Project.find(filter)
     .populate("batch", "batchName")
     .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
@@ -55,29 +94,35 @@ const deleteProject = async (id) => {
 };
 
 // Search Project
-const searchProject = async (keyword) => {
-  return await Project.find({
+const searchProject = async (keyword, user = null) => {
+  const filter = await buildUserProjectFilter(user, {
     projectName: {
       $regex: keyword,
       $options: "i",
     },
-  })
+  });
+
+  return await Project.find(filter)
     .populate("batch", "batchName")
     .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
 // Get Projects by Batch
-const getProjectsByBatch = async (batchId) => {
-  return await Project.find({ batch: batchId })
+const getProjectsByBatch = async (batchId, user = null) => {
+  const filter = await buildUserProjectFilter(user, { batch: batchId });
+
+  return await Project.find(filter)
     .populate("batch", "batchName")
     .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");
 };
 
 // Get Projects by Status
-const getProjectsByStatus = async (status) => {
-  return await Project.find({ status })
+const getProjectsByStatus = async (status, user = null) => {
+  const filter = await buildUserProjectFilter(user, { status });
+
+  return await Project.find(filter)
     .populate("batch", "batchName")
     .populate(teamPopulateConfig)
     .populate("createdBy", "firstName lastName email");

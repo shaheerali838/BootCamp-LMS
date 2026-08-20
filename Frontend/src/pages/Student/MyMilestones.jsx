@@ -74,13 +74,13 @@ function MyMilestones() {
 
   const myProjectIds = new Set(myAssignedProjects.map((p) => String(p._id || p.id)));
 
-  // Filter milestones for student assigned projects (or all if open workspace)
+  // Filter milestones for student assigned projects
   const myMilestones = milestones.filter((m) => {
     const mProjId = String(m.projectId?._id || m.projectId?.id || (typeof m.projectId === "string" ? m.projectId : "") || "");
     if (myProjectIds.size > 0 && mProjId) {
       return myProjectIds.has(mProjId);
     }
-    return true;
+    return false;
   });
 
   const getProjectName = (projectId) => {

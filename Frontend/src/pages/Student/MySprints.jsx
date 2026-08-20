@@ -88,7 +88,7 @@ function MySprints() {
       .filter(Boolean)
   );
 
-  // Filter sprints belonging to student projects OR student tasks (or all sprints if open workspace)
+  // Filter sprints belonging to student projects OR student tasks
   const mySprints = sprints.filter((s) => {
     const sProjId = String(s.projectId?._id || s.projectId?.id || (typeof s.projectId === "string" ? s.projectId : "") || "");
     const sId = String(s._id || s.id || "");
@@ -98,7 +98,7 @@ function MySprints() {
     if (myTaskSprintIds.size > 0) {
       return myTaskSprintIds.has(sId);
     }
-    return true;
+    return false;
   });
 
   const getProjectName = (projectId) => {
