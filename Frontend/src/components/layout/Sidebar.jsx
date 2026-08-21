@@ -19,6 +19,7 @@ import {
   FiClock,
   FiSliders,
   FiChevronDown,
+  FiX,
 } from "react-icons/fi";
 
 import { useSidebar } from "../../context/SidebarContext";
@@ -271,6 +272,17 @@ const Sidebar = () => {
               </div>
             )}
           </div>
+
+          {/* Mobile Close Button (Mobile only, inside sidebar panel) */}
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="md:hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer border border-gray-200 flex items-center justify-center"
+            title="Close Navigation Menu"
+            aria-label="Close Navigation Menu"
+          >
+            <FiX size={18} />
+          </button>
 
           {/* Collapse toggle (Desktop only) */}
           <button

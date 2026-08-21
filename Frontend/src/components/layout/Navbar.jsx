@@ -101,15 +101,17 @@ function Navbar() {
     >
       {/* Left: Hamburger menu toggle button (mobile) + Breadcrumbs */}
       <div className="flex items-center gap-2 min-w-0">
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition cursor-pointer shrink-0 md:hidden border border-gray-200"
-          title="Toggle Navigation Menu"
-          aria-label="Toggle Navigation Menu"
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        {!isOpen && (
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition cursor-pointer shrink-0 md:hidden border border-gray-200"
+            title="Open Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <Breadcrumb />
       </div>
 
