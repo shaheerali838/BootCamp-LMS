@@ -7,14 +7,12 @@ function StatCard({ icon, iconBg, iconColor, value, label, path }) {
 
   return (
     <div
-
-      className={"bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between min-w-0 "
-     }
+      className="bg-white rounded-lg border border-gray-200 p-3 flex items-center justify-between gap-2 min-w-0"
     >
-      <div className="min-w-0">
-        <p className="text-lg font-semibold text-gray-800">{value}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-lg font-semibold text-gray-800 truncate">{value}</p>
 
-        <p className="text-[10px] font-medium text-gray-500 whitespace-nowrap">
+        <p className="text-[10px] font-medium text-gray-500 break-words leading-tight">
           {label}
         </p>
       </div>
@@ -24,7 +22,7 @@ function StatCard({ icon, iconBg, iconColor, value, label, path }) {
       >
         {icon}
       </div>
-    </div >
+    </div>
   );
 }
 

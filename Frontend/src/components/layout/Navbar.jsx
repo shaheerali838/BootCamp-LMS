@@ -12,10 +12,11 @@ import {
   GraduationCap,
   KeyRound,
   X,
+  Menu,
 } from "lucide-react";
 
 function Navbar() {
-  const { isOpen } = useSidebar();
+  const { isOpen, setIsOpen } = useSidebar();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -88,13 +89,26 @@ function Navbar() {
   return (
     <div
       className={`
-        h-16 flex items-center justify-between px-4 sm:px-6 border-b border-gray-200 bg-white
+        h-16 flex items-center justify-between px-3 sm:px-6 border-b border-gray-200 bg-white
         fixed top-0 right-0 z-20 transition-all duration-300
-        ${isOpen ? "left-70" : "left-22.5"}
+        ${isOpen ? "md:left-70 left-0" : "md:left-22.5 left-0"}
       `}
     >
-      {/* Left: Breadcrumbs navigation */}
-      <Breadcrumb />
+      {/* Left: Hamburger menu toggle button (mobile) + Breadcrumbs */}
+      <div className="flex items-center gap-2 min-w-0">
+        {!isOpen && (
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition cursor-pointer shrink-0 md:hidden border border-gray-200"
+            title="Open Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+        <Breadcrumb />
+      </div>
 
       {/* ================= RIGHT: USER PROFILE QUICK BADGE ================= */}
       <div className="relative" ref={dropdownRef}>

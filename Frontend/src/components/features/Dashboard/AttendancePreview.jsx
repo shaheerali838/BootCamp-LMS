@@ -192,69 +192,74 @@ function AttendancePreview() {
           />
         </div>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-5 px-3 py-2 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase mt-2 rounded-t-lg">
-          <span>Student</span>
-          <span>Team</span>
-          <span>Roll No.</span>
-          <span>Time</span>
-          <span className="text-right">Status</span>
-        </div>
+        {/* Table Container for Mobile Responsiveness */}
+        <div className="overflow-x-auto min-w-0 mt-2">
+          <div className="min-w-[480px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-5 px-3 py-2 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase rounded-t-lg">
+              <span>Student</span>
+              <span>Team</span>
+              <span>Roll No.</span>
+              <span>Time</span>
+              <span className="text-right">Status</span>
+            </div>
 
-        {/* Attendance Rows */}
-        <div className="divide-y divide-gray-100">
-          {displayedData.map((student) => (
-            <div
-              key={student.sid}
-              className="grid grid-cols-5 items-center px-3 py-2.5 hover:bg-gray-50/50 transition text-xs"
-            >
-              {/* Student */}
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                  {student.initials}
-                </div>
-                <span className="font-bold text-gray-900 truncate">
-                  {student.name}
-                </span>
-              </div>
-
-              {/* Team */}
-              <span
-                className={`truncate font-medium text-xs ${
-                  student.team !== "No Team"
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-400"
-                }`}
-              >
-                {student.team}
-              </span>
-
-              {/* Roll Number */}
-              <span className="text-gray-500 font-medium">
-                {student.rollNo}
-              </span>
-
-              {/* Time */}
-              <span className="text-gray-500 font-medium">{student.time}</span>
-
-              {/* Status */}
-              <div className="flex justify-end">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusStyle(
-                    student.status,
-                  )}`}
+            {/* Attendance Rows */}
+            <div className="divide-y divide-gray-100">
+              {displayedData.map((student) => (
+                <div
+                  key={student.sid}
+                  className="grid grid-cols-5 items-center px-3 py-2.5 hover:bg-gray-50/50 transition text-xs"
                 >
-                  {student.status}
-                </span>
-              </div>
-            </div>
-          ))}
+                  {/* Student */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {student.initials}
+                    </div>
+                    <span className="font-bold text-gray-900 truncate">
+                      {student.name}
+                    </span>
+                  </div>
 
-          {displayedData.length === 0 && (
-            <div className="px-4 py-6 text-center text-xs text-gray-500">
-              No students found.
+                  {/* Team */}
+                  <span
+                    className={`truncate font-medium text-xs ${
+                      student.team !== "No Team"
+                        ? "text-blue-600 font-semibold"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {student.team}
+                  </span>
+
+                  {/* Roll Number */}
+                  <span className="text-gray-500 font-medium truncate">
+                    {student.rollNo}
+                  </span>
+
+                  {/* Time */}
+                  <span className="text-gray-500 font-medium truncate">{student.time}</span>
+
+                  {/* Status */}
+                  <div className="flex justify-end">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusStyle(
+                        student.status,
+                      )}`}
+                    >
+                      {student.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {displayedData.length === 0 && (
+                <div className="px-4 py-6 text-center text-xs text-gray-500">
+                  No students found.
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 

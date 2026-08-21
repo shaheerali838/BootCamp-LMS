@@ -4,6 +4,8 @@ import { useAuth } from "./AuthContext";
 
 const SystemContext = createContext();
 
+//SystemContext	Admin + Resource + RegistrationLog + ActivityLog
+
 export const SystemProvider = ({ children }) => {
   const { accessToken, user } = useAuth();
 

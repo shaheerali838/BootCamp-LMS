@@ -9,6 +9,8 @@ import {
 import api from "../api/axios";
 import { useAuth } from "./AuthContext";
 
+//AcademicContext	Student + Batch + Attendance
+
 const AcademicContext = createContext();
 
 // ── Static local attendance data (no backend route) ───────

@@ -153,7 +153,7 @@ function SprintManagement() {
     <div className="p-4">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center  justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
               {totalSprints}
@@ -230,7 +230,7 @@ function SprintManagement() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
           {/* Table Header */}
           <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span className="col-span-2">Sprint Name</span>
