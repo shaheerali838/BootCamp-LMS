@@ -1,8 +1,3 @@
-// =========================================================================
-// Top Navbar Component
-// Includes dynamic Breadcrumb and active User Profile quick badge with avatar & role
-// =========================================================================
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Breadcrumb from "../common/Breadcrumb";
@@ -174,7 +169,11 @@ function Navbar() {
               <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 shadow-2xs">
                   {avatarImage ? (
-                    <img src={avatarImage} alt={fullName} className="w-full h-full object-cover" />
+                    <img
+                      src={avatarImage}
+                      alt={fullName}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div
                       className={`w-full h-full flex items-center justify-center text-white font-bold text-[11px] ${
@@ -185,7 +184,9 @@ function Navbar() {
                             : "bg-blue-600"
                       }`}
                     >
-                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : fullName.charAt(0).toUpperCase()}
+                      {user?.firstName
+                        ? user.firstName.charAt(0).toUpperCase()
+                        : fullName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
