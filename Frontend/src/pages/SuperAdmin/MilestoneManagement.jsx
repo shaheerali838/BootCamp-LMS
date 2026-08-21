@@ -244,7 +244,7 @@ function MilestoneManagement() {
 
         <div className="overflow-x-auto w-full min-w-0 max-w-full">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
             <span className="col-span-2">Milestone Title</span>
             <span>Project</span>
             <span>Due Date & Status</span>
@@ -256,7 +256,7 @@ function MilestoneManagement() {
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}
-                className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
+                className="grid grid-cols-5 items-center px-4 py-3 hover:bg-gray-50 transition text-sm"
               >
                 <div className="col-span-2">
                   <div className="text-sm font-semibold text-gray-900">

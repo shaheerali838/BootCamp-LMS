@@ -181,7 +181,7 @@ function Students() {
         <div className="overflow-x-auto w-full">
           <div className="min-w-[700px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+            <div className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
               <span>Roll No</span>
               <span>Name</span>
               <span>Team</span>
@@ -191,97 +191,99 @@ function Students() {
             </div>
 
             {/* Table Rows */}
-            {filteredStudents.map((student) => {
-              const studentName = getStudentName(student);
-              const studentInitials = getStudentInitials(student);
-              const studentTeam = getStudentTeam(student);
-              const attVal = student.attendance !== undefined ? student.attendance : 90;
-              const isActive = (student.status || "").toLowerCase() === "active";
+            <div className="divide-y divide-gray-100">
+              {filteredStudents.map((student) => {
+                const studentName = getStudentName(student);
+                const studentInitials = getStudentInitials(student);
+                const studentTeam = getStudentTeam(student);
+                const attVal = student.attendance !== undefined ? student.attendance : 90;
+                const isActive = (student.status || "").toLowerCase() === "active";
 
-              return (
-                <div
-                  key={student._id || student.id}
-                  className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
-                >
-                  {/* Roll No */}
-                  <span className="text-xs font-semibold text-gray-700">
-                    {student.rollNumber || student.rollNo || "N/A"}
-                  </span>
+                return (
+                  <div
+                    key={student._id || student.id}
+                    className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 hover:bg-gray-50 transition text-xs"
+                  >
+                    {/* Roll No */}
+                    <span className="font-semibold text-gray-700">
+                      {student.rollNumber || student.rollNo || "N/A"}
+                    </span>
 
-                  {/* Name */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border border-gray-100">
-                      {student.profilePicture || student.profileImage ? (
-                        <img
-                          src={student.profilePicture || student.profileImage}
-                          alt={studentName}
-                          className="w-full h-full object-cover"
+                    {/* Name */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border border-gray-100">
+                        {student.profilePicture || student.profileImage ? (
+                          <img
+                            src={student.profilePicture || student.profileImage}
+                            alt={studentName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          studentInitials
+                        )}
+                      </div>
+                      <span className="font-bold text-gray-900 truncate">
+                        {studentName}
+                      </span>
+                    </div>
+
+                    {/* Team */}
+                    <span className={`font-medium ${
+                      studentTeam !== "Unassigned" ? "text-blue-600 font-semibold" : "text-gray-400"
+                    }`}>
+                      {studentTeam}
+                    </span>
+
+                    {/* Attendance */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            attVal < 70 ? "bg-red-500" : "bg-green-500"
+                          }`}
+                          style={{
+                            width: `${attVal}%`,
+                          }}
                         />
-                      ) : (
-                        studentInitials
-                      )}
+                      </div>
+                      <span className="text-gray-700 font-semibold">
+                        {attVal}%
+                      </span>
                     </div>
-                    <span className="text-xs font-bold text-gray-900 truncate">
-                      {studentName}
-                    </span>
-                  </div>
 
-                  {/* Team */}
-                  <span className={`text-xs font-medium ${
-                    studentTeam !== "Unassigned" ? "text-blue-600 font-semibold" : "text-gray-400"
-                  }`}>
-                    {studentTeam}
-                  </span>
-
-                  {/* Attendance */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          attVal < 70 ? "bg-red-500" : "bg-green-500"
+                    {/* Status */}
+                    <div>
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-600"
                         }`}
-                        style={{
-                          width: `${attVal}%`,
-                        }}
-                      />
+                      >
+                        {student.status || "Active"}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-700 font-semibold">
-                      {attVal}%
-                    </span>
-                  </div>
 
-                  {/* Status */}
-                  <div>
-                    <span
-                      className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                        isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {student.status || "Active"}
-                    </span>
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Link
+                        to={`/students/${student._id || student.id}`}
+                        className="hover:text-blue-600 transition p-1"
+                        title="View Details"
+                      >
+                        <FiEye size={15} />
+                      </Link>
+                    </div>
                   </div>
+                );
+              })}
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Link
-                      to={`/students/${student._id || student.id}`}
-                      className="hover:text-blue-600 transition p-1"
-                      title="View Details"
-                    >
-                      <FiEye size={15} />
-                    </Link>
-                  </div>
+              {filteredStudents.length === 0 && (
+                <div className="py-12 text-center text-xs text-gray-500">
+                  No students found.
                 </div>
-              );
-            })}
-
-            {filteredStudents.length === 0 && (
-              <div className="py-12 text-center text-xs text-gray-500">
-                No students found.
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

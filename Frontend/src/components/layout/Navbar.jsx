@@ -97,17 +97,18 @@ function Navbar() {
         ${isOpen ? "md:left-70 left-0" : "md:left-22.5 left-0"}
       `}
     >
-      {/* Left: Hamburger menu toggle button + Breadcrumbs + Live Syncing Indicator */}
-      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      {/* Left: Hamburger menu toggle button (small screens only) + Breadcrumbs + Live Syncing Indicator */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer shrink-0 border border-gray-200 shadow-2xs active:scale-95 flex items-center justify-center bg-white"
-          title={isOpen ? "Collapse Navigation Menu" : "Expand Navigation Menu"}
-          aria-label="Toggle Navigation Menu"
+          className="inline-flex md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer shrink-0 border border-gray-200 shadow-2xs active:scale-95 items-center justify-center bg-white"
+          title="Open Navigation Menu"
+          aria-label="Open Navigation Menu"
         >
           <Menu size={19} />
         </button>
+
         <Breadcrumb />
 
         {isLoading && (

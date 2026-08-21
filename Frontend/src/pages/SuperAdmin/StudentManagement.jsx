@@ -105,7 +105,7 @@ function StudentManagement() {
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
         <div className="overflow-x-auto w-full min-w-0 max-w-full">
-          <div className="grid grid-cols-6 min-w-[600px] px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+          <div className="grid grid-cols-6 min-w-[600px] px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
             <span>Roll No</span>
             <span className="col-span-2">Name & Email</span>
             <span>Gender</span>
