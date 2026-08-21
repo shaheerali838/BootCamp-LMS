@@ -4,6 +4,7 @@ import {
   FiSearch,
   FiEdit2,
   FiEye,
+  FiTrash2,
   FiUsers,
   FiCheckCircle,
   FiAlertTriangle,
@@ -16,10 +17,18 @@ import AddStudentModal from "../components/features/Students/AddStudentModal";
 import { PageSkeleton } from "../components/common/Skeleton";
 
 function Students() {
-  const { students, loading: studentsLoading, fetchStudents, addStudent } = useStudent();
+  const {
+    students,
+    loading: studentsLoading,
+    fetchStudents,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+  } = useStudent();
   const { teams = [], fetchTeams } = useTeamProject();
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
 
   useEffect(() => {
     if (fetchStudents) fetchStudents();
@@ -99,53 +108,86 @@ function Students() {
   ).length;
   const inactiveStudents = totalStudents - activeStudents;
 
+  const handleOpenAdd = () => {
+    setEditingStudent(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (student) => {
+    setEditingStudent(student);
+    setShowModal(true);
+  };
+
+  const handleSaveStudent = async (payload) => {
+    if (editingStudent) {
+      await updateStudent(editingStudent._id || editingStudent.id, payload);
+    } else {
+      await addStudent(payload);
+    }
+  };
+
+  const handleDeleteStudent = async (studentId) => {
+    if (window.confirm("Are you sure you want to remove this student?")) {
+      await deleteStudent(studentId);
+    }
+  };
+
   if (studentsLoading && students.length === 0) {
-    return <PageSkeleton statCount={3} rowCount={8} />;
+    return <PageSkeleton />;
   }
 
   return (
-    <div className="p-4">
-      {/* Top Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-white border border-gray-200 p-5 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {totalStudents}
-            </h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Total Students
             </p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-1">
+              {totalStudents}
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              Registered in Bootcamp
+            </p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <FiUsers size={23} className="text-blue-600" />
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <FiUsers size={22} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+        <div className="bg-white border border-gray-200 p-5 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Active Status
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-1">
               {activeStudents}
-            </h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-              Active Students
+            </h3>
+            <p className="text-xs text-green-600 mt-1">
+              Currently attending
             </p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-            <FiCheckCircle size={23} className="text-green-600" />
+          <div className="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
+            <FiCheckCircle size={22} />
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+        <div className="bg-white border border-gray-200 p-5 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Inactive / On Leave
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-1">
               {inactiveStudents}
-            </h2>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-              Inactive / Pending
+            </h3>
+            <p className="text-xs text-amber-600 mt-1">
+              Requires attention
             </p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-            <FiAlertTriangle size={23} className="text-amber-600" />
+          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <FiAlertTriangle size={22} />
           </div>
         </div>
       </div>
@@ -169,7 +211,7 @@ function Students() {
           </div>
 
           <button
-            onClick={() => setShowModal(true)}
+            onClick={handleOpenAdd}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
           >
             <FiPlus size={16} />
@@ -179,15 +221,15 @@ function Students() {
 
         {/* Table wrapper */}
         <div className="overflow-x-auto w-full">
-          <div className="min-w-[700px]">
+          <div className="min-w-[750px]">
             {/* Table Header */}
-            <div className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
+            <div className="grid grid-cols-[1fr_1.8fr_1.4fr_1.4fr_1.1fr_1.2fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
               <span>Roll No</span>
               <span>Name</span>
               <span>Team</span>
               <span>Attendance</span>
               <span>Status</span>
-              <span>Actions</span>
+              <span className="text-right pr-2">Actions</span>
             </div>
 
             {/* Table Rows */}
@@ -202,7 +244,7 @@ function Students() {
                 return (
                   <div
                     key={student._id || student.id}
-                    className="grid grid-cols-[1fr_1.8fr_1.6fr_1.5fr_1.2fr_1fr] items-center px-4 py-3 hover:bg-gray-50 transition text-xs"
+                    className="grid grid-cols-[1fr_1.8fr_1.4fr_1.4fr_1.1fr_1.2fr] items-center px-4 py-3 hover:bg-gray-50 transition text-xs"
                   >
                     {/* Roll No */}
                     <span className="font-semibold text-gray-700">
@@ -211,7 +253,7 @@ function Students() {
 
                     {/* Name */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border border-gray-100">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0 border border-gray-100 shadow-2xs">
                         {student.profilePicture || student.profileImage ? (
                           <img
                             src={student.profilePicture || student.profileImage}
@@ -222,13 +264,18 @@ function Students() {
                           studentInitials
                         )}
                       </div>
-                      <span className="font-bold text-gray-900 truncate">
-                        {studentName}
-                      </span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 truncate">
+                          {studentName}
+                        </div>
+                        <div className="text-[11px] text-gray-400 truncate">
+                          {student.email || "No email"}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Team */}
-                    <span className={`font-medium ${
+                    <span className={`font-medium truncate ${
                       studentTeam !== "Unassigned" ? "text-blue-600 font-semibold" : "text-gray-400"
                     }`}>
                       {studentTeam}
@@ -236,7 +283,7 @@ function Students() {
 
                     {/* Attendance */}
                     <div className="flex items-center gap-2">
-                      <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-16 lg:w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden shrink-0">
                         <div
                           className={`h-full rounded-full ${
                             attVal < 70 ? "bg-red-500" : "bg-green-500"
@@ -265,14 +312,28 @@ function Students() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center justify-end gap-1.5 text-gray-400 pr-1">
                       <Link
                         to={`/students/${student._id || student.id}`}
-                        className="hover:text-blue-600 transition p-1"
+                        className="p-1.5 hover:bg-blue-50 rounded-lg hover:text-blue-600 transition"
                         title="View Details"
                       >
                         <FiEye size={15} />
                       </Link>
+                      <button
+                        onClick={() => handleOpenEdit(student)}
+                        className="p-1.5 hover:bg-emerald-50 rounded-lg hover:text-emerald-600 transition cursor-pointer"
+                        title="Edit Student"
+                      >
+                        <FiEdit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteStudent(student._id || student.id)}
+                        className="p-1.5 hover:bg-red-50 rounded-lg hover:text-red-600 transition cursor-pointer"
+                        title="Delete Student"
+                      >
+                        <FiTrash2 size={15} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -288,12 +349,16 @@ function Students() {
         </div>
       </div>
 
-      {/* Add Student Modal */}
+      {/* Add / Edit Student Modal */}
       {showModal && (
         <AddStudentModal
           isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          onAdd={addStudent}
+          onClose={() => {
+            setShowModal(false);
+            setEditingStudent(null);
+          }}
+          editingStudent={editingStudent}
+          onAddStudent={handleSaveStudent}
         />
       )}
     </div>
