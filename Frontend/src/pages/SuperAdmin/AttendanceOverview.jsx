@@ -327,33 +327,34 @@ function AttendanceOverview() {
       </div>
 
       {/* Student Attendance Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-6 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
-          <span className="col-span-2">Student Name & Team</span>
-          <span>Roll Number</span>
-          <span>Total Logs</span>
-          <span>Attendance Rate</span>
-          <span className="text-right">Status</span>
-        </div>
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
+          <div className="grid grid-cols-6 min-w-[650px] px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+            <span className="col-span-2">Student Name & Team</span>
+            <span>Roll Number</span>
+            <span>Total Logs</span>
+            <span>Attendance Rate</span>
+            <span className="text-right">Status</span>
+          </div>
 
-        <div className="divide-y divide-gray-100">
-          {filteredStudents.map((student) => {
-            const sid = String(student._id || student.id);
-            const history = getStudentAttendance(sid);
-            const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
-            const studentTeam = getStudentTeam(student);
-            const totalRecords = history.length;
-            const presentCount = history.filter(
-              (h) => h.status === "Present" || h.status === "Late"
-            ).length;
-            const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
-            const avatar = student.profilePicture || student.profileImage || student.image || "";
+          <div className="divide-y divide-gray-100">
+            {filteredStudents.map((student) => {
+              const sid = String(student._id || student.id);
+              const history = getStudentAttendance(sid);
+              const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
+              const studentTeam = getStudentTeam(student);
+              const totalRecords = history.length;
+              const presentCount = history.filter(
+                (h) => h.status === "Present" || h.status === "Late"
+              ).length;
+              const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
+              const avatar = student.profilePicture || student.profileImage || student.image || "";
 
-            return (
-              <div
-                key={sid}
-                className="grid grid-cols-6 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
-              >
+              return (
+                <div
+                  key={sid}
+                  className="grid grid-cols-6 min-w-[650px] items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
+                >
                 {/* Name & Team */}
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-blue-200 shadow-2xs">
@@ -423,6 +424,7 @@ function AttendanceOverview() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

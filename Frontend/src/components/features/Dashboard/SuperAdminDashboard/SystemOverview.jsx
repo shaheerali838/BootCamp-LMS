@@ -50,9 +50,9 @@ function SystemOverview() {
     series.map((val, idx) => `${getX(idx)},${getY(val)}`).join(" ");
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm min-w-0 max-w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-gray-100 min-w-0">
         <div>
           <h2 className="text-base font-semibold text-gray-900">
             System Overview & Growth
@@ -80,7 +80,7 @@ function SystemOverview() {
       </div>
 
       {/* Series Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs font-medium text-gray-600">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 text-xs font-medium text-gray-600 min-w-0">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
           <span className="font-semibold text-gray-800">

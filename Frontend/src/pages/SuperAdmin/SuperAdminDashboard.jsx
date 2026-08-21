@@ -7,9 +7,9 @@ import SystemActivity from "../../components/features/Dashboard/SuperAdminDashbo
 
 function SuperAdminDashboard() {
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-3 w-full max-w-full overflow-x-hidden min-w-0">
       {/* Welcome Banner */}
-      <div className="bg-linear-to-r from-[#0476b9] via-[#056fa8] to-[#034d78]  rounded-xl p-4 text-white shadow-sm">
+      <div className="bg-linear-to-r from-[#0476b9] via-[#056fa8] to-[#034d78] rounded-xl p-4 text-white shadow-sm min-w-0 max-w-full">
         <div className="max-w-3xl">
           <span className="bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
             SuperAdmin Control Center

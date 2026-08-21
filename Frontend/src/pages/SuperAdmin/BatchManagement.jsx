@@ -201,7 +201,7 @@ function BatchManagement() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
           <div className="grid grid-cols-[1.8fr_1fr_1.5fr_1.2fr_1fr_1fr] min-w-215 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span>Batch Name</span>
             <span>Program Code</span>
