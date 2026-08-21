@@ -3,6 +3,7 @@ import { FiGrid, FiPlus, FiTrash2, FiEdit2, FiSearch, FiLayers, FiUsers, FiLoade
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useBatches, useStudents } from "../../context/AcademicContext";
 import CreateTeam from "../../components/features/Teams/CreateTeam";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function TeamManagement() {
   const { teams = [], teamsLoading, teamsError, deleteTeam } = useTeamProject();
@@ -68,11 +69,15 @@ function TeamManagement() {
     }
   };
 
+  if (teamsLoading && teams.length === 0) {
+    return <PageSkeleton statCount={3} rowCount={6} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FiGrid className="text-indigo-600" />
@@ -84,7 +89,7 @@ function TeamManagement() {
           </div>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-xs shadow transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-xs shadow transition cursor-pointer"
           >
             <FiPlus size={16} />
             Create Team
@@ -156,48 +161,52 @@ function TeamManagement() {
           </div>
         )}
 
-        <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <span className="col-span-2">Team Name</span>
-          <span>Team Leader</span>
-          <span>Batch</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {filtered.map((item) => (
-            <div key={item._id || item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm transition">
-              <div className="col-span-2">
-                <div className="font-bold text-gray-900">{getTeamName(item)}</div>
-                <div className="text-xs text-gray-400">{getMembersCount(item)} Assigned Members</div>
-              </div>
-              <span className="text-xs text-gray-700 font-semibold">{getLeaderName(item)}</span>
-              <div>
-                <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full text-xs font-semibold">
-                  {getBatchName(item)}
-                </span>
-              </div>
-              <div className="flex items-center justify-end gap-3 text-gray-400">
-                <button
-                  onClick={() => handleOpenEdit(item)}
-                  className="hover:text-indigo-600 transition cursor-pointer"
-                  title="Edit Team"
-                >
-                  <FiEdit2 size={16} />
-                </button>
-                <button
-                  onClick={() => handleDelete(item._id || item.id)}
-                  className="hover:text-red-600 transition cursor-pointer"
-                  title="Delete Team"
-                >
-                  <FiTrash2 size={16} />
-                </button>
-              </div>
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[620px]">
+            <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+              <span className="col-span-2">Team Name</span>
+              <span>Team Leader</span>
+              <span>Batch</span>
+              <span className="text-right">Actions</span>
             </div>
-          ))}
-          {!teamsLoading && filtered.length === 0 && (
-            <div className="py-12 text-center text-sm text-gray-400">
-              No teams created yet. Click "Create Team" to add your first project group.
+            <div className="divide-y divide-gray-100">
+              {filtered.map((item) => (
+                <div key={item._id || item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm transition">
+                  <div className="col-span-2">
+                    <div className="font-bold text-gray-900">{getTeamName(item)}</div>
+                    <div className="text-xs text-gray-400">{getMembersCount(item)} Assigned Members</div>
+                  </div>
+                  <span className="text-xs text-gray-700 font-semibold">{getLeaderName(item)}</span>
+                  <div>
+                    <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full text-xs font-semibold">
+                      {getBatchName(item)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-end gap-3 text-gray-400">
+                    <button
+                      onClick={() => handleOpenEdit(item)}
+                      className="hover:text-indigo-600 transition cursor-pointer"
+                      title="Edit Team"
+                    >
+                      <FiEdit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item._id || item.id)}
+                      className="hover:text-red-600 transition cursor-pointer"
+                      title="Delete Team"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {!teamsLoading && filtered.length === 0 && (
+                <div className="py-12 text-center text-sm text-gray-400">
+                  No teams created yet. Click "Create Team" to add your first project group.
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 

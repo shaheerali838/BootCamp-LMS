@@ -10,11 +10,12 @@ import {
 } from "react-icons/fi";
 import { useStudents, useAttendance } from "../../../context/AcademicContext";
 import { useTeamProject } from "../../../context/TeamProjectContext";
+import { PageSkeleton } from "../../common/Skeleton";
 
 function AttendanceManagement() {
-  const { students = [], fetchStudents } = useStudents();
-  const { updateAttendance, getStudentAttendance } = useAttendance();
-  const { teams = [], fetchTeams } = useTeamProject();
+  const { students = [], loading: studentsLoading, fetchStudents } = useStudents();
+  const { updateAttendance, getStudentAttendance, loading: attendanceLoading } = useAttendance();
+  const { teams = [], teamsLoading, fetchTeams } = useTeamProject();
 
   React.useEffect(() => {
     if (fetchStudents) fetchStudents();
@@ -26,24 +27,37 @@ function AttendanceManagement() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const isLoading = studentsLoading && students.length === 0;
+
   const getStudentId = (student) => String(student._id || student.id || "");
 
   const getStudentName = (student) =>
-    student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || student.email || "Student";
+    student.name ||
+    `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+    student.email ||
+    "Student";
 
   const getStudentTeam = (student) => {
     const sid = String(student._id || student.id || "");
-    const studentRoll = String(student.rollNumber || student.rollNo || "").toLowerCase();
+    const studentRoll = String(
+      student.rollNumber || student.rollNo || "",
+    ).toLowerCase();
     const studentName = String(
-      student.firstName ? `${student.firstName} ${student.lastName || ""}` : student.name || ""
-    ).trim().toLowerCase();
+      student.firstName
+        ? `${student.firstName} ${student.lastName || ""}`
+        : student.name || "",
+    )
+      .trim()
+      .toLowerCase();
 
     const found = teams.find((team) => {
-      const leadId = String(team.teamLead?._id || team.teamLead || team.lead || "");
+      const leadId = String(
+        team.teamLead?._id || team.teamLead || team.lead || "",
+      );
       const leadName = String(
         team.teamLead?.name || team.teamLead?.firstName
           ? `${team.teamLead.firstName} ${team.teamLead.lastName || ""}`
-          : team.lead || ""
+          : team.lead || "",
       ).toLowerCase();
 
       if (leadId && leadId === sid) return true;
@@ -54,7 +68,7 @@ function AttendanceManagement() {
           const mId = String(m._id || m.id || m.studentId || m);
           const mRoll = String(m.rollNumber || m.rollNo || "").toLowerCase();
           const mName = String(
-            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m
+            m.name || m.firstName ? `${m.firstName} ${m.lastName || ""}` : m,
           ).toLowerCase();
           return (
             (sid && mId === sid) ||
@@ -66,7 +80,7 @@ function AttendanceManagement() {
       return false;
     });
 
-    return found ? (found.teamName || found.name) : "No Team";
+    return found ? found.teamName || found.name : "No Team";
   };
 
   const getTodayAttendance = (studentId) => {
@@ -124,12 +138,7 @@ function AttendanceManagement() {
   const handleSave = () => {
     Object.entries(draftAttendance).forEach(([studentId, data]) => {
       if (data.status) {
-        updateAttendance(
-          studentId,
-          today,
-          data.status,
-          data.checkInTime
-        );
+        updateAttendance(studentId, today, data.status, data.checkInTime);
       }
     });
 
@@ -146,17 +155,23 @@ function AttendanceManagement() {
       const team = getStudentTeam(student).toLowerCase();
 
       return (
-        name.includes(value) ||
-        rollNo.includes(value) ||
-        team.includes(value)
+        name.includes(value) || rollNo.includes(value) || team.includes(value)
       );
     });
   }, [students, teams, search]);
 
-  const presentCount = students.filter((student) => getStatus(student) === "Present").length;
-  const lateCount = students.filter((student) => getStatus(student) === "Late").length;
-  const leaveCount = students.filter((student) => getStatus(student) === "Leave").length;
-  const absentCount = students.filter((student) => getStatus(student) === "Absent").length;
+  const presentCount = students.filter(
+    (student) => getStatus(student) === "Present",
+  ).length;
+  const lateCount = students.filter(
+    (student) => getStatus(student) === "Late",
+  ).length;
+  const leaveCount = students.filter(
+    (student) => getStatus(student) === "Leave",
+  ).length;
+  const absentCount = students.filter(
+    (student) => getStatus(student) === "Absent",
+  ).length;
 
   const getDropdownStyle = (status) => {
     switch (status) {
@@ -172,6 +187,10 @@ function AttendanceManagement() {
         return "bg-white text-gray-500 border-gray-300";
     }
   };
+
+  if (isLoading) {
+    return <PageSkeleton statCount={4} rowCount={8} />;
+  }
 
   return (
     <div className="pt-6 px-3 pb-3 min-h-screen mx-auto space-y-3">
@@ -277,116 +296,133 @@ function AttendanceManagement() {
           </button>
         </div>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-6 px-4 py-2.5 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-          <span>Roll No.</span>
-          <span className="col-span-2">Student & Team</span>
-          <span>Time</span>
-          <span>Status</span>
-          <span className="text-right">Action</span>
-        </div>
+        {/* Table wrapper */}
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[660px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-6 px-4 py-2.5 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+              <span>Roll No.</span>
+              <span className="col-span-2">Student & Team</span>
+              <span>Time</span>
+              <span>Status</span>
+              <span className="text-right">Action</span>
+            </div>
 
-        {/* Table Rows */}
-        <div className="divide-y divide-gray-100">
-          {filteredStudents.map((student) => {
-            const sid = getStudentId(student);
-            const studentName = getStudentName(student);
-            const teamName = getStudentTeam(student);
-            const status = getStatus(student);
-            const checkIn = getCheckInTime(student);
-            const initials =
-              student.initials ||
-              studentName
-                .split(" ")
-                .map((w) => w[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase() ||
-              "ST";
+            {/* Table Rows */}
+            <div className="divide-y divide-gray-100">
+              {filteredStudents.map((student) => {
+                const sid = getStudentId(student);
+                const studentName = getStudentName(student);
+                const teamName = getStudentTeam(student);
+                const status = getStatus(student);
+                const checkIn = getCheckInTime(student);
+                const initials =
+                  student.initials ||
+                  studentName
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase() ||
+                  "ST";
 
-            return (
-              <div
-                key={sid}
-                className="grid grid-cols-6 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
-              >
-                {/* Roll Number */}
-                <span className="font-semibold text-gray-700">
-                  {student.rollNumber || student.rollNo || "N/A"}
-                </span>
+                return (
+                  <div
+                    key={sid}
+                    className="grid grid-cols-6 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
+                  >
+                    {/* Roll Number */}
+                    <span className="font-semibold text-gray-700">
+                      {student.rollNumber || student.rollNo || "N/A"}
+                    </span>
 
-                {/* Student & Team */}
-                <div className="col-span-2 flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {initials}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-gray-900 truncate">{studentName}</div>
-                    <div className={`text-[11px] truncate ${teamName !== "No Team" ? "text-blue-600 font-medium" : "text-gray-400"
-                      }`}>
-                      {teamName}
+                    {/* Student & Team */}
+                    <div className="col-span-2 flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 truncate">
+                          {studentName}
+                        </div>
+                        <div
+                          className={`text-[11px] truncate ${
+                            teamName !== "No Team"
+                              ? "text-blue-600 font-medium"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {teamName}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Check-in Time */}
+                    <span className="text-gray-600 font-medium">{checkIn}</span>
+
+                    {/* Status Badge */}
+                    <div>
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                          status === "Present"
+                            ? "bg-green-100 text-green-700"
+                            : status === "Late"
+                              ? "bg-orange-100 text-orange-700"
+                              : status === "Leave"
+                                ? "bg-blue-100 text-blue-700"
+                                : status === "Absent"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
+                        {status}
+                      </span>
+                    </div>
+
+                    {/* Action Selector */}
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(sid, "Present")}
+                        className="text-xs px-2.5 py-1 rounded-lg border border-green-600 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-xs transition cursor-pointer whitespace-nowrap"
+                      >
+                        Present
+                      </button>
+
+                      <select
+                        value={
+                          draftAttendance[sid]?.status &&
+                          draftAttendance[sid]?.status !== "Present"
+                            ? draftAttendance[sid].status
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleStatusChange(sid, e.target.value)
+                        }
+                        className={`text-xs px-2 py-1 rounded-lg border outline-none cursor-pointer transition whitespace-nowrap ${getDropdownStyle(
+                          draftAttendance[sid]?.status &&
+                            draftAttendance[sid]?.status !== "Present"
+                            ? draftAttendance[sid].status
+                            : "",
+                        )}`}
+                      >
+                        <option value="">Mark As...</option>
+                        <option value="Late">Late</option>
+                        <option value="Leave">On Leave</option>
+                        <option value="Absent">Absent</option>
+                      </select>
                     </div>
                   </div>
+                );
+              })}
+
+              {filteredStudents.length === 0 && (
+                <div className="py-12 text-center text-xs text-gray-500">
+                  No students found.
                 </div>
-
-                {/* Check-in Time */}
-                <span className="text-gray-600 font-medium">{checkIn}</span>
-
-                {/* Status Badge */}
-                <div>
-                  <span
-                    className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${status === "Present"
-                        ? "bg-green-100 text-green-700"
-                        : status === "Late"
-                          ? "bg-orange-100 text-orange-700"
-                          : status === "Leave"
-                            ? "bg-blue-100 text-blue-700"
-                            : status === "Absent"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-400"
-                      }`}
-                  >
-                    {status}
-                  </span>
-                </div>
-
-                {/* Action Selector */}
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleStatusChange(sid, "Present")}
-                    className="text-xs px-2.5 py-1 rounded-lg border border-green-600 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-xs transition cursor-pointer whitespace-nowrap"
-                  >
-                    Present
-                  </button>
-
-                  <select
-                    value={
-                      draftAttendance[sid]?.status && draftAttendance[sid]?.status !== "Present"
-                        ? draftAttendance[sid].status
-                        : ""
-                    }
-                    onChange={(e) => handleStatusChange(sid, e.target.value)}
-                    className={`text-xs px-2 py-1 rounded-lg border outline-none cursor-pointer transition whitespace-nowrap ${getDropdownStyle(
-                      draftAttendance[sid]?.status && draftAttendance[sid]?.status !== "Present"
-                        ? draftAttendance[sid].status
-                        : ""
-                    )}`}
-                  >
-                    <option value="">Mark As...</option>
-                    <option value="Late">Late</option>
-                    <option value="Leave">On Leave</option>
-                    <option value="Absent">Absent</option>
-                  </select>
-                </div>
-              </div>
-            );
-          })}
-
-          {filteredStudents.length === 0 && (
-            <div className="py-12 text-center text-xs text-gray-500">
-              No students found.
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

@@ -4,10 +4,12 @@ import { FiSearch, FiUpload, FiX, FiEdit2, FiBookOpen } from "react-icons/fi";
 import ResourceCard from "../components/features/Resources/ResourceCard";
 import UploadResourceModal from "../components/features/Resources/UploadResourceModal";
 import { useResources } from "../context/SystemContext";
+import { PageSkeleton } from "../components/common/Skeleton";
 
 function Resources() {
   const {
     resources = [],
+    loading: resourcesLoading,
     categories: apiCategories = [],
     fetchResources,
     addResource,
@@ -111,11 +113,15 @@ function Resources() {
     }
   };
 
+  if (resourcesLoading && resources.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={6} />;
+  }
+
   return (
     <div className="p-5 space-y-5">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
               <FiBookOpen className="text-blue-600" />
@@ -129,7 +135,7 @@ function Resources() {
           {/* Upload Button */}
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-sm cursor-pointer shrink-0"
           >
             <FiUpload size={16} />
             Upload PDF / Resource

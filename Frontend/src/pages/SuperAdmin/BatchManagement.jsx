@@ -11,6 +11,7 @@ import {
   FiArchive,
 } from "react-icons/fi";
 import { useBatches, useStudent } from "../../context/AcademicContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } =
@@ -116,6 +117,10 @@ function BatchManagement() {
     if (!dateString) return "Ongoing";
     return new Date(dateString).toLocaleDateString();
   };
+
+  if (loading && batches.length === 0) {
+    return <PageSkeleton statCount={3} rowCount={6} />;
+  }
 
   return (
     <div className="p-4 mt-5">

@@ -13,9 +13,10 @@ import {
 import { useTasks } from "../context/WorkContext";
 import { useStudent } from "../context/AcademicContext";
 import { useTeamProject } from "../context/TeamProjectContext";
+import { PageSkeleton } from "../components/common/Skeleton";
 
 function Deliverables() {
-  const { tasks, fetchTasks, updateTaskStatus } = useTasks();
+  const { tasks, loading: tasksLoading, fetchTasks, updateTaskStatus } = useTasks();
   const { students = [], fetchStudents } = useStudent();
   const { teams = [], fetchTeams } = useTeamProject();
   const [filter, setFilter] = useState("All");
@@ -59,6 +60,10 @@ function Deliverables() {
     if (filter === "All") return true;
     return t.status === filter;
   });
+
+  if (tasksLoading && tasks.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={4} />;
+  }
 
   return (
     <div className="p-5 space-y-6 max-w-6xl mx-auto">

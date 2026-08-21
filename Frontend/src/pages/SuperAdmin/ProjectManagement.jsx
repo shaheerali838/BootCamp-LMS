@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { FiFolder, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useBatches } from "../../context/AcademicContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function ProjectManagement() {
-  const { projects = [], addProject, updateProject, deleteProject } = useTeamProject();
+  const { projects = [], projectsLoading, addProject, updateProject, deleteProject } = useTeamProject();
   const { batches = [] } = useBatches();
 
   const [search, setSearch] = useState("");
@@ -116,11 +117,15 @@ function ProjectManagement() {
     }
   };
 
+  if (projectsLoading && projects.length === 0) {
+    return <PageSkeleton hasStats={false} rowCount={6} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FiFolder className="text-cyan-600" />
@@ -132,7 +137,7 @@ function ProjectManagement() {
           </div>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer"
           >
             <FiPlus size={16} />
             Create Project
@@ -156,57 +161,61 @@ function ProjectManagement() {
 
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <span className="col-span-2">Project Name & Description</span>
-          <span>Target Batch</span>
-          <span>Status</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {filtered.map((item) => {
-            const title = getProjectTitle(item);
-            const batchName = getProjectBatch(item);
-
-            return (
-              <div key={item._id || item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm">
-                <div className="col-span-2">
-                  <div className="font-bold text-gray-900">{title}</div>
-                  <div className="text-xs text-gray-400 truncate max-w-sm">{item.description || "No description provided"}</div>
-                </div>
-                <div>
-                  <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                    {batchName}
-                  </span>
-                </div>
-                <div>
-                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100 capitalize">
-                    {item.status || "in progress"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-end gap-3 text-gray-400">
-                  <button
-                    onClick={() => handleOpenEdit(item)}
-                    className="hover:text-cyan-600 transition cursor-pointer"
-                    title="Edit"
-                  >
-                    <FiEdit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item._id || item.id)}
-                    className="hover:text-red-600 transition cursor-pointer"
-                    title="Delete"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-          {filtered.length === 0 && (
-            <div className="py-8 text-center text-sm text-gray-500">
-              No projects found.
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[620px]">
+            <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+              <span className="col-span-2">Project Name & Description</span>
+              <span>Target Batch</span>
+              <span>Status</span>
+              <span className="text-right">Actions</span>
             </div>
-          )}
+            <div className="divide-y divide-gray-100">
+              {filtered.map((item) => {
+                const title = getProjectTitle(item);
+                const batchName = getProjectBatch(item);
+
+                return (
+                  <div key={item._id || item.id} className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm">
+                    <div className="col-span-2">
+                      <div className="font-bold text-gray-900">{title}</div>
+                      <div className="text-xs text-gray-400 truncate max-w-sm">{item.description || "No description provided"}</div>
+                    </div>
+                    <div>
+                      <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                        {batchName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-100 capitalize">
+                        {item.status || "in progress"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-end gap-3 text-gray-400">
+                      <button
+                        onClick={() => handleOpenEdit(item)}
+                        className="hover:text-cyan-600 transition cursor-pointer"
+                        title="Edit"
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item._id || item.id)}
+                        className="hover:text-red-600 transition cursor-pointer"
+                        title="Delete"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {filtered.length === 0 && (
+                <div className="py-8 text-center text-sm text-gray-500">
+                  No projects found.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

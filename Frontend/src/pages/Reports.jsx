@@ -13,13 +13,14 @@ import {
 import { useTeamProject } from "../context/TeamProjectContext";
 import { exportToCSV } from "../utils/csvHelper";
 import api from "../api/axios";
+import { PageSkeleton } from "../components/common/Skeleton";
 
 function Reports() {
   const [activeTab, setActiveTab] = useState("attendance");
   const { taskDistributionData, batchPerformanceData } = useReports();
   const { tasks = [], fetchTasks } = useTasks();
-  const { students = [], fetchStudents } = useStudents();
-  const { batches = [], fetchBatches } = useBatches();
+  const { students = [], loading: studentsLoading, fetchStudents } = useStudents();
+  const { batches = [], loading: batchesLoading, fetchBatches } = useBatches();
   const {
     rawAttendance = [],
     fetchAttendance,
@@ -312,10 +313,14 @@ function Reports() {
     }
   };
 
+  if (studentsLoading && students.length === 0) {
+    return <PageSkeleton statCount={3} rowCount={8} />;
+  }
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-gray-900 mt-2">
             System Reports & Analytics
@@ -331,7 +336,7 @@ function Reports() {
         <button
           type="button"
           onClick={handleExportCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer shrink-0"
         >
           <FiDownload size={15} />
           Export CSV
@@ -340,12 +345,12 @@ function Reports() {
 
       {/* Report Tabs */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="flex border-b border-gray-200">
+        <div className="flex overflow-x-auto whitespace-nowrap border-b border-gray-200">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 text-xs font-semibold transition cursor-pointer ${
+              className={`px-4 py-3 text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === tab.id
                   ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
                   : "text-gray-500 hover:text-gray-700"

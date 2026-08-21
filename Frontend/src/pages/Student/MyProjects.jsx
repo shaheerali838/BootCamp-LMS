@@ -9,12 +9,12 @@ import {
 } from "react-icons/fi";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/AcademicContext";
-
 import { useAuth } from "../../context/AuthContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function MyProjects() {
   const { user } = useAuth();
-  const { projects = [], teams = [], fetchProjects, fetchTeams } = useTeamProject();
+  const { projects = [], teams = [], projectsLoading, teamsLoading, fetchProjects, fetchTeams } = useTeamProject();
   const { students = [], fetchStudents } = useStudent();
 
   // ================= DATA FETCH ON MOUNT =================
@@ -235,6 +235,10 @@ function MyProjects() {
       day: "numeric",
     });
   };
+
+  if (projectsLoading && displayList.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={6} />;
+  }
 
   return (
     <div className="p-5 space-y-6">

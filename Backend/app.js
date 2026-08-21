@@ -28,7 +28,11 @@ app.get("/", (req, res) => {
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, status: "OK", timestamp: new Date().toISOString() });
+  res.json({
+    success: true,
+    status: "OK",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Mount all routes at /api

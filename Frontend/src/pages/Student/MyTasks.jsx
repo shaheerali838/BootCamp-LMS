@@ -4,10 +4,11 @@ import { useTasks } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useAuth } from "../../context/AuthContext";
 import { formatDate } from "../../utils/dateHelper";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function MyTasks() {
   const { user } = useAuth();
-  const { tasks, submitDeliverable } = useTasks();
+  const { tasks, loading: tasksLoading, submitDeliverable } = useTasks();
   const { teams = [] } = useTeamProject();
 
   const sid = String(user?._id || user?.id || "");
@@ -80,6 +81,10 @@ function MyTasks() {
     }
   };
 
+  if (tasksLoading && studentTasks.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={4} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
@@ -96,14 +101,14 @@ function MyTasks() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
         {["All", "Pending", "In Progress", "In Review", "Completed"].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${
+            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-lg transition cursor-pointer ${
               filter === status
-                ? "bg-blue-600 text-white"
+                ? "bg-blue-600 text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >

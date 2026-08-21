@@ -10,10 +10,12 @@ import {
   FiEyeOff,
 } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function AdminManagement() {
   const {
     admins = [],
+    loading: adminsLoading,
     fetchAdmins,
     addAdmin,
     updateAdmin,
@@ -152,11 +154,15 @@ function AdminManagement() {
     }
   };
 
+  if (adminsLoading && admins.length === 0) {
+    return <PageSkeleton hasStats={false} rowCount={8} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FiUserCheck className="text-blue-600" />
@@ -168,7 +174,7 @@ function AdminManagement() {
           </div>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer shrink-0"
           >
             <FiPlus size={16} />
             Add Administrator

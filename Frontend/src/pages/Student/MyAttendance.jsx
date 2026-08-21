@@ -12,12 +12,14 @@ import { useAttendance } from "../../context/AcademicContext";
 import { useAuth } from "../../context/AuthContext";
 import { exportToCSV } from "../../utils/csvHelper";
 import { formatDate } from "../../utils/dateHelper";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function MyAttendance() {
   const { user } = useAuth();
   const {
     rawAttendance = [],
     myAttendanceStats,
+    loading: attendanceLoading,
     fetchAttendance,
     getStudentAttendance,
   } = useAttendance();
@@ -77,6 +79,10 @@ function MyAttendance() {
 
     exportToCSV(`my_attendance_${rollNo}_${todayStr}.csv`, headers, rows);
   };
+
+  if (attendanceLoading && history.length === 0) {
+    return <PageSkeleton statCount={4} rowCount={6} />;
+  }
 
   return (
     <div className="p-5 space-y-6">

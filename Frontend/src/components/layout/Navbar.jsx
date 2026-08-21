@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Breadcrumb from "../common/Breadcrumb";
 import { useSidebar } from "../../context/SidebarContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLoading } from "../../context/LoadingContext";
 import {
   User,
   LogOut,
@@ -13,11 +14,13 @@ import {
   KeyRound,
   X,
   Menu,
+  Loader2,
 } from "lucide-react";
 
 function Navbar() {
   const { isOpen, setIsOpen } = useSidebar();
   const { user, logout } = useAuth();
+  const { isLoading, actionMessage } = useLoading();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -94,20 +97,25 @@ function Navbar() {
         ${isOpen ? "md:left-70 left-0" : "md:left-22.5 left-0"}
       `}
     >
-      {/* Left: Hamburger menu toggle button (mobile) + Breadcrumbs */}
-      <div className="flex items-center gap-2 min-w-0">
-        {!isOpen && (
-          <button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition cursor-pointer shrink-0 md:hidden border border-gray-200"
-            title="Open Navigation Menu"
-            aria-label="Open Navigation Menu"
-          >
-            <Menu size={20} />
-          </button>
-        )}
+      {/* Left: Hamburger menu toggle button + Breadcrumbs + Live Syncing Indicator */}
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer shrink-0 border border-gray-200 shadow-2xs active:scale-95 flex items-center justify-center bg-white"
+          title={isOpen ? "Collapse Navigation Menu" : "Expand Navigation Menu"}
+          aria-label="Toggle Navigation Menu"
+        >
+          <Menu size={19} />
+        </button>
         <Breadcrumb />
+
+        {isLoading && (
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-[#0476b9] border border-blue-200/80 rounded-full text-[11px] font-semibold animate-pulse shrink-0">
+            <Loader2 size={12} className="animate-spin text-[#0476b9]" />
+            <span>Syncing...</span>
+          </div>
+        )}
       </div>
 
       {/* ================= RIGHT: USER PROFILE QUICK BADGE ================= */}
