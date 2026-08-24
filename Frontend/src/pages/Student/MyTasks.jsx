@@ -3,10 +3,12 @@ import { FiClipboard, FiUpload, FiCheckCircle, FiClock, FiLink, FiLoader } from 
 import { useTasks } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useAuth } from "../../context/AuthContext";
+import { formatDate } from "../../utils/dateHelper";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function MyTasks() {
   const { user } = useAuth();
-  const { tasks, submitDeliverable } = useTasks();
+  const { tasks, loading: tasksLoading, submitDeliverable } = useTasks();
   const { teams = [] } = useTeamProject();
 
   const sid = String(user?._id || user?.id || "");
@@ -79,6 +81,10 @@ function MyTasks() {
     }
   };
 
+  if (tasksLoading && studentTasks.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={4} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
@@ -95,14 +101,14 @@ function MyTasks() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
         {["All", "Pending", "In Progress", "In Review", "Completed"].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${
+            className={`px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold rounded-lg transition cursor-pointer ${
               filter === status
-                ? "bg-blue-600 text-white"
+                ? "bg-blue-600 text-white shadow-xs"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
@@ -142,8 +148,8 @@ function MyTasks() {
 
             <div className="flex flex-wrap items-center justify-between pt-3 border-t border-gray-100 text-xs text-gray-500">
               <div className="flex items-center gap-4">
-                <span>Assigned: {task.assignedDate}</span>
-                <span>Due: <strong className="text-gray-800">{task.dueDate}</strong></span>
+                <span>Assigned: {formatDate(task.assignedDate || task.createdAt, "Recently")}</span>
+                <span>Due: <strong className="text-gray-800">{formatDate(task.dueDate)}</strong></span>
               </div>
 
               {task.submission ? (

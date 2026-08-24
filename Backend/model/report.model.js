@@ -5,6 +5,7 @@ const reportSchema = new mongoose.Schema(
     reportType: {
       type: String,
       required: true,
+      trim: true,
     },
     generatedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,6 +19,7 @@ const reportSchema = new mongoose.Schema(
     reportFile: {
       type: String,
       required: true,
+      trim: true,
     },
   },
   { timestamps: true },

@@ -15,35 +15,55 @@ import {
   getAccountSetupEmailHtml,
 } from "../../utils/emailTemplates.js";
 import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
+import { getClientUrl } from "../../utils/url.js";
 
 // ---------- LOGIN ----------
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const rawIdentifier =
+      req.body.email || req.body.rollNumber || req.body.identifier;
+    const { password } = req.body;
 
-    if (!email || !password) {
+    if (!rawIdentifier || !password) {
       return res.status(400).json({
         success: false,
         message: "Email or Roll number and password are required",
       });
     }
 
-    const identifier = String(email).trim();
+    const identifier = String(rawIdentifier).trim();
     const emailAddress = identifier.toLowerCase();
+    const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const normalizedDigits = identifier.replace(/\D/g, "");
 
-    // 1. First, search for Admin or Super Admin by email
-    let user = await Admin.findOne({ email: emailAddress }).select("+password");
+    // Build flexible student matching patterns (e.g. 320009 matches KPK-320009, 320009, etc.)
+    const studentSearchPatterns = [
+      { email: emailAddress },
+      { rollNumber: identifier },
+      { rollNumber: { $regex: new RegExp(`^${escapedIdentifier}$`, "i") } },
+      { rollNumber: { $regex: new RegExp(`(^|[-_ ])${escapedIdentifier}$`, "i") } },
+      { rollNumber: { $regex: new RegExp(escapedIdentifier, "i") } },
+    ];
+
+    if (normalizedDigits && normalizedDigits.length >= 4) {
+      studentSearchPatterns.push({
+        rollNumber: { $regex: new RegExp(`${normalizedDigits}$`, "i") },
+      });
+    }
+
+    let user = null;
+
+    // 1. If identifier contains '@', try Admin first (Admins login via email)
+    if (identifier.includes("@")) {
+      user = await Admin.findOne({ email: emailAddress }).select("+password");
+    }
 
     if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        // Check if there is also a Student account with this email/rollNumber
+        // Also check if a student exists with this exact email / identifier
         const studentUser = await Student.findOne({
-          $or: [
-            { email: emailAddress },
-            { rollNumber: identifier },
-            { rollNumber: emailAddress.toUpperCase() },
-          ],
+          $or: studentSearchPatterns,
         }).select("+password");
 
         if (studentUser) {
@@ -64,19 +84,20 @@ export const login = async (req, res) => {
         }
       }
     } else {
-      // 2. If not Admin, search for Student by email OR rollNumber (case-insensitive)
+      // 2. Search Student by rollNumber (exact, case-insensitive, prefix-tolerant) OR email
       user = await Student.findOne({
-        $or: [
-          { email: emailAddress },
-          { rollNumber: identifier },
-          { rollNumber: { $regex: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } },
-        ],
+        $or: studentSearchPatterns,
       }).select("+password");
+
+      // 3. If not found in Student, check Admin as fallback
+      if (!user) {
+        user = await Admin.findOne({ email: emailAddress }).select("+password");
+      }
 
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: "Invalid email or password",
+          message: "Invalid email/roll number or password",
         });
       }
 
@@ -84,7 +105,7 @@ export const login = async (req, res) => {
       if (!isMatch) {
         return res.status(401).json({
           success: false,
-          message: "Invalid email or password",
+          message: "Invalid email/roll number or password",
         });
       }
     }
@@ -264,7 +285,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = getClientUrl(req);
     const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({
@@ -448,7 +469,7 @@ export const register = async (req, res) => {
     });
 
     // Send setup email
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = getClientUrl(req);
     const setupLink = `${clientUrl}/reset-password?token=${setupToken}`;
 
     await sendEmail({

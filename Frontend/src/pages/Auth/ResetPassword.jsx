@@ -25,22 +25,25 @@ function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const trimmedNew = (newPassword || "").trim();
+    const trimmedConfirm = (confirmPassword || "").trim();
+
     if (!token) {
       setError("Invalid or missing reset token. Please request a new password reset link.");
       return;
     }
 
-    if (!newPassword) {
+    if (!trimmedNew) {
       setError("New password is required");
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (trimmedNew.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (trimmedNew !== trimmedConfirm) {
       setError("Passwords do not match");
       return;
     }
@@ -50,7 +53,7 @@ function ResetPassword() {
       setError("");
       setMessage("");
 
-      const response = await resetPassword(token, newPassword);
+      const response = await resetPassword(token, trimmedNew);
 
       setMessage(
         response?.data?.message ||

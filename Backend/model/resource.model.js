@@ -10,31 +10,38 @@ const resourceSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
       required: true,
+      trim: true,
     },
     file: {
       type: String,
       required: true,
+      trim: true,
     },
     fileType: {
       type: String,
       required: true,
       default: "PDF",
+      trim: true,
     },
     fileName: {
       type: String,
       default: "",
+      trim: true,
     },
     fileSize: {
       type: String,
       default: "",
+      trim: true,
     },
     publicId: {
       type: String,
       default: "",
+      trim: true,
     },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,

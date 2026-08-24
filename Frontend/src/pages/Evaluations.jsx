@@ -4,14 +4,15 @@ import { useStudents, useAttendance } from "../context/AcademicContext";
 import { useTeamProject } from "../context/TeamProjectContext";
 import { useEvaluations, useTasks } from "../context/WorkContext";
 import { useAuth } from "../context/AuthContext";
+import { PageSkeleton } from "../components/common/Skeleton";
 
 function Evaluations() {
   const { user } = useAuth();
-  const { students = [], fetchStudents } = useStudents();
+  const { students = [], loading: studentsLoading, fetchStudents } = useStudents();
   const { projects = [], fetchProjects } = useTeamProject();
   const { getStudentAttendance } = useAttendance();
   const { tasks = [] } = useTasks();
-  const { evaluations = [], addEvaluation, fetchEvaluations } = useEvaluations();
+  const { evaluations = [], loading: evaluationsLoading, addEvaluation, fetchEvaluations } = useEvaluations();
 
   const [search, setSearch] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -100,6 +101,10 @@ function Evaluations() {
       setIsSubmitting(false);
     }
   };
+
+  if (studentsLoading && students.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={6} />;
+  }
 
   return (
     <div className="p-5 space-y-6">

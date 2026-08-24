@@ -9,12 +9,12 @@ import {
 } from "react-icons/fi";
 import { useTeamProject } from "../../context/TeamProjectContext";
 import { useStudent } from "../../context/AcademicContext";
-
 import { useAuth } from "../../context/AuthContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function MyProjects() {
   const { user } = useAuth();
-  const { projects = [], teams = [], fetchProjects, fetchTeams } = useTeamProject();
+  const { projects = [], teams = [], projectsLoading, teamsLoading, fetchProjects, fetchTeams } = useTeamProject();
   const { students = [], fetchStudents } = useStudent();
 
   // ================= DATA FETCH ON MOUNT =================
@@ -95,23 +95,21 @@ function MyProjects() {
 
   const studentTeamIds = new Set(studentTeams.map((t) => String(t._id || t.id)));
 
-  // Filter projects belonging to student's team (or all projects if none filtered)
+  // Filter projects belonging to student's team
   const myAssignedProjects = projects.filter((project) => {
     const projTeamId = String(
       project.teamId?._id ||
       project.teamId?.id ||
-      (typeof project.teamId === "string" ? project.teamId : null) ||
+      (typeof project.teamId === "string" ? project.teamId : "") ||
       project.team?._id ||
       project.team?.id ||
-      (typeof project.team === "string" ? project.team : null) ||
-      (typeof project.batch === "object" ? project.batch?._id : project.batch) ||
-      project.batchId ||
+      (typeof project.team === "string" ? project.team : "") ||
       ""
     );
     return projTeamId && studentTeamIds.has(projTeamId);
   });
 
-  const studentProjects = myAssignedProjects.length > 0 ? myAssignedProjects : projects;
+  const studentProjects = myAssignedProjects;
 
   const getBatchName = (b) => {
     if (!b) return "Batch";
@@ -238,6 +236,10 @@ function MyProjects() {
     });
   };
 
+  if (projectsLoading && displayList.length === 0) {
+    return <PageSkeleton hasStats={false} viewType="cards" cardCount={6} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* -------------------------------- */}
@@ -277,11 +279,11 @@ function MyProjects() {
           <FiFolder size={36} className="mx-auto text-gray-300 mb-3" />
 
           <h3 className="text-base font-bold text-gray-700">
-            No Projects Found
+            No Assigned Projects Found
           </h3>
 
           <p className="text-xs text-gray-400 mt-1">
-            No projects created by Super Admin or Admin yet.
+            You have not been assigned to any project team yet. Projects will appear here once you are assigned.
           </p>
         </div>
       ) : (

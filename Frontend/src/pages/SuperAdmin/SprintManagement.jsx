@@ -12,9 +12,10 @@ import {
 } from "react-icons/fi";
 import { useSprints } from "../../context/WorkContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function SprintManagement() {
-  const { sprints, addSprint, updateSprint, deleteSprint } = useSprints();
+  const { sprints, loading, addSprint, updateSprint, deleteSprint } = useSprints();
   const { projects = [] } = useTeamProject();
 
   const [selectedProjectId, setSelectedProjectId] = useState("All");
@@ -149,11 +150,15 @@ function SprintManagement() {
     }
   };
 
+  if (loading && sprints.length === 0) {
+    return <PageSkeleton statCount={3} rowCount={6} />;
+  }
+
   return (
     <div className="p-4">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between">
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-4 flex items-center  justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
               {totalSprints}
@@ -199,9 +204,9 @@ function SprintManagement() {
       {/* Table Card */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         {/* Search/Filter Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 py-4 border-b border-gray-200">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
               <FiFilter
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -209,7 +214,7 @@ function SprintManagement() {
               <select
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-64 pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 cursor-pointer text-gray-700"
+                className="w-full pl-9 pr-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-500 cursor-pointer text-gray-700"
               >
                 <option value="All">All Projects ({projects.length})</option>
                 {projects.map((p) => (
@@ -223,16 +228,16 @@ function SprintManagement() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition cursor-pointer shrink-0"
           >
             <FiPlus size={17} />
             Create Sprint
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
           {/* Table Header */}
-          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
+          <div className="grid grid-cols-5 min-w-150 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
             <span className="col-span-2">Sprint Name</span>
             <span>Project</span>
             <span>Timeline & Status</span>
@@ -244,9 +249,9 @@ function SprintManagement() {
             {filtered.map((item) => (
               <div
                 key={item._id || item.id}
-                className="grid grid-cols-5 items-center px-4 py-3 border-t border-gray-100 hover:bg-gray-50 transition"
+                className="grid grid-cols-5 items-center px-4 py-3 hover:bg-gray-50 transition text-sm"
               >
-                <div className="col-span-2 text-sm font-semibold text-gray-900">
+                <div className="col-span-2 font-semibold text-gray-900">
                   {item.sprintName || item.name || item.title || "Sprint"}
                 </div>
 

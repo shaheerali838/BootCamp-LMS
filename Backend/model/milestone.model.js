@@ -10,10 +10,12 @@ const milestoneSchema = new mongoose.Schema(
     milestoneName: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
       required: true,
+      trim: true,
     },
     dueDate: {
       type: Date,
@@ -23,6 +25,7 @@ const milestoneSchema = new mongoose.Schema(
       type: String,
       enum: ["Pending", "In Progress", "Completed"],
       default: "Pending",
+      trim: true,
     },
   },
   { timestamps: true },

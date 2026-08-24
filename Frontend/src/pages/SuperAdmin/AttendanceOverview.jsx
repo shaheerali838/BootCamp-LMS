@@ -1,7 +1,9 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers, FiFilter, FiActivity } from "react-icons/fi";
+import { FiCalendar, FiCheckCircle, FiSearch, FiXCircle, FiClock, FiUsers, FiFilter, FiActivity, FiDownload } from "react-icons/fi";
 import { useStudent, useAttendance, useBatches } from "../../context/AcademicContext";
 import { useTeamProject } from "../../context/TeamProjectContext";
+import { exportToCSV } from "../../utils/csvHelper";
+import api from "../../api/axios";
 
 function AttendanceOverview() {
   const { students = [], fetchStudents } = useStudent();
@@ -89,6 +91,120 @@ function AttendanceOverview() {
   const systemAttendanceRate =
     totalLogs > 0 ? Math.round(((totalPresentLogs + totalLateLogs) / totalLogs) * 100) : 100;
 
+  const handleExportCSV = async () => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    let allRecords = rawAttendance;
+    try {
+      const res = await api.get("/attendance");
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        allRecords = res.data.data;
+      }
+    } catch (e) {
+      console.warn("Using context attendance cache for export:", e);
+    }
+
+    const headers = [
+      "Roll Number",
+      "Student Name",
+      "Email",
+      "Team",
+      "Batch",
+      "Attendance Date",
+      "Session Status",
+      "Time",
+      "Total Sessions Logged",
+      "Present Sessions",
+      "Late Sessions",
+      "Leave Sessions",
+      "Absent Sessions",
+      "Attendance Percentage",
+      "Student Status",
+      "Remarks",
+    ];
+
+    const rows = [];
+
+    filteredStudents.forEach((student) => {
+      const sid = String(student._id || student.id || "");
+      const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || "Student";
+      const rollNo = student.rollNumber || student.rollNo || "N/A";
+      const email = student.email || "N/A";
+      const teamName = getStudentTeam(student);
+      const batchObj = batches.find(
+        (b) =>
+          String(b._id || b.id) ===
+          String(student.batchId?._id || student.batchId || student.batch?._id || student.batch)
+      );
+      const batchName =
+        batchObj?.batchName ||
+        student.batchId?.batchName ||
+        student.batch?.batchName ||
+        "All Batches";
+      const studentStatus = student.status || "Active";
+
+      const studentRecords = allRecords.filter((rec) => {
+        const recStudentId = String(rec.studentId?._id || rec.studentId || rec.student || "");
+        return recStudentId === sid || (rollNo !== "N/A" && rec.studentId?.rollNumber === rollNo);
+      });
+
+      studentRecords.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+      const totalRecords = studentRecords.length;
+      const presentCount = studentRecords.filter((h) => h.status === "Present").length;
+      const lateCount = studentRecords.filter((h) => h.status === "Late").length;
+      const leaveCount = studentRecords.filter((h) => h.status === "Leave").length;
+      const absentCount = studentRecords.filter((h) => h.status === "Absent").length;
+      const percentage =
+        totalRecords > 0
+          ? `${Math.round(((presentCount + lateCount) / totalRecords) * 100)}%`
+          : "100%";
+
+      if (studentRecords.length > 0) {
+        studentRecords.forEach((rec) => {
+          rows.push([
+            rollNo,
+            studentName,
+            email,
+            teamName,
+            batchName,
+            rec.date || todayStr,
+            rec.status || "Present",
+            rec.checkInTime || rec.time || "--:--",
+            totalRecords,
+            presentCount,
+            lateCount,
+            leaveCount,
+            absentCount,
+            percentage,
+            studentStatus,
+            rec.remarks || "",
+          ]);
+        });
+      } else {
+        rows.push([
+          rollNo,
+          studentName,
+          email,
+          teamName,
+          batchName,
+          todayStr,
+          "No Records",
+          "--:--",
+          totalRecords,
+          presentCount,
+          lateCount,
+          leaveCount,
+          absentCount,
+          percentage,
+          studentStatus,
+          "No historical logs recorded yet",
+        ]);
+      }
+    });
+
+    exportToCSV(`system_attendance_analytics_${todayStr}.csv`, headers, rows);
+  };
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
@@ -103,9 +219,19 @@ function AttendanceOverview() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-blue-100 w-fit">
-            <FiCalendar size={15} />
-            <span>Today: {new Date().toISOString().split("T")[0]}</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <FiDownload size={14} />
+              Export CSV
+            </button>
+            <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-blue-100 w-fit">
+              <FiCalendar size={15} />
+              <span>Today: {new Date().toISOString().split("T")[0]}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -201,33 +327,34 @@ function AttendanceOverview() {
       </div>
 
       {/* Student Attendance Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-6 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
-          <span className="col-span-2">Student Name & Team</span>
-          <span>Roll Number</span>
-          <span>Total Logs</span>
-          <span>Attendance Rate</span>
-          <span className="text-right">Status</span>
-        </div>
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
+          <div className="grid grid-cols-6 min-w-162.5 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+            <span className="col-span-2">Student Name & Team</span>
+            <span>Roll Number</span>
+            <span>Total Logs</span>
+            <span>Attendance Rate</span>
+            <span className="text-right">Status</span>
+          </div>
 
-        <div className="divide-y divide-gray-100">
-          {filteredStudents.map((student) => {
-            const sid = String(student._id || student.id);
-            const history = getStudentAttendance(sid);
-            const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
-            const studentTeam = getStudentTeam(student);
-            const totalRecords = history.length;
-            const presentCount = history.filter(
-              (h) => h.status === "Present" || h.status === "Late"
-            ).length;
-            const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
-            const avatar = student.profilePicture || student.profileImage || student.image || "";
+          <div className="divide-y divide-gray-100">
+            {filteredStudents.map((student) => {
+              const sid = String(student._id || student.id);
+              const history = getStudentAttendance(sid);
+              const studentName = student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim();
+              const studentTeam = getStudentTeam(student);
+              const totalRecords = history.length;
+              const presentCount = history.filter(
+                (h) => h.status === "Present" || h.status === "Late"
+              ).length;
+              const percentage = totalRecords > 0 ? Math.round((presentCount / totalRecords) * 100) : 100;
+              const avatar = student.profilePicture || student.profileImage || student.image || "";
 
-            return (
-              <div
-                key={sid}
-                className="grid grid-cols-6 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
-              >
+              return (
+                <div
+                  key={sid}
+                  className="grid grid-cols-6 min-w-162.5 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
+                >
                 {/* Name & Team */}
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-blue-200 shadow-2xs">
@@ -297,6 +424,7 @@ function AttendanceOverview() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

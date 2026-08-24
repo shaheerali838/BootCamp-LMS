@@ -10,10 +10,12 @@ import {
   FiEyeOff,
 } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function AdminManagement() {
   const {
     admins = [],
+    loading: adminsLoading,
     fetchAdmins,
     addAdmin,
     updateAdmin,
@@ -96,7 +98,11 @@ function AdminManagement() {
       email: admin.email || "",
       phoneNumber: admin.phoneNumber || admin.phone || "",
       password: "",
-      role: (admin.role || "ADMIN").toUpperCase().replace(/[\s_]+/g, "") === "MENTOR" ? "MENTOR" : "ADMIN",
+      role:
+        (admin.role || "ADMIN").toUpperCase().replace(/[\s_]+/g, "") ===
+        "MENTOR"
+          ? "MENTOR"
+          : "ADMIN",
       status: admin.status || "active",
     });
     setModalError("");
@@ -117,7 +123,8 @@ function AdminManagement() {
       return;
     }
 
-    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
+    const fullName =
+      `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim();
     const payload = {
       ...formData,
       firstName: formData.firstName.trim(),
@@ -137,17 +144,25 @@ function AdminManagement() {
       }
       setShowModal(false);
     } catch (err) {
-      setModalError(err?.response?.data?.message || err?.message || "Failed to save administrator.");
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save administrator.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (adminsLoading && admins.length === 0) {
+    return <PageSkeleton hasStats={false} rowCount={8} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FiUserCheck className="text-blue-600" />
@@ -159,7 +174,7 @@ function AdminManagement() {
           </div>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer shrink-0"
           >
             <FiPlus size={16} />
             Add Administrator
@@ -201,29 +216,36 @@ function AdminManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <span className="col-span-2">Name & Contact</span>
-          <span>Role</span>
-          <span>Status</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {filtered.map((item) => {
-            const adminName = getAdminName(item);
-            const role = getAdminRole(item);
-            const isStatusActive =
-              (item.status || "").toLowerCase() === "active";
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
+          <div className="grid grid-cols-5 min-w-137.5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
+            <span className="col-span-2">Name & Contact</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span className="text-right">Actions</span>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {filtered.map((item) => {
+              const adminName = getAdminName(item);
+              const role = getAdminRole(item);
+              const isStatusActive =
+                (item.status || "").toLowerCase() === "active";
 
-            return (
-              <div
-                key={item._id || item.id}
-                className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
-              >
+              return (
+                <div
+                  key={item._id || item.id}
+                  className="grid grid-cols-5 min-w-137.5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
+                >
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-blue-200 shadow-2xs">
                     {item.profilePicture || item.profileImage || item.image ? (
-                      <img src={item.profilePicture || item.profileImage || item.image} alt={adminName} className="w-full h-full object-cover" />
+                      <img
+                        src={
+                          item.profilePicture || item.profileImage || item.image
+                        }
+                        alt={adminName}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       adminName.slice(0, 2).toUpperCase()
                     )}
@@ -240,49 +262,51 @@ function AdminManagement() {
                 </div>
                 <div>
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       isStatusActive
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-red-50 text-red-600 border border-red-200"
                     }`}
                   >
-                    {item.status || "active"}
+                    {item.status || "Active"}
                   </span>
                 </div>
-                <div className="flex items-center justify-end gap-3 text-gray-400">
+                <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => handleOpenEdit(item)}
-                    className="hover:text-blue-600 transition cursor-pointer"
-                    title="Edit"
+                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition cursor-pointer"
+                    title="Edit Admin"
                   >
-                    <FiEdit2 size={16} />
+                    <FiEdit2 size={14} />
                   </button>
                   <button
                     onClick={() => {
                       if (
                         window.confirm(
-                          "Are you sure you want to remove this user?",
+                          "Are you sure you want to remove this admin?",
                         )
                       ) {
                         deleteAdmin(item._id || item.id);
                       }
                     }}
-                    className="hover:text-red-600 transition cursor-pointer"
-                    title="Delete"
+                    className="p-1.5 hover:bg-red-50 rounded-lg text-gray-500 hover:text-red-600 transition cursor-pointer"
+                    title="Delete Admin"
                   >
-                    <FiTrash2 size={16} />
+                    <FiTrash2 size={14} />
                   </button>
                 </div>
               </div>
             );
           })}
+
           {filtered.length === 0 && (
-            <div className="py-8 text-center text-sm text-gray-500">
+            <div className="py-12 text-center text-xs text-gray-400">
               No administrators found.
             </div>
           )}
         </div>
       </div>
+    </div>
 
       {/* Modal */}
       {showModal && (
@@ -370,7 +394,11 @@ function AdminManagement() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition cursor-pointer"
                       title={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                      {showPassword ? (
+                        <FiEyeOff size={16} />
+                      ) : (
+                        <FiEye size={16} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -405,7 +433,6 @@ function AdminManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs outline-none focus:border-blue-500"
                   >
                     <option value="ADMIN">Admin</option>
-                    <option value="MENTOR">Mentor</option>
                   </select>
                 </div>
                 <div>
@@ -442,10 +469,16 @@ function AdminManagement() {
                   {submitting ? (
                     <>
                       <FiLoader size={14} className="animate-spin" />
-                      <span>{editingAdmin ? "Updating Administrator..." : "Saving Administrator..."}</span>
+                      <span>
+                        {editingAdmin
+                          ? "Updating Administrator..."
+                          : "Saving Administrator..."}
+                      </span>
                     </>
                   ) : (
-                    <span>{editingAdmin ? "Save Changes" : "Save Administrator"}</span>
+                    <span>
+                      {editingAdmin ? "Save Changes" : "Save Administrator"}
+                    </span>
                   )}
                 </button>
               </div>

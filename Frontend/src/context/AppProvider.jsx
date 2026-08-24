@@ -1,4 +1,5 @@
 import React from "react";
+import { LoadingProvider } from "./LoadingContext";
 import { SidebarProvider } from "./SidebarContext";
 import { TeamProjectProvider } from "./TeamProjectContext";
 import { AnnouncementProvider } from "./AnnouncementContext";
@@ -7,6 +8,7 @@ import { WorkProvider } from "./WorkContext";
 import { SystemProvider } from "./SystemContext";
 
 const providers = [
+  LoadingProvider,
   SidebarProvider,
   AnnouncementProvider,
   AcademicProvider,

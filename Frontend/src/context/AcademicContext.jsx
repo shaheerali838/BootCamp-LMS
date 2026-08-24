@@ -9,6 +9,8 @@ import {
 import api from "../api/axios";
 import { useAuth } from "./AuthContext";
 
+//AcademicContext	Student + Batch + Attendance
+
 const AcademicContext = createContext();
 
 // ── Static local attendance data (no backend route) ───────
@@ -42,7 +44,7 @@ export const AcademicProvider = ({ children }) => {
 
     setStudentsLoading(true);
     try {
-      const res = await api.get("/students/get-all-students");
+      const res = await api.get("/students/get-all-students?limit=1000");
       setStudents(res.data.data || []);
       setStudentsError(null);
     } catch (err) {
@@ -84,7 +86,11 @@ export const AcademicProvider = ({ children }) => {
         if (mId) formData.append("mentorId", mId);
         formData.append("status", newStudent.status || "active");
         if (newStudent.profilePicture) {
-          formData.append("profilePicture", newStudent.profilePicture);
+          if (newStudent.profilePicture instanceof File || newStudent.profilePicture instanceof Blob) {
+            formData.append("profilePicture", newStudent.profilePicture);
+          } else if (typeof newStudent.profilePicture === "string" && newStudent.profilePicture.trim()) {
+            formData.append("profilePicture", newStudent.profilePicture.trim());
+          }
         }
 
         res = await api.post("/students/create-student", formData, {
@@ -97,9 +103,8 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to add student:", err);
-      setStudentsError(
-        err.response?.data?.message || "Failed to create student",
-      );
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to create student";
+      setStudentsError(errMsg);
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -130,7 +135,13 @@ export const AcademicProvider = ({ children }) => {
         if (mId) formData.append("mentorId", mId);
         if (updatedData.status) formData.append("status", updatedData.status);
         if (updatedData.password) formData.append("password", updatedData.password);
-        if (updatedData.profilePicture) formData.append("profilePicture", updatedData.profilePicture);
+        if (updatedData.profilePicture) {
+          if (updatedData.profilePicture instanceof File || updatedData.profilePicture instanceof Blob) {
+            formData.append("profilePicture", updatedData.profilePicture);
+          } else if (typeof updatedData.profilePicture === "string" && updatedData.profilePicture.trim()) {
+            formData.append("profilePicture", updatedData.profilePicture.trim());
+          }
+        }
 
         res = await api.put(`/students/update-student/${id}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
@@ -142,9 +153,8 @@ export const AcademicProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("Failed to update student:", err);
-      setStudentsError(
-        err.response?.data?.message || "Failed to update student",
-      );
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to update student";
+      setStudentsError(errMsg);
       throw err;
     } finally {
       setStudentsLoading(false);
@@ -446,9 +456,8 @@ export const AcademicProvider = ({ children }) => {
         _id: rec._id,
         date: rec.date,
         status: rec.status,
-        time: rec.checkInTime || "--:--",
-        checkInTime: rec.checkInTime || "--:--",
-        checkOutTime: rec.checkOutTime || "--:--",
+        time: rec.checkInTime || rec.time || "--:--",
+        checkInTime: rec.checkInTime || rec.time || "--:--",
         remarks: rec.remarks || "",
       }));
   };
@@ -487,6 +496,35 @@ export const AcademicProvider = ({ children }) => {
       setRawAttendance([]);
     }
   }, [accessToken, fetchStudents, fetchBatches, fetchAttendance]);
+
+  // ── Automatic 12:00 AM Midnight Rollover & Sync ──────────────
+  useEffect(() => {
+    if (!accessToken) return;
+    let timerId;
+
+    const scheduleMidnightSync = () => {
+      const now = new Date();
+      const nextMidnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0,
+        0,
+        2
+      );
+      const msUntilMidnight = nextMidnight.getTime() - now.getTime();
+
+      timerId = setTimeout(() => {
+        fetchAttendance();
+        scheduleMidnightSync();
+      }, msUntilMidnight);
+    };
+
+    scheduleMidnightSync();
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [accessToken, fetchAttendance]);
 
   return (
     <AcademicContext.Provider

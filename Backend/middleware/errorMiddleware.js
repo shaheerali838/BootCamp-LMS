@@ -1,21 +1,18 @@
 export const notFound = (req, res, next) => {
-    const error = new Error(`Route not found: ${req.originalUrl}`);
-    error.statusCode = 404;
-
-    next(error);
+    res.status(404).json({ error: "Not Found" });
 };
 
 export const errorHandler = (err, req, res, next) => {
-    console.error(err);
+    if (process.env.NODE_ENV !== "production") {
+        console.error(err);
+    }
 
-    const statusCode = err.statusCode || 500;
+    const statusCode = err.statusCode || err.status || 500;
 
     res.status(statusCode).json({
-        success: false,
-        message: err.message || "Internal Server Error",
-
+        error: statusCode === 500 ? "Internal Server Error" : err.message || "An error occurred",
         ...(process.env.NODE_ENV === "development" && {
             stack: err.stack,
         }),
     });
-};
+};

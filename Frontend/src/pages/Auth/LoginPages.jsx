@@ -46,15 +46,18 @@ function LoginPages() {
   const submitForm = async (e) => {
     e.preventDefault();
 
+    const trimmedIdentifier = (formData.email || "").trim();
+    const trimmedPassword = (formData.password || "").trim();
+
     let newErrors = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+    if (!trimmedIdentifier) {
+      newErrors.email = "Email or Roll Number is required";
     }
 
-    if (!formData.password) {
+    if (!trimmedPassword) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    } else if (trimmedPassword.length < 6) {
       newErrors.password = "Password must be at least 6 characters long";
     }
 
@@ -66,11 +69,11 @@ function LoginPages() {
 
     setIsLoading(true);
     try {
-      const response = await login(formData.email, formData.password);
+      const response = await login(trimmedIdentifier, trimmedPassword);
 
       // Handle Remember Me persistence
       if (rememberMe) {
-        localStorage.setItem("rememberedEmail", formData.email);
+        localStorage.setItem("rememberedEmail", trimmedIdentifier);
         localStorage.setItem("rememberMe", "true");
       } else {
         localStorage.removeItem("rememberedEmail");
@@ -97,7 +100,7 @@ function LoginPages() {
     } catch (err) {
       console.error(err);
       setError({
-        general: err.response?.data?.message || "Invalid email or password",
+        general: err.response?.data?.message || "Invalid email/roll number or password",
       });
     } finally {
       setIsLoading(false);

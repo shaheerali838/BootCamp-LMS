@@ -103,26 +103,27 @@ function StudentManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-6 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
-          <span>Roll No</span>
-          <span className="col-span-2">Name & Email</span>
-          <span>Gender</span>
-          <span>Status</span>
-          <span className="text-right">Actions</span>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {filtered.map((item) => {
-            const studentName = getStudentName(item);
-            const studentInitials = getStudentInitials(item);
-            const isStatusActive =
-              (item.status || "").toLowerCase() === "active";
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
+          <div className="grid grid-cols-6 min-w-150 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
+            <span>Roll No</span>
+            <span className="col-span-2">Name & Email</span>
+            <span>Gender</span>
+            <span>Status</span>
+            <span className="text-right">Actions</span>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {filtered.map((item) => {
+              const studentName = getStudentName(item);
+              const studentInitials = getStudentInitials(item);
+              const isStatusActive =
+                (item.status || "").toLowerCase() === "active";
 
-            return (
-              <div
-                key={item._id || item.id}
-                className="grid grid-cols-6 px-5 py-4 items-center hover:bg-gray-50 text-sm"
-              >
+              return (
+                <div
+                  key={item._id || item.id}
+                  className="grid grid-cols-6 min-w-150 px-5 py-4 items-center hover:bg-gray-50 text-sm"
+                >
                 <span className="font-semibold text-gray-700 text-xs">
                   {item.rollNumber || item.rollNo || "N/A"}
                 </span>
@@ -191,6 +192,7 @@ function StudentManagement() {
           )}
         </div>
       </div>
+    </div>
 
       {/* Modal */}
       <AddStudentModal

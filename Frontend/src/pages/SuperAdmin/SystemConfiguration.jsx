@@ -21,7 +21,7 @@ function SystemConfiguration() {
   };
 
   return (
-    <div className="p-5 space-y-6 max-w-4xl">
+    <div className="p-5 space-y-6 max-w-4xl w-full max-w-full overflow-x-hidden min-w-0">
       {/* Header */}
       <div>
        

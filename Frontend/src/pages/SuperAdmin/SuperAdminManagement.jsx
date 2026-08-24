@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { FiShield, FiPlus, FiTrash2, FiEdit2, FiSearch, FiEye, FiEyeOff } from "react-icons/fi";
 import { useAdmins } from "../../context/SystemContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function SuperAdminManagement() {
   const {
     admins = [],
+    loading: adminsLoading,
     fetchAdmins,
     addAdmin,
     updateAdmin,
@@ -129,14 +131,18 @@ function SuperAdminManagement() {
     }
   };
 
+  if (adminsLoading && admins.length === 0) {
+    return <PageSkeleton hasStats={false} rowCount={6} />;
+  }
+
   return (
     <div className="p-5 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FiShield className="text-purple-600" />
+              <FiShield className="text-purple-700" />
               SuperAdmin Management
             </h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -146,7 +152,7 @@ function SuperAdminManagement() {
           </div>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-xs shadow-xs transition cursor-pointer shrink-0"
           >
             <FiPlus size={16} />
             Add Super Admin
@@ -172,8 +178,9 @@ function SuperAdminManagement() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
-        <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
+          <div className="grid grid-cols-5 min-w-137.5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
           <span className="col-span-2">Name & Contact</span>
           <span>Role & Authority</span>
           <span>Status</span>
@@ -188,7 +195,7 @@ function SuperAdminManagement() {
             return (
               <div
                 key={item._id || item.id}
-                className="grid grid-cols-5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
+                className="grid grid-cols-5 min-w-137.5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
               >
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-purple-200 shadow-2xs">
@@ -210,49 +217,50 @@ function SuperAdminManagement() {
                 </div>
                 <div>
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       isStatusActive
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-purple-100 text-purple-700"
                         : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {item.status || "active"}
+                    {item.status || "Active"}
                   </span>
                 </div>
-                <div className="flex items-center justify-end gap-3 text-gray-400">
+                <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => handleOpenEdit(item)}
-                    className="hover:text-purple-600 transition cursor-pointer"
-                    title="Edit"
+                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-purple-700 transition cursor-pointer"
+                    title="Edit Super Admin"
                   >
-                    <FiEdit2 size={16} />
+                    <FiEdit2 size={14} />
                   </button>
                   <button
                     onClick={() => {
                       if (
                         window.confirm(
-                          "Are you sure you want to remove this super admin?",
+                          "Are you sure you want to delete this Super Administrator?",
                         )
                       ) {
                         deleteAdmin(item._id || item.id);
                       }
                     }}
-                    className="hover:text-red-600 transition cursor-pointer"
-                    title="Delete"
+                    className="p-1.5 hover:bg-red-50 rounded-lg text-gray-500 hover:text-red-600 transition cursor-pointer"
+                    title="Delete Super Admin"
                   >
-                    <FiTrash2 size={16} />
+                    <FiTrash2 size={14} />
                   </button>
                 </div>
               </div>
             );
           })}
           {filtered.length === 0 && (
-            <div className="py-8 text-center text-sm text-gray-500">
-              No Super Admins found.
+            <div className="py-12 text-center text-xs text-gray-400">
+              No Super Administrators found.
             </div>
           )}
         </div>
       </div>
+    </div>
 
       {/* Modal */}
       {showModal && (

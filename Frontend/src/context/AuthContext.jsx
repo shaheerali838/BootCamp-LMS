@@ -56,10 +56,15 @@ export const AuthProvider = ({ children }) => {
   // ============================================================
 
   // Login
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
+    const trimmedId = typeof identifier === "string" ? identifier.trim() : identifier;
+    const trimmedPass = typeof password === "string" ? password.trim() : password;
+
     const response = await api.post("/auth/login", {
-      email,
-      password,
+      email: trimmedId,
+      rollNumber: trimmedId,
+      identifier: trimmedId,
+      password: trimmedPass,
     });
 
     const data = response.data?.data || response.data;
@@ -125,19 +130,22 @@ export const AuthProvider = ({ children }) => {
   // ================= PASSWORD RECOVERY & CHANGE METHODS (ADDED) =================
   // Forgot Password (sends email with reset link)
   const forgotPassword = async (email) => {
-    return api.post("/auth/forgot-password", { email });
+    const trimmedEmail = typeof email === "string" ? email.trim() : email;
+    return api.post("/auth/forgot-password", { email: trimmedEmail });
   };
 
   // Reset Password (submits new password with token)
   const resetPassword = async (token, newPassword) => {
-    return api.post("/auth/reset-password", { token, newPassword });
+    const trimmedToken = typeof token === "string" ? token.trim() : token;
+    const trimmedPassword = typeof newPassword === "string" ? newPassword.trim() : newPassword;
+    return api.post("/auth/reset-password", { token: trimmedToken, newPassword: trimmedPassword });
   };
 
   // Change Password (authenticated user)
   const changePassword = async (currentPassword, newPassword) => {
     return api.post("/auth/change-password", {
-      currentPassword,
-      newPassword,
+      currentPassword: typeof currentPassword === "string" ? currentPassword.trim() : currentPassword,
+      newPassword: typeof newPassword === "string" ? newPassword.trim() : newPassword,
     });
   };
   // ==============================================================================

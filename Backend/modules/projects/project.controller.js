@@ -64,7 +64,7 @@ const createProjectHandler = async (req, res) => {
 // Get All Projects
 const getAllProjectsHandler = async (req, res) => {
   try {
-    const projects = await getAllProjects();
+    const projects = await getAllProjects(req.user);
 
     res.status(200).json({
       success: true,
@@ -196,7 +196,7 @@ const deleteProjectHandler = async (req, res) => {
 const searchProjectHandler = async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
-    const projects = await searchProject(keyword);
+    const projects = await searchProject(keyword, req.user);
 
     res.status(200).json({
       success: true,
@@ -215,7 +215,7 @@ const searchProjectHandler = async (req, res) => {
 const getProjectsByBatchHandler = async (req, res) => {
   try {
     const { batchId } = req.params;
-    const projects = await getProjectsByBatch(batchId);
+    const projects = await getProjectsByBatch(batchId, req.user);
 
     res.status(200).json({
       success: true,
@@ -234,7 +234,7 @@ const getProjectsByBatchHandler = async (req, res) => {
 const getProjectsByStatusHandler = async (req, res) => {
   try {
     const { status } = req.params;
-    const projects = await getProjectsByStatus(status);
+    const projects = await getProjectsByStatus(status, req.user);
 
     res.status(200).json({
       success: true,

@@ -4,12 +4,13 @@ import Student from "../../model/student.model.js";
 import { hashToken, generateResetToken } from "../../utils/token.js";
 import sendEmail from "../../utils/sendEmail.js";
 import { getPasswordResetEmailHtml } from "../../utils/emailTemplates.js";
+import { getClientUrl } from "../../utils/url.js";
 
 // ---------- FORGOT PASSWORD ----------
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const emailAddress = email.toLowerCase();
+    const emailAddress = email ? String(email).trim().toLowerCase() : "";
 
     // Check Admin first, then Student
     let user = await Admin.findOne({ email: emailAddress });
@@ -29,7 +30,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = getClientUrl(req);
     const resetLink = `${clientUrl}/reset-password?token=${resetToken}`;
 
     await sendEmail({

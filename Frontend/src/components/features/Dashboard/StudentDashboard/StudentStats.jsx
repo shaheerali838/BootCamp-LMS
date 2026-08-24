@@ -112,16 +112,16 @@ function StudentStats() {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-xs"
+          className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between shadow-xs gap-3 min-w-0"
         >
-          <div>
-            <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase block break-words leading-tight">
               {stat.label}
             </span>
-            <h3 className="text-xl font-bold text-gray-900 mt-1">{stat.value}</h3>
+            <h3 className="text-xl font-bold text-gray-900 mt-1 truncate">{stat.value}</h3>
           </div>
           <div
-            className={`w-10 h-10 rounded-xl border flex items-center justify-center ${stat.iconBg}`}
+            className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${stat.iconBg}`}
           >
             {stat.icon}
           </div>

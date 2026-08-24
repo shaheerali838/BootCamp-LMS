@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import ROLES from "../../constants/roles.js";
 import sendEmail from "../../utils/sendEmail.js";
 import { getAdminWelcomeEmailHtml } from "../../utils/emailTemplates.js";
+import { getClientUrl } from "../../utils/url.js";
 
 // ---------- GET ELIGIBLE MENTORS ----------
 export const getEligibleMentors = async (req, res) => {
@@ -75,7 +76,7 @@ export const createAdmin = async (req, res) => {
 
     // Send Onboarding Email
     try {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const clientUrl = getClientUrl(req);
       const displayRole = (role || ROLES.ADMIN).toUpperCase().replace(/[\s_]+/g, "") === "MENTOR" ? "Mentor" : "Administrator";
       await sendEmail({
         to: admin.email,

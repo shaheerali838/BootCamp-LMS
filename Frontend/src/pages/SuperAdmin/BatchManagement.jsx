@@ -11,6 +11,7 @@ import {
   FiArchive,
 } from "react-icons/fi";
 import { useBatches, useStudent } from "../../context/AcademicContext";
+import { PageSkeleton } from "../../components/common/Skeleton";
 
 function BatchManagement() {
   const { batches, loading, error, addBatch, updateBatch, deleteBatch } =
@@ -117,6 +118,10 @@ function BatchManagement() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  if (loading && batches.length === 0) {
+    return <PageSkeleton statCount={3} rowCount={6} />;
+  }
+
   return (
     <div className="p-4 mt-5">
       {error && (
@@ -201,7 +206,7 @@ function BatchManagement() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full min-w-0 max-w-full">
           <div className="grid grid-cols-[1.8fr_1fr_1.5fr_1.2fr_1fr_1fr] min-w-215 items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
             <span>Batch Name</span>
             <span>Program Code</span>

@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Breadcrumb from "../common/Breadcrumb";
 import { useSidebar } from "../../context/SidebarContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLoading } from "../../context/LoadingContext";
 import {
   User,
   LogOut,
@@ -17,11 +18,14 @@ import {
   GraduationCap,
   KeyRound,
   X,
+  Menu,
+  Loader2,
 } from "lucide-react";
 
 function Navbar() {
-  const { isOpen } = useSidebar();
+  const { isOpen, setIsOpen } = useSidebar();
   const { user, logout } = useAuth();
+  const { isLoading, actionMessage } = useLoading();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -93,13 +97,32 @@ function Navbar() {
   return (
     <div
       className={`
-        h-16 flex items-center justify-between px-4 sm:px-6 border-b border-gray-200 bg-white
+        h-16 flex items-center justify-between px-3 sm:px-6 border-b border-gray-200 bg-white
         fixed top-0 right-0 z-20 transition-all duration-300
-        ${isOpen ? "left-70" : "left-22.5"}
+        ${isOpen ? "md:left-70 left-0" : "md:left-22.5 left-0"}
       `}
     >
-      {/* Left: Breadcrumbs navigation */}
-      <Breadcrumb />
+      {/* Left: Hamburger menu toggle button (small screens only) + Breadcrumbs + Live Syncing Indicator */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="inline-flex md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer shrink-0 border border-gray-200 shadow-2xs active:scale-95 items-center justify-center bg-white"
+          title="Open Navigation Menu"
+          aria-label="Open Navigation Menu"
+        >
+          <Menu size={19} />
+        </button>
+
+        <Breadcrumb />
+
+        {isLoading && (
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-[#0476b9] border border-blue-200/80 rounded-full text-[11px] font-semibold animate-pulse shrink-0">
+            <Loader2 size={12} className="animate-spin text-[#0476b9]" />
+            <span>Syncing...</span>
+          </div>
+        )}
+      </div>
 
       {/* ================= RIGHT: USER PROFILE QUICK BADGE ================= */}
       <div className="relative" ref={dropdownRef}>
@@ -174,7 +197,11 @@ function Navbar() {
               <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 shadow-2xs">
                   {avatarImage ? (
-                    <img src={avatarImage} alt={fullName} className="w-full h-full object-cover" />
+                    <img
+                      src={avatarImage}
+                      alt={fullName}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div
                       className={`w-full h-full flex items-center justify-center text-white font-bold text-[11px] ${
@@ -185,7 +212,9 @@ function Navbar() {
                             : "bg-blue-600"
                       }`}
                     >
-                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : fullName.charAt(0).toUpperCase()}
+                      {user?.firstName
+                        ? user.firstName.charAt(0).toUpperCase()
+                        : fullName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>

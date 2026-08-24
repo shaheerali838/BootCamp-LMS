@@ -12,6 +12,7 @@ import {
 import sendEmail from "../../utils/sendEmail.js";
 import { getWelcomeAccountEmailHtml } from "../../utils/emailTemplates.js";
 import cloudinary, { uploadToCloudinary } from "../../config/cloudinary.js";
+import { getClientUrl } from "../../utils/url.js";
 
 // CREATE STUDENT 
 export const createStudent = async (req, res) => {
@@ -70,7 +71,7 @@ export const createStudent = async (req, res) => {
 
     // Send Welcome Email
     try {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const clientUrl = getClientUrl(req);
       await sendEmail({
         to: student.email,
         subject: "Welcome to Saylani Bootcamp LMS - Your Student Account Credentials",
@@ -91,9 +92,18 @@ export const createStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
-    return res.status(500).json({
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "Email or Roll Number";
+      const readableField = field === "email" ? "Email address" : field === "rollNumber" ? "Roll number" : field;
+      return res.status(409).json({
+        success: false,
+        message: `${readableField} already exists. Please use a unique value.`,
+        error: error.message,
+      });
+    }
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to create student",
+      message: error.message || "Failed to create student",
       error: error.message,
     });
   }
@@ -103,7 +113,12 @@ export const createStudent = async (req, res) => {
 export const getStudents = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit =
+      req.query.limit !== undefined
+        ? parseInt(req.query.limit, 10) === 0
+          ? 10000
+          : parseInt(req.query.limit, 10)
+        : 1000;
     const search = req.query.search || "";
 
     const result = await getStudentsService({ page, limit, search });
@@ -240,9 +255,18 @@ export const updateStudent = async (req, res) => {
       data: updatedStudent,
     });
   } catch (error) {
-    return res.status(500).json({
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "Email or Roll Number";
+      const readableField = field === "email" ? "Email address" : field === "rollNumber" ? "Roll number" : field;
+      return res.status(409).json({
+        success: false,
+        message: `${readableField} already exists. Please use a unique value.`,
+        error: error.message,
+      });
+    }
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to update student",
+      message: error.message || "Failed to update student",
       error: error.message,
     });
   }

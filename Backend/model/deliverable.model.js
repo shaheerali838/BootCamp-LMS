@@ -15,15 +15,18 @@ const deliverableSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     file: {
       type: String,
       required: true,
+      trim: true,
     },
     status: {
       type: String,
       enum: ["Pending", "In Progress", "Completed"],
       default: "Pending",
+      trim: true,
     },
   },
   { timestamps: true },
