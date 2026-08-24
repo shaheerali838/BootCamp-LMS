@@ -218,7 +218,7 @@ function AdminManagement() {
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
         <div className="overflow-x-auto w-full min-w-0 max-w-full">
-          <div className="grid grid-cols-5 min-w-[550px] px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
+          <div className="grid grid-cols-5 min-w-137.5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
             <span className="col-span-2">Name & Contact</span>
             <span>Role</span>
             <span>Status</span>
@@ -234,7 +234,7 @@ function AdminManagement() {
               return (
                 <div
                   key={item._id || item.id}
-                  className="grid grid-cols-5 min-w-[550px] px-5 py-4 items-center hover:bg-gray-50 text-sm"
+                  className="grid grid-cols-5 min-w-137.5 px-5 py-4 items-center hover:bg-gray-50 text-sm"
                 >
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center overflow-hidden shrink-0 border border-blue-200 shadow-2xs">

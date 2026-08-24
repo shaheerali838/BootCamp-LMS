@@ -162,7 +162,7 @@ function TeamManagement() {
         )}
 
         <div className="overflow-x-auto w-full">
-          <div className="min-w-[620px]">
+          <div className="min-w-155">
             <div className="grid grid-cols-5 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-200">
               <span className="col-span-2">Team Name</span>
               <span>Team Leader</span>

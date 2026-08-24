@@ -329,7 +329,7 @@ function AttendanceOverview() {
       {/* Student Attendance Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs w-full max-w-full min-w-0">
         <div className="overflow-x-auto w-full min-w-0 max-w-full">
-          <div className="grid grid-cols-6 min-w-[650px] px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+          <div className="grid grid-cols-6 min-w-162.5 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
             <span className="col-span-2">Student Name & Team</span>
             <span>Roll Number</span>
             <span>Total Logs</span>
@@ -353,7 +353,7 @@ function AttendanceOverview() {
               return (
                 <div
                   key={sid}
-                  className="grid grid-cols-6 min-w-[650px] items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
+                  className="grid grid-cols-6 min-w-162.5 items-center px-4 py-3 hover:bg-gray-50/50 text-xs"
                 >
                 {/* Name & Team */}
                 <div className="col-span-2 flex items-center gap-3">

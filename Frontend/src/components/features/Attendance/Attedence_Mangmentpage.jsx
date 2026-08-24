@@ -298,7 +298,7 @@ function AttendanceManagement() {
 
         {/* Table wrapper */}
         <div className="overflow-x-auto w-full">
-          <div className="min-w-[660px]">
+          <div className="min-w-165">
             {/* Table Header */}
             <div className="grid grid-cols-6 px-4 py-2.5 bg-gray-50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
               <span>Roll No.</span>

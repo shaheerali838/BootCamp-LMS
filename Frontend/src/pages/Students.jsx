@@ -221,7 +221,7 @@ function Students() {
 
         {/* Table wrapper */}
         <div className="overflow-x-auto w-full">
-          <div className="min-w-[750px]">
+          <div className="min-w-187.5">
             {/* Table Header */}
             <div className="grid grid-cols-[1fr_1.8fr_1.4fr_1.4fr_1.1fr_1.2fr] items-center px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase border-b border-gray-200">
               <span>Roll No</span>

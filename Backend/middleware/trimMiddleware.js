@@ -41,10 +41,14 @@ export const trimMiddleware = (req, res, next) => {
       req.body = deepTrim(req.body);
     }
     if (req.query && typeof req.query === "object") {
-      req.query = deepTrim(req.query);
+      for (const key of Object.keys(req.query)) {
+        req.query[key] = deepTrim(req.query[key]);
+      }
     }
     if (req.params && typeof req.params === "object") {
-      req.params = deepTrim(req.params);
+      for (const key of Object.keys(req.params)) {
+        req.params[key] = deepTrim(req.params[key]);
+      }
     }
   } catch (error) {
     console.error("Trim middleware error:", error);

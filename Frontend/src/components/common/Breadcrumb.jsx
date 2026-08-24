@@ -36,7 +36,7 @@ function Breadcrumb() {
       <div className="flex items-center text-xs sm:text-sm text-gray-500 font-medium truncate">
         <span className="hidden xs:inline">Home</span>
         <span className="mx-1 hidden xs:inline text-gray-300">/</span>
-        <span className="text-gray-900 font-semibold truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
+        <span className="text-gray-900 font-semibold truncate max-w-30 sm:max-w-50 md:max-w-none">
           {currentPage}
         </span>
       </div>

@@ -44,11 +44,11 @@ function StudentDashboard() {
             {today}
           </div>
 
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 flex items-center gap-2 flex-wrap break-words">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 flex items-center gap-2 flex-wrap wrap-break-word">
             Welcome back, {studentName} 👋
           </h1>
 
-          <p className="text-xs text-gray-500 font-medium mt-0.5 break-words">
+          <p className="text-xs text-gray-500 font-medium mt-0.5 wrap-break-word">
             Here's your live training overview and today's schedule.
           </p>
         </div>
