@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   FiUsers,
   FiCheckCircle,
@@ -19,7 +19,7 @@ function StatsGrid() {
   const { teams = [], fetchTeams } = useTeamProject();
   const { tasks = [], fetchTasks } = useTasks();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchStudents) fetchStudents();
     if (fetchTeams) fetchTeams();
     if (fetchTasks) fetchTasks();

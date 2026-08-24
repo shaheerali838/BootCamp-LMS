@@ -44,12 +44,25 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     );
   }
 
-  if (!isAuthenticated || !user) {
+  const storedUser = (() => {
+    try {
+      const u = localStorage.getItem("user");
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const storedToken = localStorage.getItem("accessToken");
+
+  const currentUser = user || storedUser;
+  const isAuth = isAuthenticated || (!!currentUser && !!storedToken);
+
+  if (!isAuth || !currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (allowedRoles.length > 0) {
-    const userRole = getNormalizedRole(user);
+    const userRole = getNormalizedRole(currentUser);
     const normalizedAllowed = allowedRoles.map((r) =>
       String(r).toUpperCase().replace(/[\s_]+/g, "")
     );
@@ -59,7 +72,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       (userRole === "SUPERADMIN" && (normalizedAllowed.includes("ADMIN") || normalizedAllowed.includes("MENTOR")));
 
     if (!hasPermission) {
-      return <Navigate to={getRoleDashboard(user)} replace />;
+      return <Navigate to={getRoleDashboard(currentUser)} replace />;
     }
   }
 
@@ -81,8 +94,21 @@ export const PublicOnlyRoute = ({ children }) => {
     );
   }
 
-  if (isAuthenticated && user) {
-    return <Navigate to={getRoleDashboard(user)} replace />;
+  const storedUser = (() => {
+    try {
+      const u = localStorage.getItem("user");
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const storedToken = localStorage.getItem("accessToken");
+
+  const currentUser = user || storedUser;
+  const isAuth = isAuthenticated || (!!currentUser && !!storedToken);
+
+  if (isAuth && currentUser) {
+    return <Navigate to={getRoleDashboard(currentUser)} replace />;
   }
 
   return children;

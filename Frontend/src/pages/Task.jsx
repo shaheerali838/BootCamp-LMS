@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { FiSearch, FiClipboard, FiPlus } from "react-icons/fi";
 
 import TaskCard from "../components/features/Tasks/TaskCard";
@@ -11,7 +11,7 @@ function Task() {
   const [showModal, setShowModal] = useState(false);
   const [taskToAssign, setTaskToAssign] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchTasks) fetchTasks();
   }, [fetchTasks]);
 

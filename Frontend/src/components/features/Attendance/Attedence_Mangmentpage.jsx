@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   FiCalendar,
   FiClock,
@@ -17,7 +17,7 @@ function AttendanceManagement() {
   const { updateAttendance, getStudentAttendance, loading: attendanceLoading } = useAttendance();
   const { teams = [], teamsLoading, fetchTeams } = useTeamProject();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchStudents) fetchStudents();
     if (fetchTeams) fetchTeams();
   }, [fetchStudents, fetchTeams]);

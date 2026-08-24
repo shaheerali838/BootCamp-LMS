@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiFileText, FiFolder, FiDownload, FiExternalLink } from "react-icons/fi";
 import { useResources } from "../../../../context/SystemContext";
@@ -6,7 +6,7 @@ import { downloadResourceFile } from "../../../../utils/downloadHelper";
 
 function RecentResources() {
   const { resources = [] } = useResources();
-  const [downloadingId, setDownloadingId] = React.useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const list = resources.slice(0, 4).map((r, i) => ({
     id: r._id || r.id || i,

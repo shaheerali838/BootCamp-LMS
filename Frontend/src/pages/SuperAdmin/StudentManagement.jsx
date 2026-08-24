@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiUsers, FiPlus, FiTrash2, FiEdit2, FiSearch } from "react-icons/fi";
 import { useStudent } from "../../context/AcademicContext";
 import AddStudentModal from "../../components/features/Students/AddStudentModal";
@@ -7,7 +7,7 @@ function StudentManagement() {
   const { students, fetchStudents, addStudent, updateStudent, deleteStudent } =
     useStudent();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchStudents) fetchStudents();
   }, [fetchStudents]);
 

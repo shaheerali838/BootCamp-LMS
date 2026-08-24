@@ -12,7 +12,29 @@ import ForgetPassword from "./pages/Auth/ForgetPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import { FiLoader } from "react-icons/fi";
 
-import { ProtectedRoute, PublicOnlyRoute } from "./routes/ProtectedRoute";
+import { ProtectedRoute, PublicOnlyRoute, getRoleDashboard } from "./routes/ProtectedRoute";
+
+function RootRedirect() {
+  const { user, isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+
+  const storedUser = (() => {
+    try {
+      const u = localStorage.getItem("user");
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const storedToken = localStorage.getItem("accessToken");
+  const currentUser = user || storedUser;
+  const isAuth = isAuthenticated || (!!currentUser && !!storedToken);
+
+  if (isAuth && currentUser) {
+    return <Navigate to={getRoleDashboard(currentUser)} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -35,7 +57,7 @@ function DashboardLayout() {
 function AppLayout() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<RootRedirect />} />
 
       {/* ================= PUBLIC AUTH ROUTES (IN AUTH LAYOUT) ================= */}
       <Route

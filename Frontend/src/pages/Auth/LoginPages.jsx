@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import img from "/imges/images.jpg?url";
@@ -21,7 +21,7 @@ function LoginPages() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Load remembered credentials on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     const isRemembered = localStorage.getItem("rememberMe") === "true";
     if (savedEmail && isRemembered) {

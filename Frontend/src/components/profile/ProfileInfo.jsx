@@ -1,8 +1,3 @@
-// =========================================================================
-// Profile Info Component
-// Displays role-specific personal and academic information for Super Admin, Admin, and Student
-// =========================================================================
-
 import React from "react";
 import {
   User,

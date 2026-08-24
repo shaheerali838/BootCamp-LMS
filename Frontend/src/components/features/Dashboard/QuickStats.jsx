@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTeamProject } from "../../../context/TeamProjectContext";
 
 function QuickStats() {
   const { projects = [], fetchProjects } = useTeamProject();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchProjects) fetchProjects();
   }, [fetchProjects]);
 

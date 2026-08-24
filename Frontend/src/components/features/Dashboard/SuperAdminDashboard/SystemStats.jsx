@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import StatCard from "../../Dashboard/StatCard";
 import { useAdmins } from "../../../../context/SystemContext";
 import { useStudent, useBatches } from "../../../../context/AcademicContext";
@@ -19,9 +19,9 @@ function SystemStats() {
   const { batches = [] } = useBatches();
   const { projects = [], teams = [] } = useTeamProject();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fetchAdmins) fetchAdmins();
-  }, []);
+  }, [fetchAdmins]);
 
   const superAdminsCount = admins.filter((a) => {
     const r = (a.role || "").toUpperCase();
