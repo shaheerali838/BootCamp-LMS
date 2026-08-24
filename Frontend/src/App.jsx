@@ -10,31 +10,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 import LoginPages from "./pages/Auth/LoginPages";
 import ForgetPassword from "./pages/Auth/ForgetPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
-import { FiLoader } from "react-icons/fi";
-
-import { ProtectedRoute, PublicOnlyRoute, getRoleDashboard } from "./routes/ProtectedRoute";
-
-function RootRedirect() {
-  const { user, isAuthenticated, loading } = useAuth();
-  if (loading) return null;
-
-  const storedUser = (() => {
-    try {
-      const u = localStorage.getItem("user");
-      return u ? JSON.parse(u) : null;
-    } catch {
-      return null;
-    }
-  })();
-  const storedToken = localStorage.getItem("accessToken");
-  const currentUser = user || storedUser;
-  const isAuth = isAuthenticated || (!!currentUser && !!storedToken);
-
-  if (isAuth && currentUser) {
-    return <Navigate to={getRoleDashboard(currentUser)} replace />;
-  }
-  return <Navigate to="/login" replace />;
-}
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 function DashboardLayout() {
   const { isOpen } = useSidebar();
@@ -57,16 +33,10 @@ function DashboardLayout() {
 function AppLayout() {
   return (
     <Routes>
-      <Route path="/" element={<RootRedirect />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* ================= PUBLIC AUTH ROUTES (IN AUTH LAYOUT) ================= */}
-      <Route
-        element={
-          <PublicOnlyRoute>
-            <AuthLayout />
-          </PublicOnlyRoute>
-        }
-      >
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPages />} />
         <Route path="/forgot-password" element={<ForgetPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />

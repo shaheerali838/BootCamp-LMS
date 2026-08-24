@@ -15,7 +15,7 @@ function SuperAdminDashboard() {
             SuperAdmin Control Center
           </span>
           <h1 className="text-lg md:text-xl font-bold mt-1">
-            Welcome to SMIT System Administration 👑
+            Welcome to SMIT System Administration 
           </h1>
           <p className="text-purple-100 text-xs mt-0.5">
             Full system authority: Manage admins, mentors, students, batches,
