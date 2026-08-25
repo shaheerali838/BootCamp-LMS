@@ -81,10 +81,7 @@ function LoginPages() {
       }
 
       const loggedUser =
-        response.data?.data?.user ||
-        response.data?.user ||
-        response.user ||
-        {};
+        response.data?.data?.user || response.data?.user || response.user || {};
 
       navigate(getRoleDashboard(loggedUser), { replace: true });
 
@@ -100,7 +97,9 @@ function LoginPages() {
     } catch (err) {
       console.error(err);
       setError({
-        general: err.response?.data?.message || "Invalid email/roll number or password",
+        general:
+          err.response?.data?.message ||
+          "Invalid email/roll number or password",
       });
     } finally {
       setIsLoading(false);

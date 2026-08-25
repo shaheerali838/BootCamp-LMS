@@ -15,7 +15,7 @@ import {
   Building2,
   Info,
 } from "lucide-react";
-import img from "/imges/images-removebg-preview.png?url";
+import img from "/imges/images.jpg?url";
 
 const AuthLayout = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -45,11 +45,11 @@ const AuthLayout = () => {
         </div>
 
         {/* Center Image */}
-        <div className="flex flex-1 items-center justify-center px-4 py-2">
+        <div className="flex items-center justify-center px-4 py-2">
           <img
             src={img}
             alt="SMIT Free IT Training"
-            className="w-44 xl:w-56 max-w-full h-auto object-contain"
+            className="w-52 xl:w-64 max-w-full h-50 object-contain"
           />
         </div>
 
